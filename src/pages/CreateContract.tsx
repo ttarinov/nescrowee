@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, ArrowRight, Copy, Link as LinkIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { PlusSignIcon, Delete01Icon, ArrowRight01Icon, Copy01Icon, Link01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
 interface MilestoneForm {
@@ -55,13 +56,15 @@ const CreateContract = () => {
       toast.error("Please provide a contract title");
       return;
     }
-    if (milestones.length === 0 || milestones.every((m) => !m.title)) {
-      toast.error("Add at least one milestone with a title");
-      return;
-    }
-    if (budgetType === "milestones" && milestones.some((m) => !m.title || !m.amount)) {
-      toast.error("All milestones need a title and amount");
-      return;
+    if (budgetType === "milestones") {
+      if (milestones.length === 0 || milestones.every((m) => !m.title)) {
+        toast.error("Add at least one milestone with a title");
+        return;
+      }
+      if (milestones.some((m) => !m.title || !m.amount)) {
+        toast.error("All milestones need a title and amount");
+        return;
+      }
     }
     if (budgetType === "total" && !totalBudget) {
       toast.error("Please specify the total budget");
@@ -97,7 +100,7 @@ const CreateContract = () => {
             animate={{ opacity: 1, y: 0 }}
             className="p-8 rounded-2xl border border-primary/20 bg-primary/5 text-center"
           >
-            <LinkIcon className="w-12 h-12 text-primary mx-auto mb-4" />
+            <HugeiconsIcon icon={Link01Icon} size={48} className="text-primary mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3">Contract Created!</h2>
             <p className="text-muted-foreground mb-6">
               Share this invite link with the other party. They'll be able to join and provide their wallet address.
@@ -106,7 +109,7 @@ const CreateContract = () => {
             <div className="flex items-center gap-2 p-3 rounded-lg bg-card border border-border max-w-md mx-auto mb-6">
               <code className="text-sm text-primary font-mono flex-1 truncate">{inviteLink}</code>
               <Button variant="ghost" size="sm" onClick={copyInviteLink}>
-                <Copy className="w-4 h-4" />
+                <HugeiconsIcon icon={Copy01Icon} size={16} />
               </Button>
             </div>
             <div className="flex gap-3 justify-center">
@@ -192,52 +195,52 @@ const CreateContract = () => {
               )}
             </div>
 
-            {/* Milestones */}
-            <div className="p-6 rounded-xl bg-card border border-border space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">Milestones *</h2>
-                <Button type="button" variant="ghost" size="sm" onClick={addMilestone}>
-                  <Plus className="w-4 h-4 mr-1" /> Add
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {budgetType === "total"
-                  ? "Define milestones for deliverables. Amounts are optional with total budget."
-                  : "Each milestone must have a title and amount. Funds are escrowed per milestone."}
-              </p>
-              {milestones.map((m, i) => (
-                <motion.div
-                  key={i}
-                  className="p-4 rounded-lg bg-secondary/50 border border-border space-y-3"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono text-muted-foreground">
-                      Milestone {i + 1}
-                    </span>
-                    {milestones.length > 1 && (
-                      <button type="button" onClick={() => removeMilestone(i)} className="text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-2">
-                      <Input placeholder="Title *" value={m.title} onChange={(e) => updateMilestone(i, "title", e.target.value)} />
+            {/* Milestones - only show when budgetType is milestones */}
+            {budgetType === "milestones" && (
+              <div className="p-6 rounded-xl bg-card border border-border space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold text-lg">Milestones *</h2>
+                  <Button type="button" variant="ghost" size="sm" onClick={addMilestone}>
+                    <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-1" /> Add
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Each milestone must have a title and amount. Funds are escrowed per milestone.
+                </p>
+                {milestones.map((m, i) => (
+                  <motion.div
+                    key={i}
+                    className="p-4 rounded-lg bg-secondary/50 border border-border space-y-3"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        Milestone {i + 1}
+                      </span>
+                      {milestones.length > 1 && (
+                        <button type="button" onClick={() => removeMilestone(i)} className="text-muted-foreground hover:text-destructive transition-colors">
+                          <HugeiconsIcon icon={Delete01Icon} size={16} />
+                        </button>
+                      )}
                     </div>
-                    <Input
-                      placeholder={budgetType === "total" ? "Amount (opt)" : "Amount (NEAR) *"}
-                      type="number"
-                      value={m.amount}
-                      onChange={(e) => updateMilestone(i, "amount", e.target.value)}
-                      className="font-mono"
-                    />
-                  </div>
-                  <Input placeholder="Description" value={m.description} onChange={(e) => updateMilestone(i, "description", e.target.value)} />
-                </motion.div>
-              ))}
-            </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="col-span-2">
+                        <Input placeholder="Title *" value={m.title} onChange={(e) => updateMilestone(i, "title", e.target.value)} />
+                      </div>
+                      <Input
+                        placeholder="Amount (NEAR) *"
+                        type="number"
+                        value={m.amount}
+                        onChange={(e) => updateMilestone(i, "amount", e.target.value)}
+                        className="font-mono"
+                      />
+                    </div>
+                    <Input placeholder="Description" value={m.description} onChange={(e) => updateMilestone(i, "description", e.target.value)} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
             {/* Summary */}
             <div className="p-6 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
@@ -250,10 +253,12 @@ const CreateContract = () => {
                 <span className="text-muted-foreground">Security Deposit ({securityPercent}%)</span>
                 <span className="font-mono">{securityDeposit.toFixed(1)} NEAR</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Milestones</span>
-                <span className="font-mono">{milestones.length}</span>
-              </div>
+              {budgetType === "milestones" && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Milestones</span>
+                  <span className="font-mono">{milestones.length}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Budget Type</span>
                 <span className="font-mono capitalize">{budgetType}</span>
@@ -262,7 +267,7 @@ const CreateContract = () => {
 
             <Button type="submit" variant="hero" size="lg" className="w-full text-base">
               {freelancerAddress ? "Create Contract" : "Create & Get Invite Link"}
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
             </Button>
           </form>
         </motion.div>

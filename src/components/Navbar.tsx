@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, Menu, X } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Shield01Icon, Menu01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -20,7 +21,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-            <Shield className="w-4 h-4 text-primary" />
+            <HugeiconsIcon icon={Shield01Icon} size={16} className="text-primary" />
           </div>
           <span className="font-bold text-lg tracking-tight">
             <span className="text-primary">NEAR</span>
@@ -54,7 +55,7 @@ const Navbar = () => {
           className="md:hidden text-foreground"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
-          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {mobileOpen ? <HugeiconsIcon icon={Cancel01Icon} size={20} /> : <HugeiconsIcon icon={Menu01Icon} size={20} />}
         </button>
       </div>
 

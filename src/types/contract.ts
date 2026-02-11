@@ -45,5 +45,6 @@ export interface Dispute {
   status: "pending" | "assigned" | "resolved";
   judgeId?: string;
   aiSummary?: string;
-  resolution?: "client" | "freelancer" | "split";
+  resolution?: "contractor" | "client";
+  explanation?: string;
 }

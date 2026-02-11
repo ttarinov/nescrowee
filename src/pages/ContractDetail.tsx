@@ -5,27 +5,37 @@ import { mockContracts, mockDisputes } from "@/data/mockData";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  CheckCircle,
-  Clock,
-  AlertTriangle,
-  ExternalLink,
-  ArrowLeft,
-  Send,
-  Paperclip,
-  DollarSign,
-  Info,
-  Wallet,
-} from "lucide-react";
+  ArrowLeft01Icon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  Alert01Icon,
+  Link01Icon,
+  MailSend01Icon,
+  Attachment01Icon,
+  Dollar01Icon,
+  InformationCircleIcon,
+  Wallet01Icon,
+  ArrowUp01Icon,
+} from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 
-const milestoneIcons: Record<string, React.ReactNode> = {
-  completed: <CheckCircle className="w-5 h-5 text-success" />,
-  in_progress: <Clock className="w-5 h-5 text-primary" />,
-  funded: <Wallet className="w-5 h-5 text-warning" />,
-  not_funded: <DollarSign className="w-5 h-5 text-muted-foreground" />,
-  disputed: <AlertTriangle className="w-5 h-5 text-destructive" />,
+const milestoneIconMap = {
+  completed: CheckmarkCircle01Icon,
+  in_progress: Clock01Icon,
+  funded: Wallet01Icon,
+  not_funded: Dollar01Icon,
+  disputed: Alert01Icon,
+} as const;
+const milestoneIconClass: Record<string, string> = {
+  completed: "text-success",
+  in_progress: "text-primary",
+  funded: "text-warning",
+  not_funded: "text-muted-foreground",
+  disputed: "text-destructive",
 };
 
 const ContractDetail = () => {
@@ -45,6 +55,12 @@ const ContractDetail = () => {
 
   const completed = contract.milestones.filter((m) => m.status === "completed").length;
   const progress = (completed / contract.milestones.length) * 100;
+
+  const canShowFunded = (milestoneIndex: number) => {
+    if (milestoneIndex === 0) return true;
+    const prevMilestone = contract.milestones[milestoneIndex - 1];
+    return prevMilestone.status === "completed";
+  };
 
   const handleFund = (milestoneTitle: string, amount: number) => {
     window.open(
@@ -80,144 +96,35 @@ const ContractDetail = () => {
 
   return (
     <div className="min-h-screen pt-24 pb-12">
-      <div className="container mx-auto px-4 max-w-5xl">
+      <div className="container mx-auto px-4">
         <Link to="/contracts" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
           Back to contracts
         </Link>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{contract.title}</h1>
-              <StatusBadge status={contract.status} />
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold">{contract.title}</h1>
+                <StatusBadge status={contract.status} />
+              </div>
+              <div className="text-sm font-mono text-muted-foreground">
+                {contract.totalAmount.toLocaleString()} NEAR • {contract.budgetType === "total" ? "Total" : "Milestones"}
+              </div>
             </div>
-            <p className="text-muted-foreground">{contract.description}</p>
+            <p className="text-sm text-muted-foreground">{contract.description}</p>
           </div>
 
-          {/* Stats — no wallet addresses shown */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-            {[
-              { label: "Total Value", value: `${contract.totalAmount.toLocaleString()} NEAR` },
-              { label: "Security Deposit", value: `${contract.securityDeposit} NEAR` },
-              { label: "Budget Type", value: contract.budgetType === "total" ? "Total Budget" : "Per Milestone" },
-            ].map((stat) => (
-              <div key={stat.label} className="p-4 rounded-lg bg-card border border-border">
-                <p className="text-xs text-muted-foreground mb-1">{stat.label}</p>
-                <p className="font-mono font-semibold text-sm truncate">{stat.value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid lg:grid-cols-5 gap-6">
-            {/* Left column: milestones + disputes */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Progress */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Progress</span>
-                  <span className="text-sm font-mono text-muted-foreground">{completed}/{contract.milestones.length} milestones</span>
-                </div>
-                <Progress value={progress} className="h-2" />
-              </div>
-
-              {/* Milestones */}
-              <div className="space-y-3">
-                <h2 className="text-xl font-semibold">Milestones</h2>
-                {contract.milestones.map((milestone, i) => (
-                  <motion.div
-                    key={milestone.id}
-                    className="p-5 rounded-xl bg-card border border-border"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-start gap-3 flex-1">
-                        {milestoneIcons[milestone.status]}
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium">{milestone.title}</h3>
-                            <StatusBadge status={milestone.status} />
-                          </div>
-                          <p className="text-sm text-muted-foreground">{milestone.description}</p>
-                        </div>
-                      </div>
-                      <div className="text-right flex flex-col items-end gap-2">
-                        <p className="font-mono font-bold">{milestone.amount} NEAR</p>
-                        {milestone.status === "not_funded" && (
-                          <Button
-                            size="sm"
-                            variant="hero"
-                            onClick={() => handleFund(milestone.title, milestone.amount)}
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" />
-                            Fund via HOT
-                          </Button>
-                        )}
-                        {milestone.status === "funded" && (
-                          <span className="text-xs text-warning font-mono">Funded — waiting for work</span>
-                        )}
-                        {milestone.status === "in_progress" && (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="hero"
-                              onClick={() => handleConfirm(milestone.title)}
-                            >
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Confirm & Pay
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDispute(milestone.id)}
-                            >
-                              Dispute
-                            </Button>
-                          </div>
-                        )}
-                        {milestone.status === "completed" && (
-                          <span className="text-xs text-success font-mono">Paid ✓</span>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Disputes */}
-              {disputes.length > 0 && (
-                <div>
-                  <h2 className="text-xl font-semibold mb-4 text-destructive">Active Disputes</h2>
-                  {disputes.map((dispute) => (
-                    <div
-                      key={dispute.id}
-                      className="p-5 rounded-xl bg-destructive/5 border border-destructive/20"
-                    >
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="w-4 h-4 text-destructive" />
-                        <StatusBadge status={dispute.status} />
-                      </div>
-                      <p className="text-sm mb-3">{dispute.reason}</p>
-                      {dispute.aiSummary && (
-                        <div className="p-3 rounded-lg bg-card border border-border">
-                          <p className="text-xs text-muted-foreground mb-1 font-mono">AI Summary</p>
-                          <p className="text-sm">{dispute.aiSummary}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Right column: Chat + Activity */}
-            <div className="lg:col-span-2">
-              <div className="rounded-xl bg-card border border-border flex flex-col h-[600px]">
-                <div className="p-4 border-b border-border">
-                  <h3 className="font-semibold">Contract Chat & Activity</h3>
+          <div className="flex gap-4 h-[calc(100vh-20rem)]">
+            {/* Main: Chat area */}
+            <div className="flex-1">
+              <div className="rounded-xl bg-card border border-border flex flex-col h-full">
+                <div className="p-3 border-b border-border">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <HugeiconsIcon icon={InformationCircleIcon} size={16} />
+                    Contract Chat & Activity
+                  </h3>
                   <p className="text-xs text-muted-foreground">Messages, files, and action history</p>
                 </div>
 
@@ -227,7 +134,7 @@ const ContractDetail = () => {
                     if (msg.type === "action") {
                       return (
                         <div key={msg.id} className="flex items-start gap-2">
-                          <Info className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
+                          <HugeiconsIcon icon={InformationCircleIcon} size={14} className="text-primary mt-0.5 shrink-0" />
                           <div>
                             <p className="text-xs text-primary">{msg.content}</p>
                             <p className="text-[10px] text-muted-foreground">{formatTime(msg.timestamp)}</p>
@@ -242,7 +149,7 @@ const ContractDetail = () => {
                           <p className="text-[10px] font-mono text-muted-foreground mb-1 capitalize">{msg.sender}</p>
                           {msg.type === "file" ? (
                             <div className="flex items-center gap-2 text-sm">
-                              <Paperclip className="w-3 h-3 text-primary" />
+                              <HugeiconsIcon icon={Attachment01Icon} size={12} className="text-primary" />
                               <span className="text-primary underline cursor-pointer">{msg.fileName}</span>
                             </div>
                           ) : (
@@ -256,25 +163,148 @@ const ContractDetail = () => {
                   <div ref={chatEndRef} />
                 </div>
 
-                {/* Input */}
+                {/* Input with textarea */}
                 <div className="p-3 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="shrink-0" onClick={handleFileAttach}>
-                      <Paperclip className="w-4 h-4" />
+                  <div className="relative">
+                    <Button variant="ghost" size="sm" className="absolute left-2 top-2 z-10" onClick={handleFileAttach}>
+                      <HugeiconsIcon icon={Attachment01Icon} size={16} />
                     </Button>
-                    <Input
+                    <Textarea
                       placeholder="Type a message..."
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      className="text-sm pl-10 pr-12 min-h-[60px] max-h-[120px] resize-none"
+                      rows={2}
                     />
-                    <Button variant="hero" size="sm" className="shrink-0" onClick={handleSendMessage}>
-                      <Send className="w-4 h-4" />
+                    <Button 
+                      variant="hero" 
+                      size="sm" 
+                      className="absolute right-2 bottom-2 z-10" 
+                      onClick={handleSendMessage}
+                    >
+                      <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
                     </Button>
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Right sidebar: Milestones + Disputes */}
+            <div className="w-80 shrink-0 overflow-y-auto space-y-4">
+              {/* Progress */}
+              <div className="p-4 rounded-xl bg-card border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Progress</span>
+                  <span className="text-sm font-mono text-muted-foreground">{completed}/{contract.milestones.length}</span>
+                </div>
+                <Progress value={progress} className="h-2" />
+              </div>
+
+              {/* Milestones */}
+              <div className="space-y-3">
+                <h2 className="text-lg font-semibold px-1">Milestones</h2>
+                {contract.milestones.map((milestone, i) => {
+                  const displayStatus = milestone.status === "funded" && !canShowFunded(i) 
+                    ? "not_funded" 
+                    : milestone.status;
+                  
+                  return (
+                    <motion.div
+                      key={milestone.id}
+                      className="p-4 rounded-xl bg-card border border-border"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <HugeiconsIcon icon={milestoneIconMap[displayStatus]} size={18} className={`${milestoneIconClass[displayStatus]} shrink-0 mt-0.5`} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium text-sm truncate">{milestone.title}</h3>
+                              {displayStatus !== "funded" && <StatusBadge status={displayStatus} />}
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2">{milestone.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <p className="font-mono font-bold text-sm">{milestone.amount} NEAR</p>
+                        <div className="flex gap-2">
+                          {displayStatus === "not_funded" && (
+                            <Button
+                              size="sm"
+                              variant="hero"
+                              onClick={() => handleFund(milestone.title, milestone.amount)}
+                            >
+                              <HugeiconsIcon icon={Link01Icon} size={12} className="mr-1" />
+                              Fund
+                            </Button>
+                          )}
+                          {displayStatus === "funded" && canShowFunded(i) && (
+                            <span className="text-xs text-warning font-mono">Funded</span>
+                          )}
+                          {displayStatus === "in_progress" && (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="hero"
+                                onClick={() => handleConfirm(milestone.title)}
+                              >
+                                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
+                                Confirm
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDispute(milestone.id)}
+                              >
+                                Dispute
+                              </Button>
+                            </div>
+                          )}
+                          {displayStatus === "completed" && (
+                            <span className="text-xs text-success font-mono inline-flex items-center gap-1">
+                              <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} /> Paid
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Disputes */}
+              {disputes.length > 0 && (
+                <div className="space-y-3">
+                  <h2 className="text-lg font-semibold px-1 text-destructive">Active Disputes</h2>
+                  {disputes.map((dispute) => (
+                    <div
+                      key={dispute.id}
+                      className="p-4 rounded-xl bg-destructive/5 border border-destructive/20"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <HugeiconsIcon icon={Alert01Icon} size={16} className="text-destructive" />
+                        <StatusBadge status={dispute.status} />
+                      </div>
+                      <p className="text-sm mb-3">{dispute.reason}</p>
+                      {dispute.aiSummary && (
+                        <div className="p-3 rounded-lg bg-card border border-border">
+                          <p className="text-xs text-muted-foreground mb-1 font-mono">AI Summary</p>
+                          <p className="text-sm">{dispute.aiSummary}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
