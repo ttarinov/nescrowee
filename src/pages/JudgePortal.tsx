@@ -11,6 +11,8 @@ import {
   Scale,
   UserCheck,
   Clock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,7 +48,6 @@ const JudgePortal = () => {
           </p>
 
           {!isJudge ? (
-            /* Registration */
             <motion.div
               className="p-8 rounded-2xl border border-primary/20 bg-primary/5 text-center"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -77,7 +78,6 @@ const JudgePortal = () => {
               </Button>
             </motion.div>
           ) : (
-            /* Judge Dashboard */
             <div className="space-y-6">
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4">
@@ -98,6 +98,7 @@ const JudgePortal = () => {
               {mockDisputes.map((dispute) => {
                 const contract = mockContracts.find((c) => c.id === dispute.contractId);
                 const isActive = activeDispute === dispute.id;
+                const milestone = contract?.milestones.find((m) => m.id === dispute.milestoneId);
 
                 return (
                   <motion.div
@@ -105,9 +106,10 @@ const JudgePortal = () => {
                     className="p-6 rounded-xl bg-card border border-border"
                     layout
                   >
+                    {/* Basic meta — always visible */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold">{contract?.title}</h3>
+                        <h3 className="font-semibold">{contract?.title || "Contract"}</h3>
                         <StatusBadge status={dispute.status} />
                       </div>
                       {!isActive && (
@@ -122,50 +124,78 @@ const JudgePortal = () => {
                       )}
                     </div>
 
-                    {/* AI Summary - privacy preserving */}
-                    {dispute.aiSummary && (
-                      <div className="p-4 rounded-lg bg-secondary/50 border border-border mb-4">
-                        <p className="text-xs font-mono text-primary mb-2">🤖 AI-Processed Summary</p>
-                        <p className="text-sm leading-relaxed">{dispute.aiSummary}</p>
-                        <p className="text-xs text-muted-foreground mt-2 italic">
-                          Personal details and sensitive information have been redacted for privacy.
-                        </p>
+                    {/* Pre-accept: only basic meta */}
+                    {!isActive && (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                            <p className="text-xs text-muted-foreground mb-1">Disputed Milestone</p>
+                            <p className="text-sm font-medium">{milestone?.title || "Unknown"}</p>
+                          </div>
+                          <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                            <p className="text-xs text-muted-foreground mb-1">Amount at Stake</p>
+                            <p className="text-sm font-mono font-bold">{milestone?.amount || 0} NEAR</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <EyeOff className="w-3 h-3" />
+                          <span>Accept to view AI summary and cast your vote</span>
+                        </div>
                       </div>
                     )}
 
-                    {/* Voting */}
+                    {/* Post-accept: full details */}
                     {isActive && (
                       <motion.div
-                        className="p-4 rounded-lg border border-primary/20 bg-primary/5"
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-4"
                       >
-                        <p className="text-sm font-medium mb-3">Cast your vote:</p>
-                        <div className="flex gap-3">
-                          <Button
-                            variant="outline"
-                            className="flex-1 border-success/30 hover:bg-success/10 hover:text-success"
-                            onClick={() => handleVote("Client wins")}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Favor Client
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex-1 border-primary/30 hover:bg-primary/10 hover:text-primary"
-                            onClick={() => handleVote("Split")}
-                          >
-                            <Scale className="w-4 h-4 mr-1" />
-                            Split
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="flex-1 border-accent/30 hover:bg-accent/10 hover:text-accent"
-                            onClick={() => handleVote("Freelancer wins")}
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Favor Freelancer
-                          </Button>
+                        <div className="flex items-center gap-2 text-xs text-primary">
+                          <Eye className="w-3 h-3" />
+                          <span>Full dispute details unlocked</span>
+                        </div>
+
+                        {/* AI Summary */}
+                        {dispute.aiSummary && (
+                          <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+                            <p className="text-xs font-mono text-primary mb-2">🤖 AI-Processed Summary</p>
+                            <p className="text-sm leading-relaxed">{dispute.aiSummary}</p>
+                            <p className="text-xs text-muted-foreground mt-2 italic">
+                              Personal details and sensitive information have been redacted for privacy.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Voting */}
+                        <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
+                          <p className="text-sm font-medium mb-3">Cast your vote:</p>
+                          <div className="flex gap-3">
+                            <Button
+                              variant="outline"
+                              className="flex-1 border-success/30 hover:bg-success/10 hover:text-success"
+                              onClick={() => handleVote("Client wins")}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Favor Client
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="flex-1 border-primary/30 hover:bg-primary/10 hover:text-primary"
+                              onClick={() => handleVote("Split")}
+                            >
+                              <Scale className="w-4 h-4 mr-1" />
+                              Split
+                            </Button>
+                            <Button
+                              variant="outline"
+                              className="flex-1 border-accent/30 hover:bg-accent/10 hover:text-accent"
+                              onClick={() => handleVote("Freelancer wins")}
+                            >
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Favor Freelancer
+                            </Button>
+                          </div>
                         </div>
                       </motion.div>
                     )}

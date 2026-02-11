@@ -10,6 +10,10 @@ import {
   Lock,
   Zap,
   Eye,
+  Globe,
+  Cpu,
+  Coins,
+  KeyRound,
 } from "lucide-react";
 
 const fadeUp = {
@@ -150,6 +154,76 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {f.desc}
                 </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why NEAR */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <motion.div className="text-center mb-16" {...fadeUp}>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Why <span className="gradient-text">NEAR Protocol</span>?
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Built on NEAR for speed, privacy, and true decentralization.
+            </p>
+          </motion.div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            {[
+              {
+                icon: Zap,
+                title: "Sub-Second Finality",
+                desc: "Transactions confirm in ~1 second. No waiting for block confirmations — milestone payments are instant.",
+              },
+              {
+                icon: Coins,
+                title: "Fraction-of-a-Cent Fees",
+                desc: "Gas costs under $0.01. Escrow operations, milestone closings, and dispute votes are practically free.",
+              },
+              {
+                icon: KeyRound,
+                title: "Human-Readable Accounts",
+                desc: "No more 0x addresses. Use alice.near instead of cryptic hashes. Chain abstraction makes onboarding seamless.",
+              },
+              {
+                icon: Cpu,
+                title: "AI-Native Infrastructure",
+                desc: "NEAR AI provides on-chain inference for privacy-preserving dispute summaries. Judges never see raw data.",
+              },
+              {
+                icon: Shield,
+                title: "Privacy by Design",
+                desc: "Sensitive contract data is processed by AI on-chain. Human judges only see redacted, AI-prepared summaries.",
+              },
+              {
+                icon: Globe,
+                title: "Chain Abstraction",
+                desc: "Users from any chain can participate. NEAR's chain signatures enable cross-chain escrow without bridges.",
+              },
+              {
+                icon: Lock,
+                title: "Sharded & Scalable",
+                desc: "Nightshade sharding handles millions of contracts in parallel. No congestion, no downtime.",
+              },
+              {
+                icon: Users,
+                title: "Decentralized Governance",
+                desc: "Judge pool is permissionless. Anyone can participate, earn rewards, and help resolve disputes fairly.",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.title}
+                className="p-5 rounded-xl bg-card border border-border hover:border-primary/30 transition-colors"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 + i * 0.05 }}
+              >
+                <item.icon className="w-6 h-6 text-primary mb-3" />
+                <h3 className="font-semibold mb-1.5">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>

@@ -43,11 +43,9 @@ const Contracts = () => {
                       <p className="text-sm text-muted-foreground line-clamp-1 mb-3">
                         {contract.description}
                       </p>
-                      <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
-                        <span>{contract.clientAddress}</span>
-                        <span className="text-primary">⟷</span>
-                        <span>{contract.freelancerAddress}</span>
-                      </div>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        2 parties · {contract.budgetType === "total" ? "Total budget" : "Per milestone"}
+                      </p>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="text-right">
