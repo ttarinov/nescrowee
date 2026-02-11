@@ -9,6 +9,13 @@ const statusStyles: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
   in_progress: "bg-primary/15 text-primary border-primary/30",
   assigned: "bg-warning/15 text-warning border-warning/30",
+  not_funded: "bg-muted text-muted-foreground",
+  funded: "bg-warning/15 text-warning border-warning/30",
+};
+
+const statusLabels: Record<string, string> = {
+  not_funded: "Not Funded",
+  in_progress: "In Progress",
 };
 
 const StatusBadge = ({ status }: { status: string }) => (
@@ -18,7 +25,7 @@ const StatusBadge = ({ status }: { status: string }) => (
       statusStyles[status] || "bg-muted text-muted-foreground"
     )}
   >
-    {status.replace("_", " ")}
+    {statusLabels[status] || status.replace("_", " ")}
   </span>
 );
 
