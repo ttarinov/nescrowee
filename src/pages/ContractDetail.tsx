@@ -1,12 +1,19 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { mockContracts, mockDisputes } from "@/data/mockData";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
@@ -14,14 +21,15 @@ import {
   Clock01Icon,
   Alert01Icon,
   Link01Icon,
-  MailSend01Icon,
   Attachment01Icon,
   Dollar01Icon,
   InformationCircleIcon,
   Wallet01Icon,
   ArrowUp01Icon,
+  EyeIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import { groupMessagesByDate, formatMessageTime, formatMessageDate } from "@/utils/dateHelpers";
 
 const milestoneIconMap = {
   completed: CheckmarkCircle01Icon,
@@ -43,7 +51,19 @@ const ContractDetail = () => {
   const contract = mockContracts.find((c) => c.id === id);
   const disputes = mockDisputes.filter((d) => d.contractId === id);
   const [chatInput, setChatInput] = useState("");
+  const [userRole, setUserRole] = useState<"client" | "freelancer" | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const currentWallet = localStorage.getItem("walletAddress") || "alice.near";
+    if (contract) {
+      if (currentWallet === contract.clientAddress) {
+        setUserRole("client");
+      } else if (currentWallet === contract.freelancerAddress) {
+        setUserRole("freelancer");
+      }
+    }
+  }, [contract]);
 
   if (!contract) {
     return (
@@ -62,16 +82,21 @@ const ContractDetail = () => {
     return prevMilestone.status === "completed";
   };
 
+  const canFundMilestone = (milestoneIndex: number) => {
+    const previousMilestones = contract.milestones.slice(0, milestoneIndex);
+    const hasInProgress = previousMilestones.some((m) => m.status === "in_progress");
+    return !hasInProgress && contract.milestones[milestoneIndex].status === "not_funded";
+  };
+
+  const hasInProgressMilestone = contract.milestones.some((m) => m.status === "in_progress");
+  const showDisputeButton = userRole === "freelancer" && hasInProgressMilestone;
+
   const handleFund = (milestoneTitle: string, amount: number) => {
     window.open(
       `https://hot-labs.org/pay/?amount=${amount}&receiver=escrow.nearcord.near&memo=${encodeURIComponent(`Fund: ${milestoneTitle}`)}`,
       "_blank"
     );
     toast.success(`Funding initiated for ${milestoneTitle}`);
-  };
-
-  const handleConfirm = (milestoneTitle: string) => {
-    toast.success(`Milestone "${milestoneTitle}" confirmed! Payment released.`);
   };
 
   const handleDispute = (milestoneId: string) => {
@@ -88,11 +113,7 @@ const ContractDetail = () => {
     toast.info("File sharing coming soon — attach documents, screenshots, and deliverables.");
   };
 
-  const formatTime = (ts: string) => {
-    const d = new Date(ts);
-    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
-      " " + d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-  };
+  const groupedMessages = groupMessagesByDate(contract.chatMessages);
 
   return (
     <div className="min-h-screen pt-24 pb-12">
@@ -103,19 +124,6 @@ const ContractDetail = () => {
         </Link>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold">{contract.title}</h1>
-                <StatusBadge status={contract.status} />
-              </div>
-              <div className="text-sm font-mono text-muted-foreground">
-                {contract.totalAmount.toLocaleString()} NEAR • {contract.budgetType === "total" ? "Total" : "Milestones"}
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">{contract.description}</p>
-          </div>
-
           <div className="flex gap-4 h-[calc(100vh-20rem)]">
             {/* Main: Chat area */}
             <div className="flex-1">
@@ -125,38 +133,51 @@ const ContractDetail = () => {
                     <HugeiconsIcon icon={InformationCircleIcon} size={16} />
                     Contract Chat & Activity
                   </h3>
-                  <p className="text-xs text-muted-foreground">Messages, files, and action history</p>
                 </div>
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  {contract.chatMessages.map((msg) => {
+                  {groupedMessages.map((item, idx) => {
+                    if (item.type === "date") {
+                      return (
+                        <div key={`date-${idx}`} className="flex items-center justify-center py-2">
+                          <span className="text-xs text-muted-foreground bg-card px-3 py-1 rounded-full border border-border">
+                            {item.date}
+                          </span>
+                        </div>
+                      );
+                    }
+
+                    const msg = item.message!;
                     if (msg.type === "action") {
                       return (
-                        <div key={msg.id} className="flex items-start gap-2">
-                          <HugeiconsIcon icon={InformationCircleIcon} size={14} className="text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-xs text-primary">{msg.content}</p>
-                            <p className="text-[10px] text-muted-foreground">{formatTime(msg.timestamp)}</p>
+                        <div key={msg.id} className="flex items-center justify-center">
+                          <div className="max-w-[80%] text-center">
+                            <p className="text-xs text-primary bg-primary/10 px-3 py-1.5 rounded-lg inline-block">
+                              {msg.content}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-1">{formatMessageTime(msg.timestamp)}</p>
                           </div>
                         </div>
                       );
                     }
+
                     const isClient = msg.sender === "client";
                     return (
                       <div key={msg.id} className={`flex flex-col ${isClient ? "items-end" : "items-start"}`}>
-                        <div className={`max-w-[85%] p-3 rounded-lg ${isClient ? "bg-primary/10 border border-primary/20" : "bg-secondary/50 border border-border"}`}>
-                          <p className="text-[10px] font-mono text-muted-foreground mb-1 capitalize">{msg.sender}</p>
+                        <div className={`max-w-[85%] p-3 rounded-lg relative ${isClient ? "bg-primary/10 border border-primary/20" : "bg-secondary/50 border border-border"}`}>
                           {msg.type === "file" ? (
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-sm pb-4">
                               <HugeiconsIcon icon={Attachment01Icon} size={12} className="text-primary" />
                               <span className="text-primary underline cursor-pointer">{msg.fileName}</span>
                             </div>
                           ) : (
-                            <p className="text-sm">{msg.content}</p>
+                            <p className="text-sm pb-4">{msg.content}</p>
                           )}
+                          <p className={`text-[10px] text-muted-foreground absolute ${isClient ? "bottom-2 right-3" : "bottom-2 left-3"}`}>
+                            {formatMessageTime(msg.timestamp)}
+                          </p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground mt-1">{formatTime(msg.timestamp)}</p>
                       </div>
                     );
                   })}
@@ -165,10 +186,7 @@ const ContractDetail = () => {
 
                 {/* Input with textarea */}
                 <div className="p-3 border-t border-border">
-                  <div className="relative">
-                    <Button variant="ghost" size="sm" className="absolute left-2 top-2 z-10" onClick={handleFileAttach}>
-                      <HugeiconsIcon icon={Attachment01Icon} size={16} />
-                    </Button>
+                  <div className="relative flex items-end gap-2">
                     <Textarea
                       placeholder="Type a message..."
                       value={chatInput}
@@ -179,41 +197,91 @@ const ContractDetail = () => {
                           handleSendMessage();
                         }
                       }}
-                      className="text-sm pl-10 pr-12 min-h-[60px] max-h-[120px] resize-none"
-                      rows={2}
+                      className="text-sm min-h-[80px] max-h-[150px] resize-none pr-24"
+                      rows={3}
                     />
-                    <Button 
-                      variant="hero" 
-                      size="sm" 
-                      className="absolute right-2 bottom-2 z-10" 
-                      onClick={handleSendMessage}
-                    >
-                      <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
-                    </Button>
+                    <div className="absolute right-2 bottom-2 flex items-center gap-2">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={handleFileAttach}>
+                        <HugeiconsIcon icon={Attachment01Icon} size={16} />
+                      </Button>
+                      <Button
+                        variant="hero"
+                        size="sm"
+                        className="h-8 w-8 p-0 rounded-full"
+                        onClick={handleSendMessage}
+                      >
+                        <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
+                      </Button>
+                    </div>
                   </div>
+                  {showDisputeButton && (
+                    <div className="mt-2">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          const inProgressMilestone = contract.milestones.find((m) => m.status === "in_progress");
+                          if (inProgressMilestone) {
+                            handleDispute(inProgressMilestone.id);
+                          }
+                        }}
+                      >
+                        <HugeiconsIcon icon={Alert01Icon} size={14} className="mr-1" />
+                        File Dispute
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Right sidebar: Milestones + Disputes */}
+            {/* Right sidebar: Contract Info + Milestones + Disputes */}
             <div className="w-80 shrink-0 overflow-y-auto space-y-4">
-              {/* Progress */}
-              <div className="p-4 rounded-xl bg-card border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Progress</span>
-                  <span className="text-sm font-mono text-muted-foreground">{completed}/{contract.milestones.length}</span>
+              {/* Contract Header */}
+              <div className="space-y-3">
+                <div>
+                  <h1 className="text-xl font-bold mb-2">{contract.title}</h1>
+                  {userRole && (
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-mono font-medium capitalize ${
+                      userRole === "client" 
+                        ? "bg-primary/15 text-primary border-primary/30" 
+                        : "bg-accent/15 text-accent border-accent/30"
+                    }`}>
+                      {userRole === "client" ? "Client" : "Freelancer"}
+                    </span>
+                  )}
                 </div>
-                <Progress value={progress} className="h-2" />
+                <div className="text-sm font-mono text-muted-foreground">
+                  {contract.totalAmount.toLocaleString()} NEAR • {contract.budgetType === "total" ? "Total" : "Milestones"}
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <HugeiconsIcon icon={EyeIcon} size={14} className="mr-1" />
+                      View Full Description
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{contract.title}</DialogTitle>
+                      <DialogDescription>{contract.description}</DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               {/* Milestones */}
               <div className="space-y-3">
-                <h2 className="text-lg font-semibold px-1">Milestones</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold">Milestones</h2>
+                  <span className="text-xs font-mono text-muted-foreground">{completed}/{contract.milestones.length}</span>
+                </div>
+                <Progress value={progress} className="h-2" />
                 {contract.milestones.map((milestone, i) => {
-                  const displayStatus = milestone.status === "funded" && !canShowFunded(i) 
-                    ? "not_funded" 
+                  const displayStatus = milestone.status === "funded" && !canShowFunded(i)
+                    ? "not_funded"
                     : milestone.status;
-                  
+
                   return (
                     <motion.div
                       key={milestone.id}
@@ -224,20 +292,19 @@ const ContractDetail = () => {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-2 flex-1 min-w-0">
-                          <HugeiconsIcon icon={milestoneIconMap[displayStatus]} size={18} className={`${milestoneIconClass[displayStatus]} shrink-0 mt-0.5`} />
+                          {displayStatus === "completed" && (
+                            <HugeiconsIcon icon={milestoneIconMap[displayStatus]} size={18} className={`${milestoneIconClass[displayStatus]} shrink-0 mt-0.5`} />
+                          )}
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-medium text-sm truncate">{milestone.title}</h3>
-                              {displayStatus !== "funded" && <StatusBadge status={displayStatus} />}
-                            </div>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{milestone.description}</p>
+                            <h3 className="font-medium text-sm truncate">{milestone.title}</h3>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{milestone.description}</p>
                           </div>
                         </div>
                       </div>
                       <div className="mt-3 flex items-center justify-between">
                         <p className="font-mono font-bold text-sm">{milestone.amount} NEAR</p>
                         <div className="flex gap-2">
-                          {displayStatus === "not_funded" && (
+                          {canFundMilestone(i) && (
                             <Button
                               size="sm"
                               variant="hero"
@@ -251,23 +318,7 @@ const ContractDetail = () => {
                             <span className="text-xs text-warning font-mono">Funded</span>
                           )}
                           {displayStatus === "in_progress" && (
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="hero"
-                                onClick={() => handleConfirm(milestone.title)}
-                              >
-                                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
-                                Confirm
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDispute(milestone.id)}
-                              >
-                                Dispute
-                              </Button>
-                            </div>
+                            <span className="text-xs text-primary font-mono">In Progress</span>
                           )}
                           {displayStatus === "completed" && (
                             <span className="text-xs text-success font-mono inline-flex items-center gap-1">
