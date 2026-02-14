@@ -10,17 +10,30 @@ import {
   LockIcon,
   CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons";
-import { getStandardPromptHash, getAppealPromptHash, standardPrompt, appealPrompt } from "@/utils/promptHash";
+import {
+  getStandardPromptHash,
+  getAppealPromptHash,
+  getInvestigationPromptHash,
+  getInvestigationAppealPromptHash,
+  standardPrompt,
+  appealPrompt,
+  investigationPrompt,
+  investigationAppealPrompt,
+} from "@/utils/promptHash";
 import { AI_MODELS, APPEAL_MODEL_ID } from "@/types/contract";
 
 const HowDisputesWork = () => {
   const [standardHash, setStandardHash] = useState("");
   const [appealHash, setAppealHash] = useState("");
-  const [showPrompt, setShowPrompt] = useState<"standard" | "appeal" | null>(null);
+  const [investigationHash, setInvestigationHash] = useState("");
+  const [investigationAppealHash, setInvestigationAppealHash] = useState("");
+  const [showPrompt, setShowPrompt] = useState<"standard" | "appeal" | "investigation" | "investigation-appeal" | null>(null);
 
   useEffect(() => {
     getStandardPromptHash().then(setStandardHash);
     getAppealPromptHash().then(setAppealHash);
+    getInvestigationPromptHash().then(setInvestigationHash);
+    getInvestigationAppealPromptHash().then(setInvestigationAppealHash);
   }, []);
 
   return (
@@ -37,13 +50,15 @@ const HowDisputesWork = () => {
 
           {/* Architecture */}
           <div className="p-6 rounded-xl border border-primary/20 bg-primary/5 mb-12">
-            <h2 className="text-lg font-semibold mb-3">Zero-Trust Architecture</h2>
+            <h2 className="text-lg font-semibold mb-3">Zero-Trust Agentic Architecture</h2>
             <div className="space-y-2 text-sm font-mono text-muted-foreground">
-              <p>1. Browser calls NEAR AI Cloud directly (no backend)</p>
-              <p>2. AI runs inside TEE hardware, signs response with Ed25519</p>
-              <p>3. Browser submits response + signature to smart contract</p>
-              <p>4. Contract calls env::ed25519_verify — cryptographic proof</p>
-              <p>5. Resolution stored on-chain with full TEE proof</p>
+              <p>1. Browser orchestrates multi-round AI investigation (no backend)</p>
+              <p>2. Each round: Browser calls NEAR AI Cloud directly</p>
+              <p>3. AI runs inside TEE hardware, signs each response with Ed25519</p>
+              <p>4. Browser submits each round + signature to smart contract</p>
+              <p>5. Contract calls env::ed25519_verify per round — full audit trail</p>
+              <p>6. Final round's resolution becomes the dispute decision</p>
+              <p>7. User watches investigation happen live, round by round</p>
             </div>
           </div>
 
@@ -60,20 +75,20 @@ const HowDisputesWork = () => {
               {
                 icon: Shield01Icon,
                 step: "2",
-                title: "Browser Calls NEAR AI Cloud",
-                desc: "Your browser calls NEAR AI Cloud directly — no backend, no oracle. The AI runs inside a Trusted Execution Environment (TEE) that signs every response with Ed25519. Chat history is anonymized (Party A / Party B) before being sent.",
+                title: "AI Investigates (Multi-Round)",
+                desc: "Your browser orchestrates a multi-round investigation. Round 1: identify claims and check scope. Round 2: cross-reference evidence and timelines. Round 3+: evaluate and decide. Each round calls NEAR AI Cloud directly — the AI runs inside TEE hardware that signs every response with Ed25519. You watch the investigation happen live.",
               },
               {
                 icon: LockIcon,
                 step: "3",
-                title: "TEE Signature Verified On-Chain",
-                desc: "The browser submits the AI response + Ed25519 signature to the smart contract. The contract calls env::ed25519_verify to cryptographically verify the AI produced this exact response. No trust in any server — trust math.",
+                title: "Each Round TEE-Verified On-Chain",
+                desc: "After each investigation round, the browser submits the AI analysis + Ed25519 signature to the smart contract. The contract calls env::ed25519_verify per round, creating a full cryptographic audit trail. Anyone can verify every step of the AI's reasoning.",
               },
               {
                 icon: EyeIcon,
                 step: "4",
                 title: "Accept or Appeal",
-                desc: "Both parties can accept the resolution, or either party can appeal for a thorough review by DeepSeek V3.1. The appeal also goes through the same TEE verification flow.",
+                desc: "Both parties can accept the resolution, or either party can appeal for a deeper investigation by DeepSeek V3.1 (up to 5 rounds). The appeal investigation also goes through the same per-round TEE verification flow.",
               },
               {
                 icon: Clock01Icon,
@@ -142,19 +157,21 @@ const HowDisputesWork = () => {
                 <h3 className="font-semibold">Standard Review</h3>
               </div>
               <ul className="text-sm text-muted-foreground space-y-2">
+                <li>2-3 investigation rounds</li>
                 <li>Model chosen by contract creator</li>
-                <li>TEE-signed, verified on-chain</li>
+                <li>Each round TEE-signed on-chain</li>
                 <li>Can be appealed</li>
               </ul>
             </div>
             <div className="p-6 rounded-xl bg-card border border-primary/20">
               <div className="flex items-center gap-2 mb-3">
                 <HugeiconsIcon icon={Shield01Icon} size={20} className="text-primary" />
-                <h3 className="font-semibold">Appeal (Thorough Review)</h3>
+                <h3 className="font-semibold">Appeal (Deep Investigation)</h3>
               </div>
               <ul className="text-sm text-muted-foreground space-y-2">
-                <li>Always DeepSeek V3.1 w/ thinking</li>
-                <li>TEE-signed, verified on-chain</li>
+                <li>3-5 investigation rounds</li>
+                <li>Always DeepSeek V3.1</li>
+                <li>Each round TEE-signed on-chain</li>
                 <li>Final decision (no further appeals)</li>
               </ul>
             </div>
@@ -216,6 +233,56 @@ const HowDisputesWork = () => {
                   className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
                 >
                   {appealPrompt}
+                </motion.pre>
+              )}
+            </div>
+
+            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Investigation Prompt</h3>
+                <button
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => setShowPrompt(showPrompt === "investigation" ? null : "investigation")}
+                >
+                  {showPrompt === "investigation" ? "Hide" : "View"} Full Prompt
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">SHA-256:</span>
+                <code className="text-xs font-mono text-primary break-all">{investigationHash}</code>
+              </div>
+              {showPrompt === "investigation" && (
+                <motion.pre
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
+                >
+                  {investigationPrompt}
+                </motion.pre>
+              )}
+            </div>
+
+            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Appeal Investigation Prompt</h3>
+                <button
+                  className="text-xs text-primary hover:underline"
+                  onClick={() => setShowPrompt(showPrompt === "investigation-appeal" ? null : "investigation-appeal")}
+                >
+                  {showPrompt === "investigation-appeal" ? "Hide" : "View"} Full Prompt
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">SHA-256:</span>
+                <code className="text-xs font-mono text-primary break-all">{investigationAppealHash}</code>
+              </div>
+              {showPrompt === "investigation-appeal" && (
+                <motion.pre
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
+                >
+                  {investigationAppealPrompt}
                 </motion.pre>
               )}
             </div>

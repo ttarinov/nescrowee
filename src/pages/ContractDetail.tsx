@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ import {
 } from "@/hooks/useContract";
 import { useChat } from "@/hooks/useChat";
 import type { MilestoneStatus, Resolution } from "@/types/contract";
+import type { InvestigationRoundResult } from "@/near/ai";
 
 const milestoneIconMap: Record<string, typeof CheckmarkCircle01Icon> = {
   Completed: CheckmarkCircle01Icon,
@@ -82,7 +83,14 @@ const ContractDetail = () => {
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeMilestoneId, setDisputeMilestoneId] = useState<string | null>(null);
   const [aiProcessing, setAiProcessing] = useState<string | null>(null);
+  const [investigationRounds, setInvestigationRounds] = useState<InvestigationRoundResult[]>([]);
+  const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const handleRoundComplete = useCallback((round: InvestigationRoundResult) => {
+    setInvestigationRounds((prev) => [...prev, round]);
+    setExpandedRounds((prev) => new Set(prev).add(round.round_number));
+  }, []);
 
   const fundMutation = useFundContract();
   const startMutation = useStartMilestone();
@@ -147,17 +155,19 @@ const ContractDetail = () => {
 
   const triggerAiResolution = (milestoneId: string, isAppeal: boolean) => {
     setAiProcessing(milestoneId);
+    setInvestigationRounds([]);
+    setExpandedRounds(new Set());
     const chatHistory = (messages.data || []).map((m) => ({ sender: m.sender, content: m.content }));
 
     aiResolutionMutation.mutate(
-      { contract, milestoneId, isAppeal, chatHistory },
+      { contract, milestoneId, isAppeal, chatHistory, onRoundComplete: handleRoundComplete },
       {
         onSuccess: () => {
-          toast.success(isAppeal ? "Appeal resolved — TEE-verified on-chain" : "AI resolution submitted — TEE-verified on-chain");
+          toast.success(isAppeal ? "Appeal investigation complete — TEE-verified on-chain" : "Investigation complete — TEE-verified on-chain");
           setAiProcessing(null);
         },
         onError: (e) => {
-          toast.error(`AI resolution failed: ${e.message}`);
+          toast.error(`AI investigation failed: ${e.message}`);
           setAiProcessing(null);
         },
       }
@@ -493,21 +503,73 @@ const ContractDetail = () => {
                         </div>
                       )}
 
-                      {dispute.status === "Pending" && (
-                        <div className="space-y-1">
-                          {aiProcessing === dispute.milestone_id ? (
-                            <p className="text-xs text-primary font-mono animate-pulse">Calling NEAR AI Cloud... TEE-signing response...</p>
-                          ) : (
-                            <p className="text-xs text-muted-foreground font-mono">Waiting for AI resolution...</p>
+                      {(dispute.status === "Pending" || dispute.status === "Appealed") && (
+                        <div className="space-y-2">
+                          {aiProcessing === dispute.milestone_id && investigationRounds.length > 0 && (
+                            <div className="space-y-2">
+                              {investigationRounds.map((round) => {
+                                const maxR = dispute.is_appeal ? 5 : 3;
+                                const isExpanded = expandedRounds.has(round.round_number);
+                                return (
+                                  <div key={round.round_number} className="p-3 rounded-lg bg-card border border-border space-y-1">
+                                    <button
+                                      className="w-full flex items-center justify-between text-left"
+                                      onClick={() => setExpandedRounds((prev) => {
+                                        const next = new Set(prev);
+                                        next.has(round.round_number) ? next.delete(round.round_number) : next.add(round.round_number);
+                                        return next;
+                                      })}
+                                    >
+                                      <span className="text-xs font-mono text-primary flex items-center gap-2">
+                                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="text-success" />
+                                        Round {round.round_number}/{maxR}
+                                      </span>
+                                      <span className="text-xs font-mono text-muted-foreground">
+                                        confidence: {round.confidence}%
+                                      </span>
+                                    </button>
+                                    {isExpanded && (
+                                      <div className="pt-2 space-y-1 text-sm text-muted-foreground">
+                                        <p><span className="text-xs font-mono text-primary">Analysis:</span> {round.analysis}</p>
+                                        <p><span className="text-xs font-mono text-primary">Findings:</span> {round.findings}</p>
+                                        <div className="w-full bg-secondary/50 rounded-full h-1.5 mt-1">
+                                          <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${round.confidence}%` }} />
+                                        </div>
+                                        <p className="text-[10px] text-success font-mono">TEE-verified Ed25519</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           )}
-                        </div>
-                      )}
-                      {dispute.status === "Appealed" && (
-                        <div className="space-y-1">
                           {aiProcessing === dispute.milestone_id ? (
-                            <p className="text-xs text-warning font-mono animate-pulse">DeepSeek V3.1 thorough review in progress...</p>
+                            <p className={`text-xs font-mono animate-pulse ${dispute.is_appeal ? "text-warning" : "text-primary"}`}>
+                              {dispute.is_appeal ? "DeepSeek V3.1" : "AI"} investigation round {investigationRounds.length + 1}/{dispute.is_appeal ? 5 : 3} in progress...
+                            </p>
                           ) : (
-                            <p className="text-xs text-warning font-mono">Waiting for appeal resolution...</p>
+                            <p className={`text-xs font-mono ${dispute.is_appeal ? "text-warning" : "text-muted-foreground"}`}>
+                              Waiting for {dispute.is_appeal ? "appeal " : ""}investigation...
+                            </p>
+                          )}
+
+                          {/* Show on-chain investigation rounds when not actively processing */}
+                          {aiProcessing !== dispute.milestone_id && dispute.investigation_rounds.length > 0 && (
+                            <div className="space-y-2">
+                              {dispute.investigation_rounds.map((round) => (
+                                <div key={round.round_number} className="p-3 rounded-lg bg-card border border-border space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-mono text-primary flex items-center gap-2">
+                                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="text-success" />
+                                      Round {round.round_number}/{dispute.max_rounds}
+                                    </span>
+                                    <span className="text-xs font-mono text-muted-foreground">confidence: {round.confidence}%</span>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{round.analysis}</p>
+                                  <p className="text-[10px] text-success font-mono">TEE-verified Ed25519</p>
+                                </div>
+                              ))}
+                            </div>
                           )}
                         </div>
                       )}
