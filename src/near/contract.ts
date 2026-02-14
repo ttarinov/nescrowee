@@ -1,6 +1,6 @@
 import { nearConfig } from "./config";
 import { signAndSendTransaction } from "./wallet";
-import type { EscrowContract, Dispute } from "@/types/contract";
+import type { EscrowContract, Dispute, InvestigationRound } from "@/types/contract";
 
 const GAS = "300000000000000";
 const NO_DEPOSIT = "0";
@@ -129,6 +129,46 @@ export function submitAiResolution(
     signature,
     signing_address: signingAddress,
     tee_text: teeText,
+  });
+}
+
+export function submitInvestigationRound(
+  contractId: string,
+  milestoneId: string,
+  roundNumber: number,
+  analysis: string,
+  findings: string,
+  confidence: number,
+  needsMoreAnalysis: boolean,
+  resolution: unknown | null,
+  explanation: string | null,
+  signature: number[],
+  signingAddress: number[],
+  teeText: string,
+) {
+  return callMethod("submit_investigation_round", {
+    contract_id: contractId,
+    milestone_id: milestoneId,
+    round_number: roundNumber,
+    analysis,
+    findings,
+    confidence,
+    needs_more_analysis: needsMoreAnalysis,
+    resolution: resolution || null,
+    explanation: explanation || null,
+    signature,
+    signing_address: signingAddress,
+    tee_text: teeText,
+  });
+}
+
+export async function getInvestigationRounds(
+  contractId: string,
+  milestoneId: string,
+): Promise<InvestigationRound[]> {
+  return viewMethod<InvestigationRound[]>("get_investigation_rounds", {
+    contract_id: contractId,
+    milestone_id: milestoneId,
   });
 }
 

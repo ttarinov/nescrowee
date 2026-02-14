@@ -9,14 +9,19 @@ import {
   completeMilestone,
   approveMilestone,
   raiseDispute,
-  submitAiResolution,
+  submitInvestigationRound,
   acceptResolution,
   appealResolution,
   type CreateContractArgs,
 } from "@/near/contract";
-import { callDisputeAi, getAiSignature, parseAiResolution, signatureToBytes, addressToBytes } from "@/near/ai";
+import {
+  runInvestigation,
+  signatureToBytes,
+  addressToBytes,
+  type InvestigationRoundResult,
+} from "@/near/ai";
 import { anonymizeDisputeContext } from "@/utils/anonymize";
-import { standardPrompt, appealPrompt } from "@/utils/promptHash";
+import { investigationPrompt, investigationAppealPrompt } from "@/utils/promptHash";
 import type { EscrowContract } from "@/types/contract";
 import { APPEAL_MODEL_ID } from "@/types/contract";
 
@@ -119,11 +124,13 @@ export function useSubmitAiResolution() {
       milestoneId,
       isAppeal,
       chatHistory,
+      onRoundComplete,
     }: {
       contract: EscrowContract;
       milestoneId: string;
       isAppeal: boolean;
       chatHistory?: Array<{ sender: string; content: string }>;
+      onRoundComplete?: (round: InvestigationRoundResult) => void;
     }) => {
       const milestone = contract.milestones.find((m) => m.id === milestoneId);
       const dispute = contract.disputes.find(
@@ -132,7 +139,8 @@ export function useSubmitAiResolution() {
       if (!dispute || !milestone) throw new Error("Dispute or milestone not found");
 
       const modelId = isAppeal ? APPEAL_MODEL_ID : contract.model_id;
-      const prompt = isAppeal ? appealPrompt : standardPrompt;
+      const prompt = isAppeal ? investigationAppealPrompt : investigationPrompt;
+      const maxRounds = isAppeal ? 5 : 3;
 
       const context = anonymizeDisputeContext({
         contract: {
@@ -154,19 +162,32 @@ export function useSubmitAiResolution() {
         chatHistory,
       });
 
-      const { response, chatId } = await callDisputeAi(modelId, prompt, context);
-      const teeSig = await getAiSignature(chatId, modelId);
-      const parsed = parseAiResolution(response);
+      const result = await runInvestigation(
+        modelId,
+        prompt,
+        context,
+        maxRounds,
+        async (round) => {
+          onRoundComplete?.(round);
 
-      return submitAiResolution(
-        contract.id,
-        milestoneId,
-        parsed.resolution,
-        parsed.explanation,
-        signatureToBytes(teeSig.signature),
-        addressToBytes(teeSig.signing_address),
-        teeSig.text,
+          await submitInvestigationRound(
+            contract.id,
+            milestoneId,
+            round.round_number,
+            round.analysis,
+            round.findings,
+            round.confidence,
+            round.needs_more_analysis,
+            round.resolution,
+            round.explanation,
+            signatureToBytes(round.tee.signature),
+            addressToBytes(round.tee.signing_address),
+            round.tee.text,
+          );
+        },
       );
+
+      return result;
     },
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({ queryKey: ["contract", variables.contract.id] }),

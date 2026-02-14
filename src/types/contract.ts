@@ -15,6 +15,18 @@ export interface Milestone {
   status: MilestoneStatus;
 }
 
+export interface InvestigationRound {
+  round_number: number;
+  analysis: string;
+  findings: string;
+  confidence: number;
+  needs_more_analysis: boolean;
+  tee_signature: number[];
+  tee_signing_address: number[];
+  tee_text: string;
+  timestamp: number;
+}
+
 export interface Dispute {
   milestone_id: string;
   raised_by: string;
@@ -29,6 +41,8 @@ export interface Dispute {
   tee_signature: number[] | null;
   tee_signing_address: number[] | null;
   tee_text: string | null;
+  investigation_rounds: InvestigationRound[];
+  max_rounds: number;
 }
 
 export interface EscrowContract {
