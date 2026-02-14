@@ -8,11 +8,11 @@ const Footer = () => (
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={Shield01Icon} size={16} className="text-primary" />
           <span className="font-bold text-sm">
-            <span className="text-primary">NEAR</span>cord
+            <span className="text-primary">Milestone</span>Trust
           </span>
         </div>
         <p className="text-muted-foreground text-sm">
-          Decentralized escrow & dispute resolution on NEAR Protocol
+          Decentralized escrow & dispute resolution on NEAR Protocol with HOT Wallet
         </p>
         <p className="text-muted-foreground text-xs font-mono">
           Built for NEARCON Innovation Sandbox

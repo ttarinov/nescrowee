@@ -1,56 +1,134 @@
-## How can I edit this code?
+# Milestone Trust
 
-There are several ways of editing your application.
+Decentralized freelance escrow on NEAR Protocol with TEE-verified AI dispute resolution. Zero backend. Zero oracle. Trust math, not servers.
 
+## Architecture
 
-Follow these steps:
+```
+Browser → NEAR AI Cloud (TEE) → Ed25519 signature → Smart Contract verifies on-chain
+```
+
+1. User's browser calls NEAR AI Cloud directly
+2. AI runs inside TEE hardware, signs every response with Ed25519
+3. Browser submits `{response + TEE signature}` to the smart contract
+4. Contract calls `env::ed25519_verify` — cryptographic proof the AI produced this response
+5. Resolution stored on-chain with full TEE proof for transparency
+
+No Vercel. No serverless functions. No oracle accounts. No trust assumptions.
+
+## Tech Stack
+
+- **Frontend**: Vite, TypeScript, React, shadcn-ui, Tailwind CSS
+- **Smart Contract**: NEAR Protocol (Rust, near-sdk)
+- **AI**: NEAR AI Cloud (TEE-protected inference with Ed25519 signatures)
+- **Wallet**: HOT Wallet (MPC wallet)
+- **Architecture**: Fully decentralized — all logic on-chain or in-browser
+
+## Setup
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+git clone <repo-url>
+cd milestone-trust
 bun install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Environment Variables
+
+```sh
+cp .env.example .env
+```
+
+Required:
+- `VITE_NEAR_AI_KEY` — NEAR AI Cloud API key (get from cloud.near.ai)
+- `VITE_NEAR_NETWORK` — `testnet` or `mainnet` (default: `testnet`)
+
+### Development
+
+```sh
 bun run dev
 ```
 
-**Edit a file directly in GitHub**
+### Smart Contract
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+cd contract
+cargo build --target wasm32-unknown-unknown --release
+```
 
-**Use GitHub Codespaces**
+Deploy and initialize:
+```sh
+near deploy milestone-trust.testnet ./target/wasm32-unknown-unknown/release/milestone_trust.wasm
+near call milestone-trust.testnet new '{"owner": "your-account.testnet"}' --accountId your-account.testnet
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Register the TEE signing address (get from NEAR AI attestation endpoint):
+```sh
+near call milestone-trust.testnet register_tee_address '{"address": [<bytes>]}' --accountId your-account.testnet
+```
 
-## What technologies are used for this project?
+## AI Models (TEE-Protected)
 
-This project is built with:
+| Model | Speed | Pricing (in/out per M tokens) | Use |
+|-------|-------|-------------------------------|-----|
+| Qwen3 30B | ~10s | $0.15 / $0.55 | Standard disputes (default) |
+| GPT-OSS 120B | ~20s | $0.15 / $0.55 | Strong reasoning |
+| DeepSeek V3.1 | ~45s | $1.05 / $3.10 | Appeals (always) |
+| GLM-4.1V 9B | ~15s | $0.15 / $0.55 | Vision-capable |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Contract creators choose the standard dispute model. Appeals always use DeepSeek V3.1 for maximum thoroughness.
 
-## How can I deploy this project?
+## TEE Verification
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Anyone can independently verify the TEE attestation:
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+# No authentication needed
+curl "https://cloud-api.near.ai/v1/attestation/report?model=Qwen/Qwen3-30B-A3B&signing_algo=ed25519"
+```
 
-Yes, you can!
+The response contains the public key used to sign AI responses. Match it against the `tee_signing_address` stored on-chain in each dispute resolution.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Dispute Flow
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+1. Party raises dispute on-chain
+2. Browser anonymizes chat history (Party A / Party B), scrubs PII
+3. Browser calls NEAR AI Cloud with open-source prompt
+4. Gets Ed25519 TEE signature on response
+5. Submits resolution + signature to smart contract
+6. Contract verifies signature, stores resolution
+7. Parties accept or appeal (appeal uses DeepSeek V3.1)
+8. Auto-executes after 48 hours if not accepted sooner
+
+## Prompt Transparency
+
+AI prompts are open-source in `src/prompts/`. SHA-256 hashes are stored on-chain at contract creation. Anyone can verify the exact prompt used for any dispute.
+
+## Project Structure
+
+```
+contract/           # NEAR smart contract (Rust)
+  src/
+    lib.rs          # Contract state, TEE address management
+    dispute.rs      # Ed25519 verification, dispute lifecycle
+    types.rs        # Data structures with TEE fields
+    escrow.rs       # Funding, milestone management
+    milestone.rs    # Milestone lifecycle
+src/
+  near/
+    ai.ts           # Browser-direct NEAR AI Cloud client
+    contract.ts     # Smart contract interaction
+    wallet.ts       # HOT Wallet integration
+    config.ts       # Network configuration
+  utils/
+    anonymize.ts    # Browser-side PII scrubbing
+    promptHash.ts   # SHA-256 prompt hashing
+  prompts/
+    standard.md     # Standard dispute resolution prompt
+    appeal.md       # Appeal resolution prompt
+  pages/
+    ContractDetail  # Chat + dispute UI with TEE flow
+    CreateContract  # Contract creation with model picker
+    HowDisputesWork # TEE verification explainer
+  types/
+    contract.ts     # TypeScript types + model definitions
+```

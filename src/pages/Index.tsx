@@ -5,16 +5,16 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Shield01Icon,
   LegalDocument01Icon,
-  UserGroupIcon,
-  JusticeScale01Icon,
-  ArrowRight01Icon,
   LockIcon,
   ZapIcon,
+  ArrowRight01Icon,
   EyeIcon,
   GlobeIcon,
   CpuIcon,
   Coins01Icon,
   ShieldKeyIcon,
+  AiBrain01Icon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 
 const fadeUp = {
@@ -27,40 +27,40 @@ const steps = [
   {
     icon: LegalDocument01Icon,
     title: "Create Contract",
-    desc: "Define milestones, amounts, and terms between two parties.",
+    desc: "Connect your HOT Wallet and define milestones, amounts, and terms on-chain.",
   },
   {
     icon: LockIcon,
     title: "Funds Escrowed",
-    desc: "NEAR tokens are locked in smart contract with security deposit.",
+    desc: "NEAR tokens are locked directly in smart contract. All on-chain, transparent.",
   },
   {
     icon: ZapIcon,
-    title: "Complete Milestones",
-    desc: "Release payments as work is delivered and approved.",
+    title: "Instant Payments",
+    desc: "Approve milestones and funds arrive in the freelancer's wallet instantly. No withdrawal step.",
   },
   {
-    icon: JusticeScale01Icon,
-    title: "Dispute? Resolved.",
-    desc: "AI + human judges resolve disputes using privacy-preserving review.",
+    icon: AiBrain01Icon,
+    title: "AI Resolves Disputes",
+    desc: "Open-source AI prompts resolve disputes fairly. Accept or appeal for a thorough review. All transparent.",
   },
 ];
 
 const features = [
   {
-    icon: Shield01Icon,
-    title: "Privacy-First Disputes",
-    desc: "Judges only see AI-processed summaries. No sensitive data exposed.",
+    icon: AiBrain01Icon,
+    title: "AI-Powered Resolution",
+    desc: "Open-source AI prompts with on-chain hash verification. Two tiers: fast standard review and thorough appeal. No human bias.",
   },
   {
-    icon: UserGroupIcon,
-    title: "Uber-Style Judge Pool",
-    desc: "Random assignment. Accept or decline. Fair and decentralized.",
+    icon: Shield01Icon,
+    title: "TEE-Secured Privacy",
+    desc: "Dispute data processed in Trusted Execution Environments via NEAR AI Cloud. Chat anonymized as Party A / Party B.",
   },
   {
     icon: EyeIcon,
-    title: "Transparent Milestones",
-    desc: "Every payment and milestone tracked on-chain with full audit trail.",
+    title: "Fully On-Chain",
+    desc: "Every payment, milestone, and AI decision tracked on NEAR blockchain with complete transparency and audit trail.",
   },
 ];
 
@@ -81,15 +81,15 @@ const Index = () => {
               <span className="text-xs text-muted-foreground font-mono uppercase tracking-widest">Powered by</span>
               <img src="/near-logo.png" alt="NEAR Protocol" className="h-6 opacity-80 hover:opacity-100 transition-opacity" />
               <span className="text-muted-foreground/40">·</span>
-              <img src="/hot-logo.svg" alt="HOT Pay" className="h-5 opacity-80 hover:opacity-100 transition-opacity" />
+              <img src="/hot-logo.svg" alt="HOT Wallet" className="h-5 opacity-80 hover:opacity-100 transition-opacity" />
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
               Trustless Escrow{" "}
-              <span className="gradient-text">& Disputes</span>
+              <span className="gradient-text">& AI Disputes</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Create milestone-based contracts with built-in escrow. If things go wrong,
-              AI-powered judges resolve disputes — privately and fairly.
+              Create milestone-based contracts with built-in escrow on NEAR. Fund with HOT Wallet,
+              get paid instantly on milestone approval, and let open-source AI resolve disputes — transparently and fairly.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/create">
@@ -98,9 +98,9 @@ const Index = () => {
                   <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
                 </Button>
               </Link>
-              <Link to="/judges">
+              <Link to="/disputes">
                 <Button variant="hero-outline" size="lg" className="text-base px-8">
-                  Become a Judge
+                  How Disputes Work
                 </Button>
               </Link>
             </div>
@@ -179,42 +179,42 @@ const Index = () => {
               {
                 icon: ZapIcon,
                 title: "Sub-Second Finality",
-                desc: "Transactions confirm in ~1 second. No waiting for block confirmations — milestone payments are instant.",
+                desc: "Transactions confirm in ~1 second. Milestone payments are instant.",
               },
               {
                 icon: Coins01Icon,
                 title: "Fraction-of-a-Cent Fees",
-                desc: "Gas costs under $0.01. Escrow operations, milestone closings, and dispute votes are practically free.",
+                desc: "Gas costs under $0.01. Escrow operations are practically free.",
               },
               {
                 icon: ShieldKeyIcon,
                 title: "Human-Readable Accounts",
-                desc: "No more 0x addresses. Use alice.near instead of cryptic hashes. Chain abstraction makes onboarding seamless.",
+                desc: "Use alice.near instead of cryptic hashes. HOT Wallet makes onboarding seamless.",
               },
               {
                 icon: CpuIcon,
                 title: "AI-Native Infrastructure",
-                desc: "NEAR AI provides on-chain inference for privacy-preserving dispute summaries. Judges never see raw data.",
+                desc: "NEAR AI Cloud provides confidential inference in TEE for dispute resolution.",
               },
               {
                 icon: Shield01Icon,
                 title: "Privacy by Design",
-                desc: "Sensitive contract data is processed by AI on-chain. Human judges only see redacted, AI-prepared summaries.",
+                desc: "Dispute data processed in TEE. Chat anonymized before AI analysis. No raw data exposed.",
               },
               {
                 icon: GlobeIcon,
-                title: "Chain Abstraction",
-                desc: "Users from any chain can participate. NEAR's chain signatures enable cross-chain escrow without bridges.",
+                title: "HOT Pay Payments",
+                desc: "30M+ HOT Wallet users. One-tap escrow funding and instant milestone payouts.",
               },
               {
                 icon: LockIcon,
                 title: "Sharded & Scalable",
-                desc: "Nightshade sharding handles millions of contracts in parallel. No congestion, no downtime.",
+                desc: "Nightshade sharding handles millions of contracts in parallel.",
               },
               {
                 icon: UserGroupIcon,
-                title: "Decentralized Governance",
-                desc: "Judge pool is permissionless. Anyone can participate, earn rewards, and help resolve disputes fairly.",
+                title: "Open-Source Prompts",
+                desc: "AI dispute prompts are fully open-source with on-chain hash verification. Full transparency.",
               },
             ].map((item, i) => (
               <motion.div
@@ -246,7 +246,7 @@ const Index = () => {
               Ready to build trust?
             </h2>
             <p className="text-muted-foreground mb-8">
-              Start your first escrow contract on NEAR today.
+              Connect your HOT Wallet and start your first escrow contract on NEAR. Instant payments, AI-powered disputes, fully on-chain.
             </p>
             <Link to="/create">
               <Button variant="hero" size="lg" className="text-base px-10">
