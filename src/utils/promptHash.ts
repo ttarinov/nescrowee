@@ -1,7 +1,7 @@
-import standardPrompt from "@/prompts/standard.md?raw";
-import appealPrompt from "@/prompts/appeal.md?raw";
-import investigationPrompt from "@/prompts/investigation.md?raw";
-import investigationAppealPrompt from "@/prompts/investigation-appeal.md?raw";
+import standardPrompt from "@/agent/prompts/standard.md?raw";
+import appealPrompt from "@/agent/prompts/appeal.md?raw";
+import investigationPrompt from "@/agent/prompts/investigation.md?raw";
+import investigationAppealPrompt from "@/agent/prompts/investigation-appeal.md?raw";
 
 export async function hashPrompt(text: string): Promise<string> {
   const encoder = new TextEncoder();

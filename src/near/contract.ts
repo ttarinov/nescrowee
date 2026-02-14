@@ -1,6 +1,7 @@
 import { nearConfig } from "./config";
 import { signAndSendTransaction } from "./wallet";
-import type { EscrowContract, Dispute, InvestigationRound } from "@/types/contract";
+import type { EscrowContract } from "@/types/escrow";
+import type { Dispute, InvestigationRound } from "@/types/dispute";
 
 const GAS = "300000000000000";
 const NO_DEPOSIT = "0";
