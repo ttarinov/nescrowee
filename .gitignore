@@ -32,3 +32,7 @@ contract/res/
 # Environment
 .env
 .env.*
+
+AGENTS.md
+.claude
+.cursor
