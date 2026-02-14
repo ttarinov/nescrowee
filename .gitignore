@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vercel
+docs/
+
+# Contract build artifacts
+contract/target/
+contract/res/
+
+# Environment
+.env
+.env.*
