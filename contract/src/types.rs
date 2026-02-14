@@ -52,6 +52,20 @@ pub struct Milestone {
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
 #[serde(crate = "near_sdk::serde")]
+pub struct InvestigationRound {
+    pub round_number: u8,
+    pub analysis: String,
+    pub findings: String,
+    pub confidence: u8,
+    pub needs_more_analysis: bool,
+    pub tee_signature: Vec<u8>,
+    pub tee_signing_address: Vec<u8>,
+    pub tee_text: String,
+    pub timestamp: u64,
+}
+
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[serde(crate = "near_sdk::serde")]
 pub struct Dispute {
     pub milestone_id: String,
     pub raised_by: AccountId,
@@ -66,6 +80,8 @@ pub struct Dispute {
     pub tee_signature: Option<Vec<u8>>,
     pub tee_signing_address: Option<Vec<u8>>,
     pub tee_text: Option<String>,
+    pub investigation_rounds: Vec<InvestigationRound>,
+    pub max_rounds: u8,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]

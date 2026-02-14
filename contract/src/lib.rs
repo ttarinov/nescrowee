@@ -189,6 +189,22 @@ impl Contract {
     pub fn get_prompt_hash(&self, contract_id: String) -> Option<String> {
         self.contracts.get(&contract_id).map(|c| c.prompt_hash)
     }
+
+    pub fn get_investigation_rounds(
+        &self,
+        contract_id: String,
+        milestone_id: String,
+    ) -> Vec<InvestigationRound> {
+        self.contracts
+            .get(&contract_id)
+            .and_then(|c| {
+                c.disputes
+                    .iter()
+                    .find(|d| d.milestone_id == milestone_id)
+                    .map(|d| d.investigation_rounds.clone())
+            })
+            .unwrap_or_default()
+    }
 }
 
 #[derive(near_sdk::serde::Deserialize, near_sdk::serde::Serialize)]

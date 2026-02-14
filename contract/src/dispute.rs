@@ -48,6 +48,8 @@ impl Contract {
             tee_signature: None,
             tee_signing_address: None,
             tee_text: None,
+            investigation_rounds: vec![],
+            max_rounds: 3,
         });
 
         env::log_str(&format!(
@@ -107,6 +109,84 @@ impl Contract {
         ));
     }
 
+    pub fn submit_investigation_round(
+        &mut self,
+        contract_id: String,
+        milestone_id: String,
+        round_number: u8,
+        analysis: String,
+        findings: String,
+        confidence: u8,
+        needs_more_analysis: bool,
+        resolution: Option<Resolution>,
+        explanation: Option<String>,
+        signature: Vec<u8>,
+        signing_address: Vec<u8>,
+        tee_text: String,
+    ) {
+        assert!(
+            env::ed25519_verify(&signature, tee_text.as_bytes(), &signing_address),
+            "Invalid TEE signature"
+        );
+        assert!(
+            self.trusted_tee_addresses.contains(&signing_address),
+            "Signing address not in trusted TEE list"
+        );
+
+        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
+        let dispute = contract
+            .disputes
+            .iter_mut()
+            .find(|d| {
+                d.milestone_id == milestone_id
+                    && (d.status == DisputeStatus::Pending || d.status == DisputeStatus::Appealed)
+            })
+            .expect("No active dispute for this milestone");
+
+        assert!(
+            round_number as usize == dispute.investigation_rounds.len() + 1,
+            "Invalid round number"
+        );
+
+        dispute.investigation_rounds.push(InvestigationRound {
+            round_number,
+            analysis,
+            findings,
+            confidence,
+            needs_more_analysis,
+            tee_signature: signature.clone(),
+            tee_signing_address: signing_address.clone(),
+            tee_text: tee_text.clone(),
+            timestamp: env::block_timestamp(),
+        });
+
+        let is_final = !needs_more_analysis || round_number >= dispute.max_rounds;
+
+        if is_final {
+            if let (Some(res), Some(exp)) = (resolution, explanation) {
+                let new_status = if dispute.is_appeal {
+                    DisputeStatus::AppealResolved
+                } else {
+                    DisputeStatus::AiResolved
+                };
+                dispute.status = new_status;
+                dispute.resolution = Some(res);
+                dispute.explanation = Some(exp);
+                dispute.deadline_ns = Some(env::block_timestamp() + 48 * 60 * 60 * 1_000_000_000);
+                dispute.client_accepted = false;
+                dispute.freelancer_accepted = false;
+                dispute.tee_signature = Some(signature);
+                dispute.tee_signing_address = Some(signing_address);
+                dispute.tee_text = Some(tee_text);
+            }
+        }
+
+        env::log_str(&format!(
+            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"investigation_round\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\",\"round\":{}}}}}",
+            contract_id, milestone_id, round_number
+        ));
+    }
+
     pub fn accept_resolution(&mut self, contract_id: String, milestone_id: String) {
         let caller = env::predecessor_account_id();
         let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
@@ -157,6 +237,8 @@ impl Contract {
         dispute.is_appeal = true;
         dispute.client_accepted = false;
         dispute.freelancer_accepted = false;
+        dispute.max_rounds = 5;
+        dispute.investigation_rounds = vec![];
 
         env::log_str(&format!(
             "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"dispute_appealed\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
