@@ -1,20 +1,21 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Shield,
-  FileText,
-  Users,
-  Gavel,
-  ArrowRight,
-  Lock,
-  Zap,
-  Eye,
-  Globe,
-  Cpu,
-  Coins,
-  KeyRound,
-} from "lucide-react";
+  Shield01Icon,
+  LegalDocument01Icon,
+  UserGroupIcon,
+  JusticeScale01Icon,
+  ArrowRight01Icon,
+  LockIcon,
+  ZapIcon,
+  EyeIcon,
+  GlobeIcon,
+  CpuIcon,
+  Coins01Icon,
+  ShieldKeyIcon,
+} from "@hugeicons/core-free-icons";
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
@@ -24,22 +25,22 @@ const fadeUp = {
 
 const steps = [
   {
-    icon: FileText,
+    icon: LegalDocument01Icon,
     title: "Create Contract",
     desc: "Define milestones, amounts, and terms between two parties.",
   },
   {
-    icon: Lock,
+    icon: LockIcon,
     title: "Funds Escrowed",
     desc: "NEAR tokens are locked in smart contract with security deposit.",
   },
   {
-    icon: Zap,
+    icon: ZapIcon,
     title: "Complete Milestones",
     desc: "Release payments as work is delivered and approved.",
   },
   {
-    icon: Gavel,
+    icon: JusticeScale01Icon,
     title: "Dispute? Resolved.",
     desc: "AI + human judges resolve disputes using privacy-preserving review.",
   },
@@ -47,17 +48,17 @@ const steps = [
 
 const features = [
   {
-    icon: Shield,
+    icon: Shield01Icon,
     title: "Privacy-First Disputes",
     desc: "Judges only see AI-processed summaries. No sensitive data exposed.",
   },
   {
-    icon: Users,
+    icon: UserGroupIcon,
     title: "Uber-Style Judge Pool",
     desc: "Random assignment. Accept or decline. Fair and decentralized.",
   },
   {
-    icon: Eye,
+    icon: EyeIcon,
     title: "Transparent Milestones",
     desc: "Every payment and milestone tracked on-chain with full audit trail.",
   },
@@ -76,9 +77,11 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 mb-8">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-sm text-primary font-mono">Built on NEAR Protocol</span>
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <span className="text-xs text-muted-foreground font-mono uppercase tracking-widest">Powered by</span>
+              <img src="/near-logo.png" alt="NEAR Protocol" className="h-6 opacity-80 hover:opacity-100 transition-opacity" />
+              <span className="text-muted-foreground/40">·</span>
+              <img src="/hot-logo.svg" alt="HOT Pay" className="h-5 opacity-80 hover:opacity-100 transition-opacity" />
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
               Trustless Escrow{" "}
@@ -92,7 +95,7 @@ const Index = () => {
               <Link to="/create">
                 <Button variant="hero" size="lg" className="text-base px-8">
                   Create Contract
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
                 </Button>
               </Link>
               <Link to="/judges">
@@ -127,7 +130,7 @@ const Index = () => {
                   0{i + 1}
                 </div>
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <step.icon className="w-5 h-5 text-primary" />
+                  <HugeiconsIcon icon={step.icon} size={20} className="text-primary" />
                 </div>
                 <h3 className="font-semibold mb-2">{step.title}</h3>
                 <p className="text-sm text-muted-foreground">{step.desc}</p>
@@ -149,7 +152,7 @@ const Index = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
               >
-                <f.icon className="w-8 h-8 text-primary mb-4" />
+                <HugeiconsIcon icon={f.icon} size={32} className="text-primary mb-4" />
                 <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {f.desc}
@@ -174,42 +177,42 @@ const Index = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
               {
-                icon: Zap,
+                icon: ZapIcon,
                 title: "Sub-Second Finality",
                 desc: "Transactions confirm in ~1 second. No waiting for block confirmations — milestone payments are instant.",
               },
               {
-                icon: Coins,
+                icon: Coins01Icon,
                 title: "Fraction-of-a-Cent Fees",
                 desc: "Gas costs under $0.01. Escrow operations, milestone closings, and dispute votes are practically free.",
               },
               {
-                icon: KeyRound,
+                icon: ShieldKeyIcon,
                 title: "Human-Readable Accounts",
                 desc: "No more 0x addresses. Use alice.near instead of cryptic hashes. Chain abstraction makes onboarding seamless.",
               },
               {
-                icon: Cpu,
+                icon: CpuIcon,
                 title: "AI-Native Infrastructure",
                 desc: "NEAR AI provides on-chain inference for privacy-preserving dispute summaries. Judges never see raw data.",
               },
               {
-                icon: Shield,
+                icon: Shield01Icon,
                 title: "Privacy by Design",
                 desc: "Sensitive contract data is processed by AI on-chain. Human judges only see redacted, AI-prepared summaries.",
               },
               {
-                icon: Globe,
+                icon: GlobeIcon,
                 title: "Chain Abstraction",
                 desc: "Users from any chain can participate. NEAR's chain signatures enable cross-chain escrow without bridges.",
               },
               {
-                icon: Lock,
+                icon: LockIcon,
                 title: "Sharded & Scalable",
                 desc: "Nightshade sharding handles millions of contracts in parallel. No congestion, no downtime.",
               },
               {
-                icon: Users,
+                icon: UserGroupIcon,
                 title: "Decentralized Governance",
                 desc: "Judge pool is permissionless. Anyone can participate, earn rewards, and help resolve disputes fairly.",
               },
@@ -221,7 +224,7 @@ const Index = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.2 + i * 0.05 }}
               >
-                <item.icon className="w-6 h-6 text-primary mb-3" />
+                <HugeiconsIcon icon={item.icon} size={24} className="text-primary mb-3" />
                 <h3 className="font-semibold mb-1.5">{item.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </motion.div>
@@ -248,7 +251,7 @@ const Index = () => {
             <Link to="/create">
               <Button variant="hero" size="lg" className="text-base px-10">
                 Get Started
-                <ArrowRight className="w-4 h-4 ml-1" />
+                <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
               </Button>
             </Link>
           </motion.div>
