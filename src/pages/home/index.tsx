@@ -8,7 +8,6 @@ import {
   LockIcon,
   ZapIcon,
   ArrowRight01Icon,
-  EyeIcon,
   GlobeIcon,
   CpuIcon,
   Coins01Icon,
@@ -27,7 +26,7 @@ const steps = [
   {
     icon: LegalDocument01Icon,
     title: "Create Contract",
-    desc: "Connect your HOT Wallet and define milestones, amounts, and terms on-chain.",
+    desc: "Connect your NEAR Wallet and define milestones, amounts, and terms on-chain.",
   },
   {
     icon: LockIcon,
@@ -46,30 +45,11 @@ const steps = [
   },
 ];
 
-const features = [
-  {
-    icon: AiBrain01Icon,
-    title: "AI-Powered Resolution",
-    desc: "Open-source AI prompts with on-chain hash verification. Two tiers: fast standard review and thorough appeal. No human bias.",
-  },
-  {
-    icon: Shield01Icon,
-    title: "TEE-Secured Privacy",
-    desc: "Dispute data processed in Trusted Execution Environments via NEAR AI Cloud. Chat anonymized as Party A / Party B.",
-  },
-  {
-    icon: EyeIcon,
-    title: "Fully On-Chain",
-    desc: "Every payment, milestone, and AI decision tracked on NEAR blockchain with complete transparency and audit trail.",
-  },
-];
-
-const Index = () => {
+const HomePage = () => {
   return (
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative pt-32 pb-20 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(174_72%_52%/0.08),transparent_60%)]" />
         <div className="container mx-auto px-4 relative">
           <motion.div
             className="max-w-3xl mx-auto text-center"
@@ -85,21 +65,20 @@ const Index = () => {
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6">
               Trustless Escrow{" "}
-              <span className="gradient-text">& AI Disputes</span>
+              <span className="text-primary">& AI Disputes</span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-              Create milestone-based contracts with built-in escrow on NEAR. Fund with HOT Wallet,
-              get paid instantly on milestone approval, and let open-source AI resolve disputes — transparently and fairly.
+            <p className="text-2xl font-medium text-muted-foreground max-w-3xl mx-auto mb-10 leading-relaxed">
+              Escrow for freelancers and clients: lock payment in a smart contract, release when milestones are done. Disputes are working through TEE-verified AI investigates — every step signed on-chain.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/create">
-                <Button variant="hero" size="lg" className="text-base px-8">
+                <Button variant="hero" size="lg" className="text-base px-8 font-extrabold rounded-xl">
                   Create Contract
                   <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
                 </Button>
               </Link>
               <Link to="/disputes">
-                <Button variant="hero-outline" size="lg" className="text-base px-8">
+                <Button variant="hero-outline" size="lg" className="text-base px-8 border-none">
                   How Disputes Work
                 </Button>
               </Link>
@@ -108,15 +87,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-16" {...fadeUp}>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How It Works</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              From contract to payment in four simple steps.
-            </p>
-          </motion.div>
           <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {steps.map((step, i) => (
               <motion.div
@@ -140,39 +112,14 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {features.map((f, i) => (
-              <motion.div
-                key={f.title}
-                className="p-6 rounded-xl gradient-border"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
-              >
-                <HugeiconsIcon icon={f.icon} size={32} className="text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {f.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why NEAR */}
       <section className="py-20">
         <div className="container mx-auto px-4">
           <motion.div className="text-center mb-16" {...fadeUp}>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Why <span className="gradient-text">NEAR Protocol</span>?
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+              Instant payments.
+              <br/> Fees under <span className="text-primary">$0.01</span>. <br/>
+               Disputes with <span className="text-primary">TEE-verified AI.</span>
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Built on NEAR for speed, privacy, and true decentralization.
-            </p>
           </motion.div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             {[
@@ -232,33 +179,8 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <motion.div
-            className="max-w-2xl mx-auto text-center p-12 rounded-2xl border border-primary/20 bg-primary/5"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to build trust?
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              Connect your HOT Wallet and start your first escrow contract on NEAR. Instant payments, AI-powered disputes, fully on-chain.
-            </p>
-            <Link to="/create">
-              <Button variant="hero" size="lg" className="text-base px-10">
-                Get Started
-                <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
     </div>
   );
 };
 
-export default Index;
+export default HomePage;

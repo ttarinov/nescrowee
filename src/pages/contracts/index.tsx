@@ -12,7 +12,7 @@ const yoctoToNear = (yocto: string) => {
   return (Number(val) / 1e24).toFixed(2);
 };
 
-const Contracts = () => {
+const ContractsPage = () => {
   const { accountId, isConnected, connect } = useWallet();
   const { data: contracts, isLoading } = useUserContracts(accountId);
 
@@ -115,4 +115,4 @@ const Contracts = () => {
   );
 };
 
-export default Contracts;
+export default ContractsPage;

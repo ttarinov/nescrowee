@@ -19,7 +19,6 @@ import {
   CheckmarkCircle01Icon,
   Clock01Icon,
   Alert01Icon,
-  Attachment01Icon,
   Dollar01Icon,
   Wallet01Icon,
   ArrowUp01Icon,
@@ -39,9 +38,9 @@ import {
   useAcceptResolution,
   useAppealResolution,
 } from "@/hooks/useContract";
-import { useChat } from "@/hooks/useChat";
-import type { MilestoneStatus, Resolution } from "@/types/contract";
-import type { InvestigationRoundResult } from "@/near/ai";
+import { useChat } from "./useChat";
+import type { Resolution } from "@/types/dispute";
+import type { InvestigationRoundResult } from "@/agent/types";
 
 const milestoneIconMap: Record<string, typeof CheckmarkCircle01Icon> = {
   Completed: CheckmarkCircle01Icon,
@@ -63,10 +62,6 @@ const yoctoToNear = (yocto: string) => {
   return (Number(val) / 1e24).toFixed(2);
 };
 
-const nearToYocto = (near: number) => {
-  return (BigInt(Math.round(near * 1e6)) * BigInt(1e18)).toString();
-};
-
 function formatResolution(res: Resolution): string {
   if (res === "Freelancer") return "Full payment to freelancer";
   if (res === "Client") return "Full refund to client";
@@ -74,7 +69,7 @@ function formatResolution(res: Resolution): string {
   return String(res);
 }
 
-const ContractDetail = () => {
+const ContractDetailPage = () => {
   const { id } = useParams();
   const { accountId } = useWallet();
   const { data: contract, isLoading } = useContractDetail(id);
@@ -553,7 +548,6 @@ const ContractDetail = () => {
                             </p>
                           )}
 
-                          {/* Show on-chain investigation rounds when not actively processing */}
                           {aiProcessing !== dispute.milestone_id && dispute.investigation_rounds.length > 0 && (
                             <div className="space-y-2">
                               {dispute.investigation_rounds.map((round) => (
@@ -591,4 +585,4 @@ const ContractDetail = () => {
   );
 };
 
-export default ContractDetail;
+export default ContractDetailPage;
