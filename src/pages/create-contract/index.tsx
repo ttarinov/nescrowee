@@ -1,10 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlusSignIcon,
@@ -12,55 +19,120 @@ import {
   ArrowRight01Icon,
   Copy01Icon,
   Link01Icon,
-  UserGroupIcon,
   UserCheck01Icon,
+  UserGroupIcon,
   Wallet01Icon,
   Shield01Icon,
   AiBrain01Icon,
+  InformationCircleIcon,
+  StarIcon,
+  LockIcon,
+  Calendar01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { useWallet } from "@/hooks/useWallet";
 import { useCreateContract } from "@/hooks/useContract";
 import { getStandardPromptHash } from "@/utils/promptHash";
+import { isValidNearAccountFormat, nearAccountExists } from "@/utils/nearAccount";
 import { AI_MODELS } from "@/types/ai";
+
+type ModelId = typeof AI_MODELS[number]["id"];
 
 interface MilestoneForm {
   title: string;
   description: string;
   amount: string;
+  deadline: string;
 }
 
 type UserRole = "client" | "freelancer";
+
+const DISPUTE_FUND_MIN = 5;
+const DISPUTE_FUND_MAX = 30;
 
 const nearToYocto = (near: number) => {
   return (BigInt(Math.round(near * 1e6)) * BigInt(1e18)).toString();
 };
 
+function StarRating({ stars, max = 5 }: { stars: number; max?: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {Array.from({ length: max }).map((_, i) => (
+        <HugeiconsIcon
+          key={i}
+          icon={StarIcon}
+          size={10}
+          className={i < stars ? "text-warning" : "text-muted-foreground/25"}
+        />
+      ))}
+    </div>
+  );
+}
+
+async function fetchNearPrice(): Promise<number | null> {
+  try {
+    const res = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=near&vs_currencies=usd",
+      { signal: AbortSignal.timeout(3000) }
+    );
+    const data = await res.json();
+    return data?.near?.usd ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const MODEL_COST_LABEL: Record<string, string> = {
+  "Qwen/Qwen3-30B-A3B": "~$0.003 / dispute · ~$0.01 / appeal",
+  "openai/gpt-oss-120b": "~$0.005 / dispute · ~$0.015 / appeal",
+  "deepseek-ai/DeepSeek-V3.1": "~$0.02 / dispute · ~$0.08 / appeal",
+  "THUDM/GLM-4.1V-9B-Thinking": "~$0.003 / dispute · ~$0.01 / appeal",
+};
+
 const CreateContractPage = () => {
   const navigate = useNavigate();
-  const { accountId, isConnected, connect } = useWallet();
+  const { isConnected, connect } = useWallet();
   const createMutation = useCreateContract();
   const [userRole, setUserRole] = useState<UserRole>("client");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [freelancerAddress, setFreelancerAddress] = useState("");
-  const [securityPercent, setSecurityPercent] = useState("10");
-  const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
+  const [counterpartyAddress, setCounterpartyAddress] = useState("");
+  const [disputeFundPct, setDisputeFundPct] = useState("10");
+  const [selectedModel, setSelectedModel] = useState<ModelId>(AI_MODELS[0].id);
   const [milestones, setMilestones] = useState<MilestoneForm[]>([
-    { title: "", description: "", amount: "" },
+    { title: "", description: "", amount: "", deadline: "" },
   ]);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [promptHash, setPromptHash] = useState<string>("");
+  const [nearPrice, setNearPrice] = useState<number | null>(null);
+  const [counterpartyStatus, setCounterpartyStatus] = useState<"idle" | "checking" | "valid" | "invalid" | "bad-format">("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkCounterparty = useCallback((value: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!value) { setCounterpartyStatus("idle"); return; }
+    if (!isValidNearAccountFormat(value)) { setCounterpartyStatus("bad-format"); return; }
+    setCounterpartyStatus("checking");
+    debounceRef.current = setTimeout(async () => {
+      const exists = await nearAccountExists(value);
+      setCounterpartyStatus(exists ? "valid" : "invalid");
+    }, 600);
+  }, []);
 
   useEffect(() => {
     getStandardPromptHash().then(setPromptHash);
+    fetchNearPrice().then(setNearPrice);
   }, []);
 
-  const totalAmount = milestones.reduce((s, m) => s + (parseFloat(m.amount) || 0), 0);
-  const securityDeposit = totalAmount * (parseFloat(securityPercent) / 100);
+  const pct = parseInt(disputeFundPct) || 0;
+  const disputeFundValid = pct >= DISPUTE_FUND_MIN && pct <= DISPUTE_FUND_MAX;
+  const totalNear = milestones.reduce((s, m) => s + (parseFloat(m.amount) || 0), 0);
+  const disputeFundNear = totalNear * (pct / 100);
+  const totalUsd = nearPrice ? totalNear * nearPrice : null;
+  const selectedModelData = AI_MODELS.find((m) => m.id === selectedModel);
 
   const addMilestone = () => {
-    setMilestones([...milestones, { title: "", description: "", amount: "" }]);
+    setMilestones([...milestones, { title: "", description: "", amount: "", deadline: "" }]);
   };
 
   const removeMilestone = (i: number) => {
@@ -76,18 +148,9 @@ const CreateContractPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title) {
-      toast.error("Please provide a contract title");
-      return;
-    }
-    if (milestones.length === 0 || milestones.every((m) => !m.title)) {
-      toast.error("Add at least one milestone with a title");
-      return;
-    }
-    if (milestones.some((m) => !m.title || !m.amount)) {
-      toast.error("All milestones need a title and amount");
-      return;
-    }
+    if (!title) return toast.error("Please provide a contract title");
+    if (!disputeFundValid) return toast.error(`Dispute fund must be ${DISPUTE_FUND_MIN}–${DISPUTE_FUND_MAX}%`);
+    if (milestones.some((m) => !m.title || !m.amount)) return toast.error("All milestones need a title and amount");
 
     try {
       await createMutation.mutateAsync({
@@ -98,30 +161,22 @@ const CreateContractPage = () => {
           description: m.description,
           amount: nearToYocto(parseFloat(m.amount)),
         })),
-        freelancer: freelancerAddress || undefined,
-        security_deposit_pct: parseInt(securityPercent),
+        freelancer: counterpartyAddress || undefined,
+        security_deposit_pct: pct,
         prompt_hash: promptHash,
         model_id: selectedModel,
       });
 
-      if (!freelancerAddress) {
+      if (!counterpartyAddress) {
         const token = Math.random().toString(36).substring(2, 10);
-        const link = `${window.location.origin}/invite/${token}`;
-        setInviteLink(link);
-        toast.success("Contract created! Share the invite link with your counterparty.");
+        setInviteLink(`${window.location.origin}/invite/${token}`);
+        toast.success("Contract created! Share the invite link.");
       } else {
         toast.success("Contract created on-chain!");
         navigate("/contracts");
       }
     } catch (err) {
-      toast.error(`Failed to create contract: ${err instanceof Error ? err.message : "Unknown error"}`);
-    }
-  };
-
-  const copyInviteLink = () => {
-    if (inviteLink) {
-      navigator.clipboard.writeText(inviteLink);
-      toast.success("Invite link copied to clipboard!");
+      toast.error(`Failed: ${err instanceof Error ? err.message : "Unknown error"}`);
     }
   };
 
@@ -132,12 +187,8 @@ const CreateContractPage = () => {
           <div className="max-w-md mx-auto mt-20">
             <HugeiconsIcon icon={Wallet01Icon} size={48} className="text-primary mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-3">Connect Your Wallet</h2>
-            <p className="text-muted-foreground mb-6">
-              Your wallet is your identity. Connect HOT Wallet to create a contract.
-            </p>
-            <Button variant="hero" size="lg" onClick={connect}>
-              Connect Wallet
-            </Button>
+            <p className="text-muted-foreground mb-6">Connect HOT Wallet to create a contract.</p>
+            <Button variant="hero" size="lg" onClick={connect}>Connect Wallet</Button>
           </div>
         </div>
       </div>
@@ -154,23 +205,19 @@ const CreateContractPage = () => {
             className="p-8 rounded-2xl border border-primary/20 bg-primary/5 text-center"
           >
             <HugeiconsIcon icon={Link01Icon} size={48} className="text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-3">Contract Created!</h2>
+            <h2 className="text-2xl font-bold mb-3">Contract Created On-Chain</h2>
             <p className="text-muted-foreground mb-6">
-              Share this invite link with the other party. They'll connect their HOT Wallet to join the contract instantly.
+              Share this invite link. The counterparty connects their HOT Wallet to join.
             </p>
             <div className="flex items-center gap-2 p-3 rounded-lg bg-card border border-border max-w-md mx-auto mb-6">
               <code className="text-sm text-primary font-mono flex-1 truncate">{inviteLink}</code>
-              <Button variant="ghost" size="sm" onClick={copyInviteLink}>
+              <Button variant="ghost" size="sm" onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success("Copied!"); }}>
                 <HugeiconsIcon icon={Copy01Icon} size={16} />
               </Button>
             </div>
             <div className="flex gap-3 justify-center">
-              <Button variant="hero" onClick={() => navigate("/contracts")}>
-                Go to Contracts
-              </Button>
-              <Button variant="ghost" onClick={() => setInviteLink(null)}>
-                Edit Contract
-              </Button>
+              <Button variant="hero" onClick={() => navigate("/contracts")}>Go to Contracts</Button>
+              <Button variant="ghost" onClick={() => setInviteLink(null)}>Edit</Button>
             </div>
           </motion.div>
         </div>
@@ -185,187 +232,325 @@ const CreateContractPage = () => {
           <h1 className="text-3xl font-bold mb-8">Create Contract</h1>
 
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-6 h-[calc(100vh-16rem)]">
-              <div className="flex flex-col space-y-4">
-                <div className="flex-1 flex flex-col space-y-4">
-                  <div>
-                    <Label htmlFor="title" className="text-base font-semibold">Contract Title *</Label>
-                    <Input
-                      id="title"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="e.g. Website Redesign"
-                      className="mt-2 text-lg h-12"
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col">
-                    <Label htmlFor="desc" className="text-base font-semibold mb-2">Description</Label>
-                    <Textarea
-                      id="desc"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Describe the scope of work, deliverables, timeline, and any specific requirements..."
-                      className="flex-1 resize-none text-base"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-xl bg-card border border-border space-y-4 overflow-y-auto">
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={userRole === "client" ? "hero" : "outline"}
-                    size="sm"
-                    onClick={() => setUserRole("client")}
-                    className="flex-1"
-                  >
-                    <HugeiconsIcon icon={UserCheck01Icon} size={16} className="mr-1" />
-                    Client
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={userRole === "freelancer" ? "hero" : "outline"}
-                    size="sm"
-                    onClick={() => setUserRole("freelancer")}
-                    className="flex-1"
-                  >
-                    <HugeiconsIcon icon={UserGroupIcon} size={16} className="mr-1" />
-                    Freelancer
-                  </Button>
+            <div className="grid grid-cols-2 gap-6 items-start">
+              {/* Left: title + description + milestones */}
+              <div className="space-y-5">
+                <div>
+                  <Label htmlFor="title" className="text-base font-semibold">Contract Title *</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Website Redesign"
+                    className="mt-2 text-lg h-12"
+                  />
                 </div>
 
-                <h2 className="font-semibold text-lg">Counterparty</h2>
-                <p className="text-sm text-muted-foreground">
-                  Leave empty to generate an invite link. The other party will connect their HOT Wallet to join.
-                </p>
-                <div className="grid grid-cols-5 gap-2 w-full">
-                  <div className="col-span-3 w-full">
-                    <Label>Counterparty Wallet (optional)</Label>
-                    <Input value={freelancerAddress} onChange={(e) => setFreelancerAddress(e.target.value)} placeholder="Leave empty for invite link" className="mt-1 font-mono text-sm" />
-                  </div>
-                  <div className="col-span-2 w-full">
-                    <Label>Security Deposit (%)</Label>
-                    <Input type="number" value={securityPercent} onChange={(e) => setSecurityPercent(e.target.value)} min="0" max="50" className="mt-1 w-32 font-mono" />
-                  </div>
-                </div>
-
-                {/* AI Model Selection */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <HugeiconsIcon icon={AiBrain01Icon} size={18} className="text-primary" />
-                    <h2 className="font-semibold text-lg">AI Dispute Model</h2>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Choose the AI model for standard dispute resolution. All models run inside TEE hardware with Ed25519 signatures verified on-chain. Appeals always use DeepSeek V3.1.
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {AI_MODELS.map((model) => (
-                      <button
-                        key={model.id}
-                        type="button"
-                        onClick={() => setSelectedModel(model.id)}
-                        className={`p-3 rounded-lg border text-left transition-all ${
-                          selectedModel === model.id
-                            ? "border-primary bg-primary/10"
-                            : "border-border bg-secondary/30 hover:border-primary/40"
-                        }`}
-                      >
-                        <p className="text-sm font-semibold">{model.name}</p>
-                        <p className="text-xs text-muted-foreground">{model.description}</p>
-                        <p className="text-[10px] font-mono text-muted-foreground mt-1">{model.pricing} · {model.speed}</p>
-                      </button>
-                    ))}
-                  </div>
+                <div>
+                  <Label htmlFor="desc" className="text-base font-semibold">Description</Label>
+                  <Textarea
+                    id="desc"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Scope of work, deliverables, timeline, acceptance criteria..."
+                    className="mt-2 resize-none min-h-[120px]"
+                  />
                 </div>
 
                 {/* Milestones */}
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-semibold text-lg">Milestones *</h2>
+                    <Label className="text-base font-semibold">Milestones *</Label>
                     <Button type="button" variant="ghost" size="sm" onClick={addMilestone}>
                       <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-1" /> Add
                     </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Each milestone must have a title and amount. Funds are escrowed per milestone.
+                  <p className="text-xs text-muted-foreground">
+                    Each milestone is funded and released independently. Client funds → freelancer works → client approves or disputes.
                   </p>
+
                   {milestones.map((m, i) => (
                     <motion.div
                       key={i}
-                      className="p-4 rounded-lg bg-secondary/50 border border-border space-y-3"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
+                      className="p-4 rounded-xl bg-card border border-border space-y-3"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono text-muted-foreground">
+                      {/* Top row: label + date + delete */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-muted-foreground uppercase tracking-wide flex-1">
                           Milestone {i + 1}
                         </span>
+                        <div className="flex items-center gap-1.5">
+                          <HugeiconsIcon icon={Calendar01Icon} size={12} className="text-muted-foreground" />
+                          <Input
+                            type="date"
+                            value={m.deadline}
+                            onChange={(e) => updateMilestone(i, "deadline", e.target.value)}
+                            className="text-xs h-7 w-36 px-2"
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        </div>
                         {milestones.length > 1 && (
-                          <button type="button" onClick={() => removeMilestone(i)} className="text-muted-foreground hover:text-destructive transition-colors">
-                            <HugeiconsIcon icon={Delete01Icon} size={16} />
+                          <button type="button" onClick={() => removeMilestone(i)} className="text-muted-foreground hover:text-destructive transition-colors ml-0.5">
+                            <HugeiconsIcon icon={Delete01Icon} size={14} />
                           </button>
                         )}
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="col-span-2">
-                          <Input placeholder="Title *" value={m.title} onChange={(e) => updateMilestone(i, "title", e.target.value)} />
-                        </div>
+
+                      {/* Title + Amount */}
+                      <div className="grid grid-cols-3 gap-2">
                         <Input
-                          placeholder="Amount (NEAR) *"
+                          className="col-span-2"
+                          placeholder="Title *"
+                          value={m.title}
+                          onChange={(e) => updateMilestone(i, "title", e.target.value)}
+                        />
+                        <Input
+                          placeholder="NEAR *"
                           type="number"
+                          step="0.01"
+                          min="0"
                           value={m.amount}
                           onChange={(e) => updateMilestone(i, "amount", e.target.value)}
                           className="font-mono"
                         />
                       </div>
-                      <Input placeholder="Description" value={m.description} onChange={(e) => updateMilestone(i, "description", e.target.value)} />
+
+                      {/* Description: 2 rows */}
+                      <Textarea
+                        placeholder="Description / acceptance criteria"
+                        value={m.description}
+                        onChange={(e) => updateMilestone(i, "description", e.target.value)}
+                        rows={2}
+                        className="resize-none text-sm"
+                      />
+
+                      {m.amount && parseFloat(m.amount) > 0 && (
+                        <div className="text-[10px] font-mono text-muted-foreground flex flex-wrap gap-3">
+                          <span className="text-foreground font-semibold">{parseFloat(m.amount).toFixed(2)} NEAR</span>
+                          <span>· {(parseFloat(m.amount) * pct / 100).toFixed(3)} NEAR dispute fund</span>
+                          {nearPrice && <span>· ≈${(parseFloat(m.amount) * nearPrice).toFixed(0)} USD</span>}
+                        </div>
+                      )}
                     </motion.div>
                   ))}
                 </div>
+              </div>
 
-                {/* Prompt Transparency */}
-                <div className="p-4 rounded-lg bg-accent/5 border border-accent/20 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <HugeiconsIcon icon={Shield01Icon} size={16} className="text-accent" />
-                    <h3 className="font-semibold text-sm">TEE-Verified AI Disputes</h3>
+              {/* Right: settings */}
+              <div className="space-y-5 p-6 rounded-2xl bg-card border border-border">
+                {/* Role */}
+                <div>
+                  <Label className="text-xs text-muted-foreground uppercase tracking-wide mb-2 block">I am the</Label>
+                  <div className="flex gap-2">
+                    <Button type="button" variant={userRole === "client" ? "hero" : "outline"} size="sm" className="flex-1" onClick={() => setUserRole("client")}>
+                      <HugeiconsIcon icon={UserCheck01Icon} size={14} className="mr-1" /> Client
+                    </Button>
+                    <Button type="button" variant={userRole === "freelancer" ? "hero" : "outline"} size="sm" className="flex-1" onClick={() => setUserRole("freelancer")}>
+                      <HugeiconsIcon icon={UserGroupIcon} size={14} className="mr-1" /> Freelancer
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Disputes are resolved by AI running inside TEE hardware. Every response is signed with Ed25519 and verified on-chain — no oracle, no backend, no trust assumptions.
-                  </p>
-                  {promptHash && (
-                    <code className="text-xs font-mono text-accent break-all block">{promptHash}</code>
+                </div>
+
+                {/* Counterparty */}
+                <div>
+                  <Label className="text-sm font-medium">
+                    {userRole === "client" ? "Freelancer" : "Client"} wallet
+                    <span className="text-muted-foreground font-normal ml-1">(optional)</span>
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <Input
+                      value={counterpartyAddress}
+                      onChange={(e) => {
+                        setCounterpartyAddress(e.target.value);
+                        checkCounterparty(e.target.value);
+                      }}
+                      placeholder="alice.near or leave empty → invite link"
+                      className={`font-mono text-sm pr-8 ${
+                        counterpartyStatus === "valid" ? "border-success" :
+                        counterpartyStatus === "invalid" || counterpartyStatus === "bad-format" ? "border-destructive" : ""
+                      }`}
+                    />
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs">
+                      {counterpartyStatus === "checking" && (
+                        <span className="text-muted-foreground animate-pulse">…</span>
+                      )}
+                      {counterpartyStatus === "valid" && (
+                        <span className="text-success font-mono">✓</span>
+                      )}
+                      {(counterpartyStatus === "invalid" || counterpartyStatus === "bad-format") && (
+                        <span className="text-destructive font-mono">✗</span>
+                      )}
+                    </div>
+                  </div>
+                  {counterpartyStatus === "bad-format" && (
+                    <p className="text-[10px] text-destructive mt-1">
+                      Use format: alice.near / alice.testnet / 64-char hex
+                    </p>
                   )}
-                  <a href="/disputes" className="text-xs text-primary hover:underline">How disputes work →</a>
+                  {counterpartyStatus === "invalid" && (
+                    <p className="text-[10px] text-destructive mt-1">
+                      Account not found on {import.meta.env.VITE_NEAR_NETWORK || "testnet"}
+                    </p>
+                  )}
+                  {counterpartyStatus === "valid" && (
+                    <p className="text-[10px] text-success mt-1">Account verified on-chain ✓</p>
+                  )}
+                  {counterpartyStatus === "idle" && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      Leave empty to generate an invite link instead
+                    </p>
+                  )}
+                </div>
+
+                {/* Dispute Fund */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <HugeiconsIcon icon={Shield01Icon} size={14} className="text-primary" />
+                    <Label className="text-sm font-medium">Dispute Fund</Label>
+                    <HugeiconsIcon icon={InformationCircleIcon} size={13} className="text-muted-foreground" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Reserved from each funded milestone. Pays for TEE-verified AI investigation.
+                    Leftover always goes to the freelancer.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="number"
+                        value={disputeFundPct}
+                        onChange={(e) => setDisputeFundPct(e.target.value)}
+                        min={DISPUTE_FUND_MIN}
+                        max={DISPUTE_FUND_MAX}
+                        className={`font-mono pr-6 ${!disputeFundValid && disputeFundPct ? "border-destructive" : ""}`}
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                    </div>
+                    <div className="flex gap-1">
+                      {["5", "10", "15"].map((v) => (
+                        <button key={v} type="button" onClick={() => setDisputeFundPct(v)}
+                          className={`px-2 py-1 text-xs rounded font-mono transition-all ${disputeFundPct === v ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
+                          {v}%
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {!disputeFundValid && disputeFundPct && (
+                    <p className="text-[11px] text-destructive">Minimum {DISPUTE_FUND_MIN}%, maximum {DISPUTE_FUND_MAX}%</p>
+                  )}
+                  {disputeFundValid && totalNear > 0 && (
+                    <p className="text-[11px] font-mono text-primary">
+                      {disputeFundNear.toFixed(3)} NEAR reserved · covers ~{Math.floor(disputeFundNear / 0.001).toLocaleString()} standard disputes
+                    </p>
+                  )}
+                </div>
+
+                {/* AI Dispute Model */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <HugeiconsIcon icon={AiBrain01Icon} size={14} className="text-primary" />
+                    <Label className="text-sm font-medium">AI Dispute Model</Label>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Standard disputes run 2 rounds. Appeals escalate to DeepSeek V3.1 (deeper agentic logic, more steps).
+                    All models run in TEE — signatures are verified on-chain.
+                  </p>
+                  <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v as ModelId)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue>
+                        {selectedModelData && (
+                          <div className="flex items-center gap-2">
+                            <span>{selectedModelData.name}</span>
+                            <StarRating stars={selectedModelData.stars} />
+                            <span className="text-[10px] text-muted-foreground font-mono ml-auto">
+                              {MODEL_COST_LABEL[selectedModel]}
+                            </span>
+                          </div>
+                        )}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AI_MODELS.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          <div className="flex flex-col gap-0.5 py-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">{model.name}</span>
+                              <StarRating stars={model.stars} />
+                            </div>
+                            <div className="flex gap-2 text-[10px] text-muted-foreground font-mono flex-wrap">
+                              <span>{model.use_case}</span>
+                              <span>·</span>
+                              <span>{MODEL_COST_LABEL[model.id]}</span>
+                              <span>·</span>
+                              <span>{model.speed}</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {promptHash && (
+                    <div className="flex items-center justify-between gap-2">
+                      <code className="text-[10px] font-mono text-muted-foreground truncate">{promptHash.slice(0, 32)}…</code>
+                      <a href="/disputes" className="text-[10px] text-primary hover:underline whitespace-nowrap">How disputes work →</a>
+                    </div>
+                  )}
+                </div>
+
+                {/* Feature badges */}
+                <div className="flex flex-wrap gap-2">
+                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-success bg-success/8 border border-success/15 px-2.5 py-1.5 rounded-lg">
+                    <HugeiconsIcon icon={LockIcon} size={12} />
+                    Private AI — identity scrubbed
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-orange-400 bg-orange-500/8 border border-orange-500/15 px-2.5 py-1.5 rounded-lg">
+                    <span className="font-bold text-[10px]">H</span>
+                    HOT Pay — fund with any token
+                  </span>
                 </div>
 
                 {/* Summary */}
-                <div className="p-6 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
-                  <h2 className="font-semibold text-lg">Summary</h2>
+                <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Summary</p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Connected as</span>
-                    <span className="font-mono text-sm">{accountId}</span>
+                    <span className="text-muted-foreground">Total</span>
+                    <div className="text-right">
+                      <span className="font-mono font-bold">{totalNear.toFixed(2)} NEAR</span>
+                      {totalUsd !== null && (
+                        <span className="text-xs text-muted-foreground ml-1.5">≈${totalUsd.toFixed(0)}</span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Contract Value</span>
-                    <span className="font-mono font-bold">{totalAmount.toLocaleString()} NEAR</span>
+                    <span className="text-muted-foreground">Dispute fund</span>
+                    <span className="font-mono text-xs">{pct}% · {disputeFundNear.toFixed(3)} NEAR</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Security Deposit ({securityPercent}%)</span>
-                    <span className="font-mono">{securityDeposit.toFixed(1)} NEAR</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">AI Model</span>
-                    <span className="font-mono">{AI_MODELS.find((m) => m.id === selectedModel)?.name}</span>
+                    <span className="text-muted-foreground">AI model</span>
+                    <span className="font-mono text-xs">{selectedModelData?.name}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Milestones</span>
                     <span className="font-mono">{milestones.length}</span>
                   </div>
+                  <p className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
+                    Gas ~$0.001/action, paid by your wallet automatically.
+                  </p>
                 </div>
 
-                <Button type="submit" variant="hero" size="lg" className="w-full text-base" disabled={createMutation.isPending}>
-                  {createMutation.isPending ? "Creating..." : freelancerAddress ? "Create Contract" : "Create & Get Invite Link"}
+                <Button
+                  type="submit"
+                  variant="hero"
+                  size="lg"
+                  className="w-full"
+                  disabled={createMutation.isPending || !disputeFundValid}
+                >
+                  {createMutation.isPending
+                    ? "Creating on-chain…"
+                    : counterpartyAddress
+                    ? "Create Contract"
+                    : "Create & Get Invite Link"}
                   <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
                 </Button>
               </div>

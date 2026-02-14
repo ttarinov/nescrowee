@@ -11,7 +11,6 @@ impl Contract {
         assert!(deposit > NearToken::from_yoctonear(0), "Must attach NEAR to fund");
 
         let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
-        assert_eq!(contract.client, env::predecessor_account_id(), "Only client can fund");
         assert!(
             contract.status == ContractStatus::Active,
             "Contract must be active"

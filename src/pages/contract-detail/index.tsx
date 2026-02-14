@@ -25,7 +25,10 @@ import {
   EyeIcon,
   AiBrain01Icon,
   PlayIcon,
+  LockIcon,
+  ExternalLink,
 } from "@hugeicons/core-free-icons";
+import { nearConfig } from "@/near/config";
 import { toast } from "sonner";
 import { useWallet } from "@/hooks/useWallet";
 import {
@@ -41,6 +44,83 @@ import {
 import { useChat } from "./useChat";
 import type { Resolution } from "@/types/dispute";
 import type { InvestigationRoundResult } from "@/agent/types";
+
+function FundMilestoneDialog({
+  contractId,
+  milestoneId,
+  amountYocto,
+  onFundDirect,
+  isPending,
+}: {
+  contractId: string;
+  milestoneId: string;
+  amountYocto: string;
+  onFundDirect: () => void;
+  isPending: boolean;
+}) {
+  const amountNear = (Number(BigInt(amountYocto || "0")) / 1e24).toFixed(2);
+  const memo = `mt-${contractId}-${milestoneId}`;
+  const hotPayUrl = `https://hot-labs.org/pay/?to=${nearConfig.contractId}&amount=${amountNear}&token=NEAR&memo=${memo}`;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="hero">Fund</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Fund Milestone</DialogTitle>
+          <DialogDescription>
+            {amountNear} NEAR · Choose how to pay
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 pt-1">
+          {/* Direct NEAR */}
+          <button
+            onClick={onFundDirect}
+            disabled={isPending}
+            className="w-full p-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all text-left group"
+          >
+            <div className="flex items-center gap-3">
+              <HugeiconsIcon icon={Wallet01Icon} size={20} className="text-primary shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Pay with NEAR Wallet</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Direct on-chain · instant · HOT Wallet / MyNearWallet
+                </p>
+              </div>
+              <span className="text-[10px] font-mono text-success bg-success/10 px-1.5 py-0.5 rounded">trustless</span>
+            </div>
+          </button>
+
+          {/* HOT Pay */}
+          <a
+            href={hotPayUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full p-4 rounded-xl border border-orange-500/25 bg-orange-500/5 hover:bg-orange-500/10 transition-all flex items-center gap-3"
+          >
+            <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
+              <span className="text-orange-400 font-bold text-sm">H</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-orange-400">Pay with HOT Pay</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                USDC · USDT · ETH · BNB · 30+ tokens · future: cards
+              </p>
+            </div>
+            <HugeiconsIcon icon={ExternalLink} size={14} className="text-muted-foreground shrink-0" />
+          </a>
+
+          <p className="text-[10px] text-muted-foreground text-center">
+            Memo: <code className="font-mono">{memo}</code> · auto-routes to escrow
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 const milestoneIconMap: Record<string, typeof CheckmarkCircle01Icon> = {
   Completed: CheckmarkCircle01Icon,
@@ -357,14 +437,13 @@ const ContractDetailPage = () => {
                         <p className="font-mono font-bold text-sm">{yoctoToNear(milestone.amount)} NEAR</p>
                         <div className="flex gap-2">
                           {milestone.status === "NotFunded" && isClient && (
-                            <Button
-                              size="sm"
-                              variant="hero"
-                              onClick={() => handleFund(milestone.id, milestone.amount)}
-                              disabled={fundMutation.isPending}
-                            >
-                              Fund
-                            </Button>
+                            <FundMilestoneDialog
+                              contractId={contract.id}
+                              milestoneId={milestone.id}
+                              amountYocto={milestone.amount}
+                              onFundDirect={() => handleFund(milestone.id, milestone.amount)}
+                              isPending={fundMutation.isPending}
+                            />
                           )}
                           {milestone.status === "Funded" && isFreelancer && (
                             <Button
@@ -539,9 +618,15 @@ const ContractDetailPage = () => {
                             </div>
                           )}
                           {aiProcessing === dispute.milestone_id ? (
-                            <p className={`text-xs font-mono animate-pulse ${dispute.is_appeal ? "text-warning" : "text-primary"}`}>
-                              {dispute.is_appeal ? "DeepSeek V3.1" : "AI"} investigation round {investigationRounds.length + 1}/{dispute.is_appeal ? 5 : 3} in progress...
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className={`text-xs font-mono animate-pulse ${dispute.is_appeal ? "text-warning" : "text-primary"}`}>
+                                {dispute.is_appeal ? "DeepSeek V3.1" : "AI"} investigation round {investigationRounds.length + 1}/{dispute.is_appeal ? 5 : 3} in progress...
+                              </p>
+                              <span className="flex items-center gap-1 text-[10px] font-mono text-success shrink-0">
+                                <HugeiconsIcon icon={LockIcon} size={10} />
+                                private
+                              </span>
+                            </div>
                           ) : (
                             <p className={`text-xs font-mono ${dispute.is_appeal ? "text-warning" : "text-muted-foreground"}`}>
                               Waiting for {dispute.is_appeal ? "appeal " : ""}investigation...
