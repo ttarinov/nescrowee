@@ -6,12 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import Index from "./pages/Index";
-import Contracts from "./pages/Contracts";
-import ContractDetail from "./pages/ContractDetail";
-import CreateContract from "./pages/CreateContract";
-import HowDisputesWork from "./pages/HowDisputesWork";
-import NotFound from "./pages/NotFound";
+import HomePage from "./pages/home";
+import ContractsPage from "./pages/contracts";
+import ContractDetailPage from "./pages/contract-detail";
+import CreateContractPage from "./pages/create-contract";
+import HowDisputesWorkPage from "./pages/how-disputes-work";
+import NotFoundPage from "./pages/not-found";
 
 const queryClient = new QueryClient();
 
@@ -24,12 +24,12 @@ const App = () => (
         <BrowserRouter>
           <Navbar />
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/contracts" element={<Contracts />} />
-            <Route path="/contracts/:id" element={<ContractDetail />} />
-            <Route path="/create" element={<CreateContract />} />
-            <Route path="/disputes" element={<HowDisputesWork />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/contracts" element={<ContractsPage />} />
+            <Route path="/contracts/:id" element={<ContractDetailPage />} />
+            <Route path="/create" element={<CreateContractPage />} />
+            <Route path="/disputes" element={<HowDisputesWorkPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <Footer />
         </BrowserRouter>

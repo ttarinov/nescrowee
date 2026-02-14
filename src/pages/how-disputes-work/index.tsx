@@ -20,9 +20,9 @@ import {
   investigationPrompt,
   investigationAppealPrompt,
 } from "@/utils/promptHash";
-import { AI_MODELS, APPEAL_MODEL_ID } from "@/types/contract";
+import { AI_MODELS, APPEAL_MODEL_ID } from "@/types/ai";
 
-const HowDisputesWork = () => {
+const HowDisputesWorkPage = () => {
   const [standardHash, setStandardHash] = useState("");
   const [appealHash, setAppealHash] = useState("");
   const [investigationHash, setInvestigationHash] = useState("");
@@ -187,105 +187,37 @@ const HowDisputesWork = () => {
               The AI prompts are open-source and verifiable. The SHA-256 hash of each prompt is stored on-chain at contract creation, so you can verify that the exact same prompt is used for dispute resolution.
             </p>
 
-            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Standard Resolution Prompt</h3>
-                <button
-                  className="text-xs text-primary hover:underline"
-                  onClick={() => setShowPrompt(showPrompt === "standard" ? null : "standard")}
-                >
-                  {showPrompt === "standard" ? "Hide" : "View"} Full Prompt
-                </button>
+            {[
+              { key: "standard" as const, title: "Standard Resolution Prompt", hash: standardHash, content: standardPrompt },
+              { key: "appeal" as const, title: "Appeal Resolution Prompt", hash: appealHash, content: appealPrompt },
+              { key: "investigation" as const, title: "Investigation Prompt", hash: investigationHash, content: investigationPrompt },
+              { key: "investigation-appeal" as const, title: "Appeal Investigation Prompt", hash: investigationAppealHash, content: investigationAppealPrompt },
+            ].map((prompt) => (
+              <div key={prompt.key} className="p-4 rounded-xl bg-card border border-border space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-sm">{prompt.title}</h3>
+                  <button
+                    className="text-xs text-primary hover:underline"
+                    onClick={() => setShowPrompt(showPrompt === prompt.key ? null : prompt.key)}
+                  >
+                    {showPrompt === prompt.key ? "Hide" : "View"} Full Prompt
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">SHA-256:</span>
+                  <code className="text-xs font-mono text-primary break-all">{prompt.hash}</code>
+                </div>
+                {showPrompt === prompt.key && (
+                  <motion.pre
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
+                  >
+                    {prompt.content}
+                  </motion.pre>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">SHA-256:</span>
-                <code className="text-xs font-mono text-primary break-all">{standardHash}</code>
-              </div>
-              {showPrompt === "standard" && (
-                <motion.pre
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
-                >
-                  {standardPrompt}
-                </motion.pre>
-              )}
-            </div>
-
-            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Appeal Resolution Prompt</h3>
-                <button
-                  className="text-xs text-primary hover:underline"
-                  onClick={() => setShowPrompt(showPrompt === "appeal" ? null : "appeal")}
-                >
-                  {showPrompt === "appeal" ? "Hide" : "View"} Full Prompt
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">SHA-256:</span>
-                <code className="text-xs font-mono text-primary break-all">{appealHash}</code>
-              </div>
-              {showPrompt === "appeal" && (
-                <motion.pre
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
-                >
-                  {appealPrompt}
-                </motion.pre>
-              )}
-            </div>
-
-            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Investigation Prompt</h3>
-                <button
-                  className="text-xs text-primary hover:underline"
-                  onClick={() => setShowPrompt(showPrompt === "investigation" ? null : "investigation")}
-                >
-                  {showPrompt === "investigation" ? "Hide" : "View"} Full Prompt
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">SHA-256:</span>
-                <code className="text-xs font-mono text-primary break-all">{investigationHash}</code>
-              </div>
-              {showPrompt === "investigation" && (
-                <motion.pre
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
-                >
-                  {investigationPrompt}
-                </motion.pre>
-              )}
-            </div>
-
-            <div className="p-4 rounded-xl bg-card border border-border space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm">Appeal Investigation Prompt</h3>
-                <button
-                  className="text-xs text-primary hover:underline"
-                  onClick={() => setShowPrompt(showPrompt === "investigation-appeal" ? null : "investigation-appeal")}
-                >
-                  {showPrompt === "investigation-appeal" ? "Hide" : "View"} Full Prompt
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">SHA-256:</span>
-                <code className="text-xs font-mono text-primary break-all">{investigationAppealHash}</code>
-              </div>
-              {showPrompt === "investigation-appeal" && (
-                <motion.pre
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="text-xs text-muted-foreground bg-secondary/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto"
-                >
-                  {investigationAppealPrompt}
-                </motion.pre>
-              )}
-            </div>
+            ))}
           </div>
 
           {/* Verify Yourself */}
@@ -324,4 +256,4 @@ const HowDisputesWork = () => {
   );
 };
 
-export default HowDisputesWork;
+export default HowDisputesWorkPage;

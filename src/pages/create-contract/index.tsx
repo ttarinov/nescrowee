@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { useWallet } from "@/hooks/useWallet";
 import { useCreateContract } from "@/hooks/useContract";
 import { getStandardPromptHash } from "@/utils/promptHash";
-import { AI_MODELS } from "@/types/contract";
+import { AI_MODELS } from "@/types/ai";
 
 interface MilestoneForm {
   title: string;
@@ -36,7 +36,7 @@ const nearToYocto = (near: number) => {
   return (BigInt(Math.round(near * 1e6)) * BigInt(1e18)).toString();
 };
 
-const CreateContract = () => {
+const CreateContractPage = () => {
   const navigate = useNavigate();
   const { accountId, isConnected, connect } = useWallet();
   const createMutation = useCreateContract();
@@ -377,4 +377,4 @@ const CreateContract = () => {
   );
 };
 
-export default CreateContract;
+export default CreateContractPage;

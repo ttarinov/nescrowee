@@ -14,16 +14,13 @@ import {
   appealResolution,
   type CreateContractArgs,
 } from "@/near/contract";
-import {
-  runInvestigation,
-  signatureToBytes,
-  addressToBytes,
-  type InvestigationRoundResult,
-} from "@/near/ai";
+import { runInvestigation } from "@/agent/investigation";
+import { signatureToBytes, addressToBytes } from "@/agent/client";
+import type { InvestigationRoundResult } from "@/agent/types";
 import { anonymizeDisputeContext } from "@/utils/anonymize";
 import { investigationPrompt, investigationAppealPrompt } from "@/utils/promptHash";
-import type { EscrowContract } from "@/types/contract";
-import { APPEAL_MODEL_ID } from "@/types/contract";
+import type { EscrowContract } from "@/types/escrow";
+import { APPEAL_MODEL_ID } from "@/types/ai";
 
 export function useContractDetail(contractId: string | undefined) {
   return useQuery({

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getChatMessages, sendChatMessage } from "@/near/social";
-import { useWallet } from "./useWallet";
+import { useWallet } from "@/hooks/useWallet";
 
 export function useChat(contractId: string | undefined) {
   const { accountId } = useWallet();
