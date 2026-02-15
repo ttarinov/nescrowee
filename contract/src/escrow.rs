@@ -20,19 +20,20 @@ impl Contract {
             contract.funded_amount.as_yoctonear() + deposit.as_yoctonear(),
         );
 
+        let mut cumulative: u128 = 0;
         for milestone in contract.milestones.iter_mut() {
-            if milestone.status == MilestoneStatus::NotFunded {
-                if contract.funded_amount.as_yoctonear() >= milestone.amount.as_yoctonear() {
-                    milestone.status = MilestoneStatus::Funded;
-                }
+            cumulative += milestone.amount.as_yoctonear();
+            if milestone.status == MilestoneStatus::NotFunded
+                && contract.funded_amount.as_yoctonear() >= cumulative
+            {
+                milestone.status = MilestoneStatus::Funded;
             }
         }
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"fund\",\"data\":{{\"contract_id\":\"{}\",\"amount\":\"{}\"}}}}",
-            contract_id,
-            deposit.as_yoctonear()
-        ));
+        emit_event!("fund", {
+            "contract_id" => contract_id,
+            "amount" => deposit.as_yoctonear()
+        });
     }
 
     pub fn approve_milestone(&mut self, contract_id: String, milestone_id: String) {
@@ -48,8 +49,9 @@ impl Contract {
             .expect("Milestone not found");
 
         assert!(
-            milestone.status == MilestoneStatus::InProgress,
-            "Milestone must be in progress"
+            milestone.status == MilestoneStatus::InProgress
+                || milestone.status == MilestoneStatus::SubmittedForReview,
+            "Milestone must be in progress or submitted for review"
         );
 
         let amount = milestone.amount;
@@ -62,10 +64,11 @@ impl Contract {
 
         Promise::new(freelancer).transfer(amount);
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"milestone_approved\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\",\"amount\":\"{}\"}}}}",
-            contract_id, milestone_id, amount.as_yoctonear()
-        ));
+        emit_event!("milestone_approved", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id,
+            "amount" => amount.as_yoctonear()
+        });
     }
 
     pub fn release_dispute_funds(
@@ -76,20 +79,30 @@ impl Contract {
         let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
         let dispute = contract
             .disputes
-            .iter()
+            .iter_mut()
             .find(|d| d.milestone_id == milestone_id && d.status == DisputeStatus::Finalized)
             .expect("No finalized dispute for this milestone");
+
+        assert!(!dispute.funds_released, "Funds already released for this dispute");
+        dispute.funds_released = true;
 
         let resolution = dispute.resolution.clone().expect("No resolution set");
         let milestone = contract
             .milestones
-            .iter()
+            .iter_mut()
             .find(|m| m.id == milestone_id)
             .expect("Milestone not found");
 
         let amount = milestone.amount;
+        milestone.status = MilestoneStatus::Completed;
+
         let freelancer = contract.freelancer.clone().expect("No freelancer");
         let client = contract.client.clone();
+
+        let all_completed = contract.milestones.iter().all(|m| m.status == MilestoneStatus::Completed);
+        if all_completed {
+            contract.status = ContractStatus::Resolved;
+        }
 
         match resolution {
             Resolution::Freelancer => {

@@ -1,4 +1,4 @@
-export type MilestoneStatus = "NotFunded" | "Funded" | "InProgress" | "Completed" | "Disputed";
+export type MilestoneStatus = "NotFunded" | "Funded" | "InProgress" | "SubmittedForReview" | "Completed" | "Disputed";
 
 export interface Milestone {
   id: string;

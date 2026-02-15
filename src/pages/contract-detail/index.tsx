@@ -125,6 +125,7 @@ function FundMilestoneDialog({
 const milestoneIconMap: Record<string, typeof CheckmarkCircle01Icon> = {
   Completed: CheckmarkCircle01Icon,
   InProgress: Clock01Icon,
+  SubmittedForReview: EyeIcon,
   Funded: Wallet01Icon,
   NotFunded: Dollar01Icon,
   Disputed: Alert01Icon,
@@ -132,6 +133,7 @@ const milestoneIconMap: Record<string, typeof CheckmarkCircle01Icon> = {
 const milestoneIconClass: Record<string, string> = {
   Completed: "text-success",
   InProgress: "text-primary",
+  SubmittedForReview: "text-accent",
   Funded: "text-warning",
   NotFunded: "text-muted-foreground",
   Disputed: "text-destructive",
@@ -456,7 +458,7 @@ const ContractDetailPage = () => {
                               Start
                             </Button>
                           )}
-                          {milestone.status === "InProgress" && isClient && (
+                          {(milestone.status === "InProgress" || milestone.status === "SubmittedForReview") && isClient && (
                             <Button
                               size="sm"
                               variant="hero"
@@ -467,7 +469,7 @@ const ContractDetailPage = () => {
                               Approve
                             </Button>
                           )}
-                          {milestone.status === "InProgress" && userRole && (
+                          {(milestone.status === "InProgress" || milestone.status === "SubmittedForReview") && userRole && (
                             <Button
                               size="sm"
                               variant="destructive"

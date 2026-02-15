@@ -10,6 +10,7 @@ const statusStyles: Record<string, string> = {
   InProgress: "bg-primary/15 text-primary border-primary/30",
   NotFunded: "bg-muted text-muted-foreground",
   Funded: "bg-warning/15 text-warning border-warning/30",
+  SubmittedForReview: "bg-accent/15 text-accent border-accent/30",
   AiResolved: "bg-accent/15 text-accent border-accent/30",
   Appealed: "bg-warning/15 text-warning border-warning/30",
   AppealResolved: "bg-accent/15 text-accent border-accent/30",
@@ -19,6 +20,7 @@ const statusStyles: Record<string, string> = {
 const statusLabels: Record<string, string> = {
   NotFunded: "Not Funded",
   InProgress: "In Progress",
+  SubmittedForReview: "Submitted for Review",
   AiResolved: "AI Resolved",
   AppealResolved: "Appeal Resolved",
 };

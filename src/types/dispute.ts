@@ -11,6 +11,7 @@ export interface InvestigationRound {
   findings: string;
   confidence: number;
   needs_more_analysis: boolean;
+  is_appeal: boolean;
   tee_signature: number[];
   tee_signing_address: number[];
   tee_text: string;
@@ -33,4 +34,5 @@ export interface Dispute {
   tee_text: string | null;
   investigation_rounds: InvestigationRound[];
   max_rounds: number;
+  funds_released: boolean;
 }
