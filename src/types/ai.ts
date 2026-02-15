@@ -5,6 +5,8 @@ export const AI_MODELS = [
     description: "Fast, cost-effective",
     pricing: "$0.15 / $0.55 per M tokens",
     speed: "~10s",
+    stars: 3,
+    use_case: "Standard disputes",
   },
   {
     id: "openai/gpt-oss-120b",
@@ -12,6 +14,8 @@ export const AI_MODELS = [
     description: "Strong reasoning",
     pricing: "$0.15 / $0.55 per M tokens",
     speed: "~20s",
+    stars: 4,
+    use_case: "Complex disputes",
   },
   {
     id: "deepseek-ai/DeepSeek-V3.1",
@@ -19,6 +23,8 @@ export const AI_MODELS = [
     description: "Most thorough",
     pricing: "$1.05 / $3.10 per M tokens",
     speed: "~45s",
+    stars: 5,
+    use_case: "High-stakes disputes",
   },
   {
     id: "THUDM/GLM-4.1V-9B-Thinking",
@@ -26,6 +32,8 @@ export const AI_MODELS = [
     description: "Vision-capable",
     pricing: "$0.15 / $0.55 per M tokens",
     speed: "~15s",
+    stars: 3,
+    use_case: "Design / file review",
   },
 ] as const;
 

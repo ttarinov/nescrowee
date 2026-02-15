@@ -27,7 +27,9 @@ impl Contract {
             .expect("Milestone not found");
 
         assert!(
-            milestone.status == MilestoneStatus::InProgress || milestone.status == MilestoneStatus::Funded,
+            milestone.status == MilestoneStatus::InProgress
+                || milestone.status == MilestoneStatus::Funded
+                || milestone.status == MilestoneStatus::SubmittedForReview,
             "Cannot dispute this milestone"
         );
 
@@ -50,12 +52,13 @@ impl Contract {
             tee_text: None,
             investigation_rounds: vec![],
             max_rounds: 3,
+            funds_released: false,
         });
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"dispute_raised\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-            contract_id, milestone_id
-        ));
+        emit_event!("dispute_raised", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
     }
 
     pub fn submit_ai_resolution(
@@ -103,10 +106,10 @@ impl Contract {
         dispute.tee_signing_address = Some(signing_address);
         dispute.tee_text = Some(tee_text);
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"ai_resolution\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-            contract_id, milestone_id
-        ));
+        emit_event!("ai_resolution", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
     }
 
     pub fn submit_investigation_round(
@@ -143,8 +146,13 @@ impl Contract {
             })
             .expect("No active dispute for this milestone");
 
+        let phase_round_count = dispute
+            .investigation_rounds
+            .iter()
+            .filter(|r| r.is_appeal == dispute.is_appeal)
+            .count();
         assert!(
-            round_number as usize == dispute.investigation_rounds.len() + 1,
+            round_number as usize == phase_round_count + 1,
             "Invalid round number"
         );
 
@@ -154,6 +162,7 @@ impl Contract {
             findings,
             confidence,
             needs_more_analysis,
+            is_appeal: dispute.is_appeal,
             tee_signature: signature.clone(),
             tee_signing_address: signing_address.clone(),
             tee_text: tee_text.clone(),
@@ -181,10 +190,11 @@ impl Contract {
             }
         }
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"investigation_round\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\",\"round\":{}}}}}",
-            contract_id, milestone_id, round_number
-        ));
+        emit_event!("investigation_round", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id,
+            "round" => round_number
+        });
     }
 
     pub fn accept_resolution(&mut self, contract_id: String, milestone_id: String) {
@@ -211,10 +221,10 @@ impl Contract {
 
         if dispute.client_accepted && dispute.freelancer_accepted {
             dispute.status = DisputeStatus::Finalized;
-            env::log_str(&format!(
-                "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"dispute_finalized\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-                contract_id, milestone_id
-            ));
+            emit_event!("dispute_finalized", {
+                "contract_id" => contract_id,
+                "milestone_id" => milestone_id
+            });
         }
     }
 
@@ -238,12 +248,11 @@ impl Contract {
         dispute.client_accepted = false;
         dispute.freelancer_accepted = false;
         dispute.max_rounds = 5;
-        dispute.investigation_rounds = vec![];
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"dispute_appealed\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-            contract_id, milestone_id
-        ));
+        emit_event!("dispute_appealed", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
     }
 
     pub fn finalize_resolution(&mut self, contract_id: String, milestone_id: String) {
@@ -268,9 +277,9 @@ impl Contract {
 
         dispute.status = DisputeStatus::Finalized;
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"dispute_finalized\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-            contract_id, milestone_id
-        ));
+        emit_event!("dispute_finalized", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
     }
 }

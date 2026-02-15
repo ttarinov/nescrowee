@@ -8,6 +8,7 @@ pub enum MilestoneStatus {
     NotFunded,
     Funded,
     InProgress,
+    SubmittedForReview,
     Completed,
     Disputed,
 }
@@ -58,6 +59,7 @@ pub struct InvestigationRound {
     pub findings: String,
     pub confidence: u8,
     pub needs_more_analysis: bool,
+    pub is_appeal: bool,
     pub tee_signature: Vec<u8>,
     pub tee_signing_address: Vec<u8>,
     pub tee_text: String,
@@ -82,6 +84,7 @@ pub struct Dispute {
     pub tee_text: Option<String>,
     pub investigation_rounds: Vec<InvestigationRound>,
     pub max_rounds: u8,
+    pub funds_released: bool,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]

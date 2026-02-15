@@ -3,6 +3,16 @@ use near_sdk::collections::UnorderedMap;
 use near_sdk::{env, near_bindgen, AccountId, NearToken, PanicOnDefault};
 use std::collections::HashMap;
 
+macro_rules! emit_event {
+    ($event:expr, { $($key:expr => $val:expr),* $(,)? }) => {
+        env::log_str(&format!(
+            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"{}\",\"data\":{{{}}}}}",
+            $event,
+            [$( format!("\"{}\":\"{}\"", $key, $val) ),*].join(",")
+        ));
+    };
+}
+
 mod dispute;
 mod escrow;
 mod milestone;
@@ -128,10 +138,9 @@ impl Contract {
                 .push(contract_id.clone());
         }
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"contract_created\",\"data\":{{\"contract_id\":\"{}\"}}}}",
-            contract_id
-        ));
+        emit_event!("contract_created", {
+            "contract_id" => contract_id
+        });
 
         contract_id
     }
@@ -156,10 +165,9 @@ impl Contract {
             .or_default()
             .push(contract_id.clone());
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"contract_joined\",\"data\":{{\"contract_id\":\"{}\"}}}}",
-            contract_id
-        ));
+        emit_event!("contract_joined", {
+            "contract_id" => contract_id
+        });
     }
 
     pub fn get_contract(&self, contract_id: String) -> Option<EscrowContract> {

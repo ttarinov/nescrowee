@@ -26,10 +26,10 @@ impl Contract {
 
         milestone.status = MilestoneStatus::InProgress;
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"milestone_started\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-            contract_id, milestone_id
-        ));
+        emit_event!("milestone_started", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
     }
 
     pub fn complete_milestone(&mut self, contract_id: String, milestone_id: String) {
@@ -51,9 +51,11 @@ impl Contract {
             "Milestone must be in progress"
         );
 
-        env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"milestone_completed\",\"data\":{{\"contract_id\":\"{}\",\"milestone_id\":\"{}\"}}}}",
-            contract_id, milestone_id
-        ));
+        milestone.status = MilestoneStatus::SubmittedForReview;
+
+        emit_event!("milestone_completed", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
     }
 }
