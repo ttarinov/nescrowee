@@ -1,4 +1,4 @@
-# Milestone Trust
+# Nescrowee
 
 Decentralized freelance escrow on NEAR Protocol with TEE-verified AI dispute resolution. Zero backend. Zero oracle. Trust math, not servers.
 
@@ -28,7 +28,7 @@ No Vercel. No serverless functions. No oracle accounts. No trust assumptions.
 
 ```sh
 git clone <repo-url>
-cd milestone-trust
+cd nescrowee
 bun install
 ```
 
@@ -57,13 +57,13 @@ cargo build --target wasm32-unknown-unknown --release
 
 Deploy and initialize:
 ```sh
-near deploy milestone-trust.testnet ./target/wasm32-unknown-unknown/release/milestone_trust.wasm
-near call milestone-trust.testnet new '{"owner": "your-account.testnet"}' --accountId your-account.testnet
+near deploy nescrowee.testnet ./target/wasm32-unknown-unknown/release/nescrowee.wasm
+near call nescrowee.testnet new '{"owner": "your-account.testnet"}' --accountId your-account.testnet
 ```
 
 Register the TEE signing address (get from NEAR AI attestation endpoint):
 ```sh
-near call milestone-trust.testnet register_tee_address '{"address": [<bytes>]}' --accountId your-account.testnet
+near call nescrowee.testnet register_tee_address '{"address": [<bytes>]}' --accountId your-account.testnet
 ```
 
 ## AI Models (TEE-Protected)
