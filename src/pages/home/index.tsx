@@ -152,13 +152,13 @@ const HomePage = () => {
         <div className="container mx-auto px-4">
           <motion.div className="text-center mb-12" {...fadeUp}>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
-              <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(262_50%_88%))] bg-clip-text text-transparent">Instant payments.</span> Fees under <span className="text-primary">$0.01</span>. Disputes with <span className="text-primary">TEE</span>-verified AI.
+              <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(262_50%_88%))] bg-clip-text text-transparent">Instant payments.</span> Fees under <span className="text-primary">0.01 USDC</span>. Disputes with <span className="text-primary">TEE</span>-verified AI.
             </h2>
           </motion.div>
           <div className="max-w-5xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { icon: ZapIcon, title: "Sub-Second Finality", desc: "Transactions confirm in ~1 second. Milestone payments are instant." },
-              { icon: Coins01Icon, title: "Fraction-of-a-Cent Fees", desc: "Gas costs under $0.01. Escrow operations are practically free." },
+              { icon: Coins01Icon, title: "Fraction-of-a-Cent Fees", desc: "Gas costs under 0.01 USDC. Escrow operations are practically free." },
               { icon: ShieldKeyIcon, title: "Human-Readable Accounts", desc: "Use alice.near instead of cryptic hashes. HOT Wallet makes onboarding seamless." },
               { icon: CpuIcon, title: "AI-Native Infrastructure", desc: "NEAR AI Cloud provides confidential inference in TEE for dispute resolution." },
               { icon: Shield01Icon, title: "Privacy by Design", desc: "Dispute data processed in TEE. Chat anonymized before AI analysis. No raw data exposed." },
