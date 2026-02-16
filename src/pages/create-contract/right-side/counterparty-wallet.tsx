@@ -40,12 +40,6 @@ export function CounterpartyWallet({ value, status, onChange }: CounterpartyWall
       {status === "valid" && (
         <p className="text-xs text-green-400 ml-2">Account verified on-chain ✓</p>
       )}
-      {status === "idle" && (
-        <p className="text-xs text-white/40 ml-2 flex items-center gap-1">
-          <HugeiconsIcon icon={InformationCircleIcon} size={12} /> Leave empty to generate an invite
-          link instead
-        </p>
-      )}
     </div>
   );
 }

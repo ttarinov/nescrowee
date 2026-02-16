@@ -12,7 +12,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, onTitleChange }: PageHeaderProps) {
   const navigate = useNavigate();
   return (
-    <div className="p-8 pb-4 relative z-10 flex items-start gap-4">
+    <div className="pb-4 relative z-10 flex items-start gap-4 pt-8">
       <Button
         type="button"
         variant="ghost"

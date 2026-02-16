@@ -94,8 +94,8 @@ export function MilestoneCard({
             placeholder="Description / acceptance criteria"
             value={milestone.description}
             onChange={(e) => onUpdate("description", e.target.value)}
-            rows={2}
-            className="resize-none text-sm"
+            rows={5}
+            className="resize-none text-sm min-h-[120px]"
           />
           {hasAmount && (
             <div className="text-[10px] font-mono text-muted-foreground flex flex-wrap gap-3">
