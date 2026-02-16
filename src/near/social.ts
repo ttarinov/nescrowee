@@ -1,7 +1,7 @@
 import { nearConfig } from "./config";
 import { signAndSendTransaction } from "./wallet";
 
-export type MessageType = "text" | "ai_resolution" | "evidence" | "payment_request" | "payment_approved";
+export type MessageType = "text" | "ai_resolution" | "ai_context" | "ai_step" | "evidence" | "payment_request" | "payment_approved";
 
 export interface AiResolutionData {
   analysis: string;
