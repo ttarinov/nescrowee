@@ -11,18 +11,10 @@ export interface TeeSignature {
   signing_address: string;
 }
 
-export interface InvestigationRoundResult {
-  round_number: number;
-  analysis: string;
-  findings: string;
+export interface AiResolutionResult {
+  resolution: Resolution;
+  explanation: string;
   confidence: number;
-  needs_more_analysis: boolean;
-  resolution: Resolution | null;
-  explanation: string | null;
+  context_for_freelancer: string | null;
   tee: TeeSignature;
-}
-
-export interface InvestigationResult {
-  rounds: InvestigationRoundResult[];
-  finalResolution: InvestigationRoundResult;
 }
