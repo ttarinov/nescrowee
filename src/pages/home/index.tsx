@@ -56,7 +56,7 @@ const HomePage = () => {
                 <img src="/hot-logo.svg" alt="HOT Wallet" className="h-4 opacity-80 hover:opacity-100 transition-opacity" />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-5 text-foreground">
-                <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(var(--accent))_55%,hsl(262_50%_88%)_82%)] bg-clip-text text-transparent">Escrow</span> for freelancers and clients
+                Safe <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(var(--accent))_55%,hsl(262_50%_88%)_82%)] bg-clip-text text-transparent">Escrow</span> For Freelance
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8 leading-relaxed">
                 Pay in milestones, get paid when you deliver. If you disagree, AI investigates — fairly and transparently. Lock payment in a <ExplainTerm term="smart contract">smart contract</ExplainTerm>, release when <ExplainTerm term="milestone">milestones</ExplainTerm> are done; every step is signed and stored <ExplainTerm term="on-chain">on-chain</ExplainTerm>.
