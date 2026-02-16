@@ -1,6 +1,6 @@
 export const AI_MODELS = [
   {
-    id: "Qwen/Qwen3-30B-A3B",
+    id: "Qwen/Qwen3-30B-A3B-Instruct-2507",
     name: "Qwen3 30B",
     description: "Fast, cost-effective",
     pricing: "0.15 / 0.55 USDC per M tokens",
@@ -27,13 +27,14 @@ export const AI_MODELS = [
     use_case: "High-stakes disputes",
   },
   {
-    id: "THUDM/GLM-4.1V-9B-Thinking",
-    name: "GLM-4.1V 9B",
-    description: "Vision-capable",
-    pricing: "0.15 / 0.55 USDC per M tokens",
-    speed: "~15s",
-    stars: 3,
-    use_case: "Design / file review",
+    id: "zai-org/GLM-4.7",
+    name: "GLM-4.7",
+    description: "Hybrid reasoning",
+    pricing: "0.85 / 3.30 USDC per M tokens",
+    speed: "~25s",
+    stars: 4,
+    use_case: "Deep analysis",
   },
 ] as const;
 
+export type ModelId = (typeof AI_MODELS)[number]["id"];

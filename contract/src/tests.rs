@@ -44,7 +44,7 @@ fn create_escrow_with_milestone(contract: &mut Contract) -> String {
         Some(bob()),
         10,
         "abc123hash".into(),
-        "Qwen/Qwen3-30B-A3B".into(),
+        "Qwen/Qwen3-30B-A3B-Instruct-2507".into(),
     )
 }
 

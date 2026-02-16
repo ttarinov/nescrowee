@@ -3,7 +3,7 @@ import {
   FlashIcon,
   Target01Icon,
   Shield01Icon,
-  ViewIcon,
+  BrainIcon,
 } from "@hugeicons/core-free-icons";
 
 const models = [
@@ -33,12 +33,12 @@ const models = [
     highlight: true,
   },
   {
-    name: "GLM-4.1V 9B",
-    tag: "Vision-capable",
-    icon: ViewIcon,
-    speed: "~15s",
-    pricing: "0.15 / 0.55 USDC per M tokens",
-    desc: "Can analyze images and screenshots — useful when deliverables are visual.",
+    name: "GLM-4.7",
+    tag: "Hybrid reasoning",
+    icon: BrainIcon,
+    speed: "~25s",
+    pricing: "0.85 / 3.30 USDC per M tokens",
+    desc: "Open-source MoE model with hybrid reasoning — strong analytical depth for complex disputes.",
   },
 ];
 
