@@ -1,19 +1,16 @@
 import { nearConfig } from "./config";
 import { signAndSendTransaction } from "./wallet";
 
-export type MessageType = "text" | "ai_round" | "ai_status" | "evidence" | "ai_resolution";
+export type MessageType = "text" | "ai_resolution" | "evidence" | "payment_request" | "payment_approved";
 
-export interface AiRoundData {
-  round_number: number;
-  max_rounds: number;
+export interface AiResolutionData {
   analysis: string;
-  findings: string;
   confidence: number;
-  needs_more_analysis: boolean;
   model_id: string;
   tee_verified: boolean;
-  resolution?: string;
-  explanation?: string;
+  resolution: string;
+  explanation: string;
+  context_for_freelancer?: string;
 }
 
 export interface EvidenceData {
@@ -29,7 +26,7 @@ export interface SocialMessage {
   content: string;
   timestamp: number;
   type: MessageType;
-  data?: AiRoundData | EvidenceData | Record<string, unknown>;
+  data?: AiResolutionData | EvidenceData | Record<string, unknown>;
 }
 
 export async function getChatMessages(contractId: string): Promise<SocialMessage[]> {

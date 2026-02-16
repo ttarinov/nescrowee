@@ -6,12 +6,16 @@ import {
   joinContract,
   fundContract,
   startMilestone,
-  completeMilestone,
+  requestPayment,
+  cancelPaymentRequest,
   approveMilestone,
+  autoApprovePayment,
   raiseDispute,
   submitAiResolution,
   acceptResolution,
-  appealResolution,
+  finalizeResolution,
+  releaseDisputeFunds,
+  completeContractSecurity,
   type CreateContractArgs,
 } from "@/near/contract";
 import { runInvestigation } from "@/agent/investigation";
@@ -21,7 +25,6 @@ import { sendStructuredMessage, getChatMessages } from "@/near/social";
 import type { EvidenceData } from "@/near/social";
 import { retrieveEvidence } from "@/nova/client";
 import type { EscrowContract } from "@/types/escrow";
-import { APPEAL_MODEL_ID } from "@/types/ai";
 import { standardPrompt } from "@/utils/promptHash";
 
 export function useContractDetail(contractId: string | undefined) {
@@ -78,11 +81,21 @@ export function useStartMilestone() {
   });
 }
 
-export function useCompleteMilestone() {
+export function useRequestPayment() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
-      completeMilestone(contractId, milestoneId),
+      requestPayment(contractId, milestoneId),
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
+export function useCancelPaymentRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
+      cancelPaymentRequest(contractId, milestoneId),
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
   });
@@ -93,6 +106,16 @@ export function useApproveMilestone() {
   return useMutation({
     mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
       approveMilestone(contractId, milestoneId),
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
+export function useAutoApprovePayment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
+      autoApprovePayment(contractId, milestoneId),
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
   });
@@ -121,25 +144,21 @@ export function useSubmitAiResolution() {
     mutationFn: async ({
       contract,
       milestoneId,
-      isAppeal,
       chatHistory,
-      onRoundComplete,
       accountId,
     }: {
       contract: EscrowContract;
       milestoneId: string;
-      isAppeal: boolean;
       chatHistory?: Array<{ sender: string; content: string }>;
-      onRoundComplete?: (round: any) => void;
       accountId?: string | null;
     }) => {
       const milestone = contract.milestones.find((m) => m.id === milestoneId);
       const dispute = contract.disputes.find(
-        (d) => d.milestone_id === milestoneId && (d.status === "Pending" || d.status === "Appealed"),
+        (d) => d.milestone_id === milestoneId && d.status === "Pending",
       );
       if (!dispute || !milestone) throw new Error("Dispute or milestone not found");
 
-      const modelId = isAppeal ? APPEAL_MODEL_ID : contract.model_id;
+      const modelId = contract.model_id;
       const prompt = standardPrompt;
 
       let evidence: Array<{ fileName: string; content: string }> | undefined;
@@ -183,24 +202,12 @@ export function useSubmitAiResolution() {
         dispute: {
           raised_by: dispute.raised_by,
           reason: dispute.reason,
-          explanation: isAppeal ? dispute.explanation : null,
         },
         chatHistory,
         evidence,
       });
 
       const result = await runInvestigation(modelId, prompt, context);
-
-      onRoundComplete?.({
-        round_number: 1,
-        analysis: result.explanation,
-        findings: result.explanation,
-        confidence: result.confidence,
-        needs_more_analysis: false,
-        resolution: result.resolution,
-        explanation: result.explanation,
-        tee: result.tee,
-      });
 
       await submitAiResolution(
         contract.id,
@@ -219,15 +226,13 @@ export function useSubmitAiResolution() {
           "AI Resolution",
           "ai_resolution",
           {
-            round_number: 1,
             analysis: result.explanation,
-            findings: result.explanation,
             confidence: result.confidence,
-            needs_more_analysis: false,
             model_id: modelId,
             tee_verified: true,
             resolution: result.resolution,
             explanation: result.explanation,
+            context_for_freelancer: result.context_for_freelancer ?? undefined,
           },
         );
         queryClient.invalidateQueries({ queryKey: ["chat", contract.id] });
@@ -250,11 +255,31 @@ export function useAcceptResolution() {
   });
 }
 
-export function useAppealResolution() {
+export function useFinalizeResolution() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
-      appealResolution(contractId, milestoneId),
+      finalizeResolution(contractId, milestoneId),
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
+export function useReleaseDisputeFunds() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
+      releaseDisputeFunds(contractId, milestoneId),
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
+export function useCompleteContractSecurity() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ contractId }: { contractId: string }) =>
+      completeContractSecurity(contractId),
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
   });
