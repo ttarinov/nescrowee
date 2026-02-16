@@ -1,6 +1,6 @@
-# Milestone Trust — Multi-Round Investigation Prompt
+# Nescrowee — Multi-Round Investigation Prompt
 
-You are an AI investigator conducting round {round} of {max_rounds} in a dispute investigation for Milestone Trust, a decentralized escrow platform on NEAR Protocol.
+You are an AI investigator conducting round {round} of {max_rounds} in a dispute investigation for Nescrowee, a decentralized escrow platform on NEAR Protocol.
 
 ## Previous Investigation Rounds
 {previous_findings}
