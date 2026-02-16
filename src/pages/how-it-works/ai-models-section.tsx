@@ -12,7 +12,7 @@ const models = [
     tag: "Fast & affordable",
     icon: FlashIcon,
     speed: "~10s",
-    pricing: "$0.15 / $0.55 per M tokens",
+    pricing: "0.15 / 0.55 USDC per M tokens",
     desc: "Quick and cost-effective for straightforward disputes where the evidence is clear.",
   },
   {
@@ -20,7 +20,7 @@ const models = [
     tag: "Strong reasoning",
     icon: Target01Icon,
     speed: "~20s",
-    pricing: "$0.15 / $0.55 per M tokens",
+    pricing: "0.15 / 0.55 USDC per M tokens",
     desc: "Better at complex reasoning when the situation is nuanced.",
   },
   {
@@ -28,7 +28,7 @@ const models = [
     tag: "Most thorough",
     icon: Shield01Icon,
     speed: "~45s",
-    pricing: "$1.05 / $3.10 per M tokens",
+    pricing: "1.05 / 3.10 USDC per M tokens",
     desc: "The deepest analysis available. Always used for appeals to ensure maximum thoroughness.",
     highlight: true,
   },
@@ -37,7 +37,7 @@ const models = [
     tag: "Vision-capable",
     icon: ViewIcon,
     speed: "~15s",
-    pricing: "$0.15 / $0.55 per M tokens",
+    pricing: "0.15 / 0.55 USDC per M tokens",
     desc: "Can analyze images and screenshots — useful when deliverables are visual.",
   },
 ];
