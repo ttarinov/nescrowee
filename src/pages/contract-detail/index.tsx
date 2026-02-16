@@ -14,7 +14,7 @@ import {
   useApproveMilestone,
   useAutoApprovePayment,
   useRaiseDispute,
-  useSubmitAiResolution,
+  useTriggerInvestigation,
   useAcceptResolution,
   useReleaseDisputeFunds,
   useCompleteContractSecurity,
@@ -39,7 +39,7 @@ const ContractDetailPage = () => {
   const approveMutation = useApproveMilestone();
   const autoApproveMutation = useAutoApprovePayment();
   const disputeMutation = useRaiseDispute();
-  const aiResolutionMutation = useSubmitAiResolution();
+  const aiResolutionMutation = useTriggerInvestigation();
   const acceptMutation = useAcceptResolution();
   const releaseFundsMutation = useReleaseDisputeFunds();
   const securityMutation = useCompleteContractSecurity();
@@ -139,11 +139,11 @@ const ContractDetailPage = () => {
       { contract, milestoneId, chatHistory, accountId },
       {
         onSuccess: () => {
-          toast.success("AI resolution complete — TEE-verified on-chain");
+          toast.success("AI Agent is investigating — you can safely close this tab");
           setAiProcessing(null);
         },
         onError: (e) => {
-          toast.error(`AI resolution failed: ${e.message}`);
+          toast.error(`Failed to trigger investigation: ${e.message}`);
           setAiProcessing(null);
         },
       }

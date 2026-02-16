@@ -11,21 +11,19 @@ import {
   approveMilestone,
   autoApprovePayment,
   raiseDispute,
-  submitAiResolution,
   acceptResolution,
   finalizeResolution,
   releaseDisputeFunds,
   completeContractSecurity,
   type CreateContractArgs,
 } from "@/near/contract";
-import { runInvestigation } from "@/agent/investigation";
-import { signatureToBytes, addressToBytes } from "@/agent/client";
 import { anonymizeDisputeContext } from "@/utils/anonymize";
 import { sendStructuredMessage, getChatMessages } from "@/near/social";
 import type { EvidenceData } from "@/near/social";
-import { retrieveEvidence } from "@/nova/client";
+import { retrieveEvidence, addVaultMember } from "@/nova/client";
 import type { EscrowContract } from "@/types/escrow";
-import { standardPrompt } from "@/utils/promptHash";
+
+const AGENT_ACCOUNT_ID = "agent.nescrowee.near";
 
 export function useContractDetail(contractId: string | undefined) {
   return useQuery({
@@ -138,7 +136,7 @@ export function useRaiseDispute() {
   });
 }
 
-export function useSubmitAiResolution() {
+export function useTriggerInvestigation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -157,9 +155,6 @@ export function useSubmitAiResolution() {
         (d) => d.milestone_id === milestoneId && d.status === "Pending",
       );
       if (!dispute || !milestone) throw new Error("Dispute or milestone not found");
-
-      const modelId = contract.model_id;
-      const prompt = standardPrompt;
 
       let evidence: Array<{ fileName: string; content: string }> | undefined;
       if (accountId) {
@@ -207,38 +202,24 @@ export function useSubmitAiResolution() {
         evidence,
       });
 
-      const result = await runInvestigation(modelId, prompt, context);
-
-      await submitAiResolution(
-        contract.id,
-        milestoneId,
-        result.resolution,
-        result.explanation,
-        signatureToBytes(result.tee.signature),
-        addressToBytes(result.tee.signing_address),
-        result.tee.text,
-      );
-
       if (accountId) {
+        try {
+          await addVaultMember(accountId, contract.id, AGENT_ACCOUNT_ID);
+        } catch { /* vault may already have agent, or no evidence uploaded */ }
+
         await sendStructuredMessage(
           accountId,
           contract.id,
-          "AI Resolution",
-          "ai_resolution",
+          context,
+          "ai_context",
           {
-            analysis: result.explanation,
-            confidence: result.confidence,
-            model_id: modelId,
-            tee_verified: true,
-            resolution: result.resolution,
-            explanation: result.explanation,
-            context_for_freelancer: result.context_for_freelancer ?? undefined,
+            milestoneId,
+            modelId: contract.model_id,
+            timestamp: Date.now(),
           },
         );
         queryClient.invalidateQueries({ queryKey: ["chat", contract.id] });
       }
-
-      return result;
     },
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({ queryKey: ["contract", variables.contract.id] }),
