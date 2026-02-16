@@ -45,8 +45,9 @@ export function FundMilestoneDialog({
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Fund Milestone</DialogTitle>
-          <DialogDescription>
-            {milestoneNear.toFixed(2)} NEAR + {securityPct}% security = {amountNear} NEAR
+          <DialogDescription className="space-y-1">
+            <span className="block">{milestoneNear.toFixed(2)} NEAR + {securityPct}% security deposit</span>
+            <span className="block text-foreground font-semibold text-base">{amountNear} NEAR total</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -59,9 +60,9 @@ export function FundMilestoneDialog({
             <div className="flex items-center gap-3">
               <HugeiconsIcon icon={Wallet01Icon} size={20} className="text-primary shrink-0" />
               <div className="flex-1">
-                <p className="text-sm font-semibold">Pay with NEAR Wallet</p>
+                <p className="text-sm font-semibold">Fund with NEAR Wallet</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Direct on-chain · instant · HOT Wallet / MyNearWallet
+                  Direct on-chain · instant · trustless
                 </p>
               </div>
               <span className="text-[10px] font-mono text-success bg-success/10 px-1.5 py-0.5 rounded">trustless</span>
@@ -79,18 +80,22 @@ export function FundMilestoneDialog({
                 <span className="text-orange-400 font-bold text-sm">H</span>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-orange-400">Pay with HOT Pay</p>
+                <p className="text-sm font-semibold text-orange-400">Pay from any chain</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  USDC · USDT · ETH · BNB · 30+ tokens via HOT Pay
+                  USDC · USDT · ETH · BNB · 30+ tokens · settled on NEAR
                 </p>
               </div>
-              <HugeiconsIcon icon={ExternalLink} size={14} className="text-muted-foreground shrink-0" />
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="text-[10px] font-mono text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">multi-chain</span>
+                <HugeiconsIcon icon={ExternalLink} size={12} className="text-muted-foreground" />
+              </div>
             </a>
           )}
 
-          <p className="text-[10px] text-muted-foreground text-center">
-            {securityPct}% security deposit covers AI dispute fees · returned after completion
-          </p>
+          <div className="text-[10px] text-muted-foreground text-center space-y-0.5">
+            <p>{securityPct}% security deposit covers AI dispute fees · returned after completion</p>
+            {hotPayUrl && <p className="text-orange-400/60">Powered by HOT Pay · cross-chain via OmniBridge</p>}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

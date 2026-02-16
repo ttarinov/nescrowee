@@ -47,7 +47,9 @@ export function EvidenceMessage({
               {evidence?.fileSize
                 ? `${(evidence.fileSize / 1024).toFixed(1)} KB`
                 : ""}
-              {evidence?.cid ? " · encrypted via NOVA" : " · pending upload"}
+              {evidence?.cid ? (
+                <span className="text-emerald-400/80"> · encrypted via NOVA</span>
+              ) : " · pending upload"}
             </p>
           </div>
         </div>

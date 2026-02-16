@@ -14,7 +14,7 @@ const steps = [
   {
     step: "1",
     title: "Party Raises Dispute",
-    desc: "Either client or freelancer can raise a dispute on an active milestone. The reason is recorded on-chain.",
+    desc: "Either client or freelancer can raise a dispute on an active milestone. The reason is recorded on-chain. Evidence files are encrypted via NOVA before submission — only contract parties and the AI can decrypt them.",
     icon: Shield01Icon,
   },
   {

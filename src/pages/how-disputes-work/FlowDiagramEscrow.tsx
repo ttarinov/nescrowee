@@ -68,7 +68,7 @@ const FlowDiagramEscrow = () => (
         <FlowNode
           icon={Wallet01Icon}
           title="2. Fund"
-          desc="Client deposits crypto. Money is locked securely."
+          desc="Client funds escrow via NEAR wallet or HOT Pay (any chain). Money is locked on-chain."
         />
         <Arrow />
         <div className="relative group">

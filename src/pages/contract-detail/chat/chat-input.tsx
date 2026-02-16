@@ -100,6 +100,7 @@ export function ChatInput({
             className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadingEvidence}
+            title="Upload evidence (encrypted via NOVA)"
           >
             <HugeiconsIcon icon={Attachment01Icon} size={16} />
           </Button>
