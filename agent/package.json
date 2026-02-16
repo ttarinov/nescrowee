@@ -1,0 +1,19 @@
+{
+  "name": "nescrowee-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch run index.ts",
+    "test": "bun run test.ts",
+    "test:all": "bun run test.ts all"
+  },
+  "dependencies": {
+    "hono": "^4.7.0",
+    "near-api-js": "^7.1.1",
+    "nova-sdk-js": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9"
+  }
+}
