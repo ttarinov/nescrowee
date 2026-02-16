@@ -239,6 +239,18 @@ impl Contract {
     pub fn get_prompt_hash(&self, contract_id: String) -> Option<String> {
         self.contracts.get(&contract_id).map(|c| c.prompt_hash.clone())
     }
+
+    pub fn get_pending_disputes(&self) -> Vec<(String, String)> {
+        let mut result = vec![];
+        for (contract_id, contract) in self.contracts.iter() {
+            for dispute in &contract.disputes {
+                if dispute.status == DisputeStatus::Pending {
+                    result.push((contract_id.clone(), dispute.milestone_id.clone()));
+                }
+            }
+        }
+        result
+    }
 }
 
 #[derive(near_sdk::serde::Deserialize, near_sdk::serde::Serialize)]
