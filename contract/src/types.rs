@@ -3,6 +3,7 @@ use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{AccountId, NearToken};
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum MilestoneStatus {
     NotFunded,
@@ -14,6 +15,7 @@ pub enum MilestoneStatus {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum ContractStatus {
     Draft,
@@ -24,6 +26,7 @@ pub enum ContractStatus {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum DisputeStatus {
     Pending,
@@ -32,6 +35,7 @@ pub enum DisputeStatus {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum Resolution {
     Freelancer,
@@ -41,6 +45,7 @@ pub enum Resolution {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub struct Milestone {
     pub id: String,
@@ -52,6 +57,7 @@ pub struct Milestone {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub struct Dispute {
     pub milestone_id: String,
@@ -69,6 +75,7 @@ pub struct Dispute {
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub struct EscrowContract {
     pub id: String,

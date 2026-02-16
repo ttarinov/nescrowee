@@ -1,35 +1,28 @@
-use near_sdk::{env, near_bindgen, NearToken, Promise};
+use near_sdk::{env, near_bindgen, Promise};
 
 use crate::types::*;
-use crate::Contract;
+use crate::{Contract, ContractExt};
 
 const PAYMENT_REQUEST_DEADLINE_NS: u64 = 48 * 60 * 60 * 1_000_000_000;
 
 #[near_bindgen]
 impl Contract {
     pub fn start_milestone(&mut self, contract_id: String, milestone_id: String) {
-        let contract = self
-            .contracts
-            .get_mut(&contract_id)
-            .expect("Contract not found");
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
         let caller = env::predecessor_account_id();
         assert!(
             Some(&caller) == contract.freelancer.as_ref(),
             "Only freelancer can start milestones"
         );
 
-        let milestone = contract
-            .milestones
-            .iter_mut()
-            .find(|m| m.id == milestone_id)
-            .expect("Milestone not found");
-
+        let idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
         assert!(
-            milestone.status == MilestoneStatus::Funded,
+            contract.milestones[idx].status == MilestoneStatus::Funded,
             "Milestone must be funded first"
         );
 
-        milestone.status = MilestoneStatus::InProgress;
+        contract.milestones[idx].status = MilestoneStatus::InProgress;
+        self.contracts.insert(contract_id.clone(), contract);
 
         emit_event!("milestone_started", {
             "contract_id" => contract_id,
@@ -38,30 +31,24 @@ impl Contract {
     }
 
     pub fn request_payment(&mut self, contract_id: String, milestone_id: String) {
-        let contract = self
-            .contracts
-            .get_mut(&contract_id)
-            .expect("Contract not found");
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
         let caller = env::predecessor_account_id();
         assert!(
             Some(&caller) == contract.freelancer.as_ref(),
             "Only freelancer can request payment"
         );
 
-        let milestone = contract
-            .milestones
-            .iter_mut()
-            .find(|m| m.id == milestone_id)
-            .expect("Milestone not found");
-
+        let idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
         assert!(
-            milestone.status == MilestoneStatus::InProgress,
+            contract.milestones[idx].status == MilestoneStatus::InProgress,
             "Milestone must be in progress"
         );
 
-        milestone.status = MilestoneStatus::SubmittedForReview;
-        milestone.payment_request_deadline_ns =
+        contract.milestones[idx].status = MilestoneStatus::SubmittedForReview;
+        contract.milestones[idx].payment_request_deadline_ns =
             Some(env::block_timestamp() + PAYMENT_REQUEST_DEADLINE_NS);
+
+        self.contracts.insert(contract_id.clone(), contract);
 
         emit_event!("payment_requested", {
             "contract_id" => contract_id,
@@ -70,25 +57,16 @@ impl Contract {
     }
 
     pub fn auto_approve_payment(&mut self, contract_id: String, milestone_id: String) {
-        let contract = self
-            .contracts
-            .get_mut(&contract_id)
-            .expect("Contract not found");
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
+        let freelancer = contract.require_freelancer();
 
-        let freelancer = contract.freelancer.clone().expect("No freelancer assigned");
-
-        let milestone = contract
-            .milestones
-            .iter_mut()
-            .find(|m| m.id == milestone_id)
-            .expect("Milestone not found");
-
+        let idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
         assert!(
-            milestone.status == MilestoneStatus::SubmittedForReview,
+            contract.milestones[idx].status == MilestoneStatus::SubmittedForReview,
             "Milestone must be submitted for review"
         );
 
-        let deadline = milestone
+        let deadline = contract.milestones[idx]
             .payment_request_deadline_ns
             .expect("No payment request deadline set");
         assert!(
@@ -96,19 +74,16 @@ impl Contract {
             "Payment request deadline has not passed"
         );
 
-        let amount = milestone.amount;
-        milestone.status = MilestoneStatus::Completed;
-        milestone.payment_request_deadline_ns = None;
+        let amount = contract.milestones[idx].amount;
+        contract.milestones[idx].status = MilestoneStatus::Completed;
+        contract.milestones[idx].payment_request_deadline_ns = None;
 
-        let all_completed = contract
-            .milestones
-            .iter()
-            .all(|m| m.status == MilestoneStatus::Completed);
-        if all_completed {
+        if contract.all_milestones_completed() {
             contract.status = ContractStatus::Completed;
         }
 
-        Promise::new(freelancer).transfer(amount);
+        self.contracts.insert(contract_id.clone(), contract);
+        let _ = Promise::new(freelancer).transfer(amount);
 
         emit_event!("payment_auto_approved", {
             "contract_id" => contract_id,
@@ -118,29 +93,23 @@ impl Contract {
     }
 
     pub fn cancel_payment_request(&mut self, contract_id: String, milestone_id: String) {
-        let contract = self
-            .contracts
-            .get_mut(&contract_id)
-            .expect("Contract not found");
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
         let caller = env::predecessor_account_id();
         assert!(
             Some(&caller) == contract.freelancer.as_ref(),
             "Only freelancer can cancel payment request"
         );
 
-        let milestone = contract
-            .milestones
-            .iter_mut()
-            .find(|m| m.id == milestone_id)
-            .expect("Milestone not found");
-
+        let idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
         assert!(
-            milestone.status == MilestoneStatus::SubmittedForReview,
+            contract.milestones[idx].status == MilestoneStatus::SubmittedForReview,
             "Milestone must be submitted for review"
         );
 
-        milestone.status = MilestoneStatus::InProgress;
-        milestone.payment_request_deadline_ns = None;
+        contract.milestones[idx].status = MilestoneStatus::InProgress;
+        contract.milestones[idx].payment_request_deadline_ns = None;
+
+        self.contracts.insert(contract_id.clone(), contract);
 
         emit_event!("payment_request_cancelled", {
             "contract_id" => contract_id,
