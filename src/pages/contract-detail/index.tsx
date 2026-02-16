@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import StatusBadge from "@/components/StatusBadge";
+import StatusBadge from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";

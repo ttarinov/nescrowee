@@ -17,11 +17,11 @@ import {
   User02Icon,
   Wallet01Icon,
 } from "@hugeicons/core-free-icons";
-import { ExplainTerm } from "@/components/ExplainTerm";
-import { HowItWorksFlow } from "@/components/HowItWorksFlow";
-import ContractDemoCard from "./ContractDemoCard";
-import IntegrationsSection from "./IntegrationsSection";
-import SystemExplainer from "./SystemExplainer";
+import { ExplainTerm } from "@/components/explain-term";
+import { HowItWorksFlow } from "@/components/how-it-works-flow";
+import ContractDemoCard from "./contract-demo-card";
+import IntegrationsSection from "./integrations-section";
+import SystemExplainer from "./system-explainer";
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },

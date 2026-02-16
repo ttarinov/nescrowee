@@ -1,5 +1,5 @@
-import { DescriptionSection } from "./DescriptionSection";
-import { MilestonesSection } from "./MilestonesSection";
+import { DescriptionSection } from "./description-section";
+import { MilestonesSection } from "./milestones-section";
 import type { MilestoneForm } from "../types";
 
 interface LeftSideProps {
@@ -44,7 +44,7 @@ export function LeftSide({
   );
 }
 
-export { PageHeader } from "./PageHeader";
-export { DescriptionSection } from "./DescriptionSection";
-export { MilestonesSection } from "./MilestonesSection";
-export { MilestoneCard } from "./MilestoneCard";
+export { PageHeader } from "./page-header";
+export { DescriptionSection } from "./description-section";
+export { MilestonesSection } from "./milestones-section";
+export { MilestoneCard } from "./milestone-card";

@@ -8,7 +8,7 @@ import {
   Coins01Icon,
   ZapIcon,
 } from "@hugeicons/core-free-icons";
-import { ExplainTerm } from "@/components/ExplainTerm";
+import { ExplainTerm } from "@/components/explain-term";
 import type { Icon } from "@hugeicons/core-free-icons";
 import {
   AIDemo,
@@ -16,7 +16,7 @@ import {
   DisagreeDemo,
   PayDisputesDemo,
   SignPayDemo,
-} from "./SystemExplainerDemos";
+} from "./system-explainer-demos";
 
 const tabs: { id: string; label: string; icon: Icon }[] = [
   { id: "ai", label: "How does AI judging work", icon: AiBrain01Icon },

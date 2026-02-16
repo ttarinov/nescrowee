@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
-import { MilestoneCard } from "./MilestoneCard";
+import { MilestoneCard } from "./milestone-card";
 import type { MilestoneForm } from "../types";
 
 interface MilestonesSectionProps {

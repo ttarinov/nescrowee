@@ -9,11 +9,11 @@ import { isValidNearAccountFormat, nearAccountExists } from "@/utils/nearAccount
 import { AI_MODELS } from "@/types/ai";
 import { DISPUTE_FUND_MIN, DISPUTE_FUND_MAX, nearToYocto, fetchNearPrice } from "./utils";
 import type { MilestoneForm, UserRole, ModelId } from "./types";
-import { PageHeader } from "./left-side/PageHeader";
+import { PageHeader } from "./left-side/page-header";
 import { LeftSide } from "./left-side";
 import { RightSide } from "./right-side";
-import { ConnectWalletView } from "./ConnectWalletView";
-import { InviteLinkView } from "./InviteLinkView";
+import { ConnectWalletView } from "./connect-wallet-view";
+import { InviteLinkView } from "./invite-link-view";
 
 const CreateContractPage = () => {
   const navigate = useNavigate();

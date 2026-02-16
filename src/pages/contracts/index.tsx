@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import StatusBadge from "@/components/StatusBadge";
+import StatusBadge from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, ArrowRight01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";

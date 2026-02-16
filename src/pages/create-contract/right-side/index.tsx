@@ -1,9 +1,9 @@
-import { RoleSelector } from "./RoleSelector";
-import { CounterpartyWallet } from "./CounterpartyWallet";
-import { DisputeFundSection } from "./DisputeFundSection";
-import { AiModelSelector } from "./AiModelSelector";
-import { PromptHashCard } from "./PromptHashCard";
-import { SummaryAndSubmit } from "./SummaryAndSubmit";
+import { RoleSelector } from "./role-selector";
+import { CounterpartyWallet } from "./counterparty-wallet";
+import { DisputeFundSection } from "./dispute-fund-section";
+import { AiModelSelector } from "./ai-model-selector";
+import { PromptHashCard } from "./prompt-hash-card";
+import { SummaryAndSubmit } from "./summary-and-submit";
 import type { UserRole } from "../types";
 import type { ModelId } from "../types";
 
@@ -95,9 +95,9 @@ export function RightSide({
   );
 }
 
-export { RoleSelector } from "./RoleSelector";
-export { CounterpartyWallet } from "./CounterpartyWallet";
-export { DisputeFundSection } from "./DisputeFundSection";
-export { AiModelSelector } from "./AiModelSelector";
-export { PromptHashCard } from "./PromptHashCard";
-export { SummaryAndSubmit } from "./SummaryAndSubmit";
+export { RoleSelector } from "./role-selector";
+export { CounterpartyWallet } from "./counterparty-wallet";
+export { DisputeFundSection } from "./dispute-fund-section";
+export { AiModelSelector } from "./ai-model-selector";
+export { PromptHashCard } from "./prompt-hash-card";
+export { SummaryAndSubmit } from "./summary-and-submit";

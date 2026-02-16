@@ -14,15 +14,15 @@ import {
   investigationPrompt,
   investigationAppealPrompt,
 } from "@/utils/promptHash";
-import OnThisPageSidebar from "./OnThisPageSidebar";
-import ArchitectureDiagram from "./ArchitectureDiagram";
-import TechStackSection from "./TechStackSection";
-import WhatWhereWhyTable from "./WhatWhereWhyTable";
-import DisputeFlowDiagramSection from "./DisputeFlowDiagramSection";
-import AIModelsSection from "./AIModelsSection";
-import SecuritySection from "./SecuritySection";
-import VerifySection from "./VerifySection";
-import PromptDialog from "./PromptDialog";
+import OnThisPageSidebar from "./on-this-page-sidebar";
+import ArchitectureDiagram from "./architecture-diagram";
+import TechStackSection from "./tech-stack-section";
+import WhatWhereWhyTable from "./what-where-why-table";
+import DisputeFlowDiagramSection from "./dispute-flow-diagram-section";
+import AIModelsSection from "./ai-models-section";
+import SecuritySection from "./security-section";
+import VerifySection from "./verify-section";
+import PromptDialog from "./prompt-dialog";
 
 type HugeIcon = React.ComponentProps<typeof HugeiconsIcon>["icon"];
 
