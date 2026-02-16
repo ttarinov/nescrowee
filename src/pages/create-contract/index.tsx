@@ -63,8 +63,6 @@ const CreateContractPage = () => {
   const pct = parseInt(disputeFundPct) || 0;
   const disputeFundValid = pct >= DISPUTE_FUND_MIN && pct <= DISPUTE_FUND_MAX;
   const totalNear = milestones.reduce((s, m) => s + (parseFloat(m.amount) || 0), 0);
-  const disputeFundNear = totalNear * (pct / 100);
-  const totalUsd = nearPrice ? totalNear * nearPrice : null;
   const selectedModelData = AI_MODELS.find((m) => m.id === selectedModel);
 
   const addMilestone = () => {
@@ -137,7 +135,7 @@ const CreateContractPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <form onSubmit={handleSubmit}>
             <PageHeader title={title} onTitleChange={setTitle} />
-            <div className="grid grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-2 gap-6 items-stretch">
               <LeftSide
                 description={description}
                 onDescriptionChange={setDescription}
@@ -169,9 +167,6 @@ const CreateContractPage = () => {
                 onSelectModel={setSelectedModel}
                 promptHash={promptHash}
                 totalNear={totalNear}
-                totalUsd={totalUsd}
-                disputeFundNear={disputeFundNear}
-                milestonesCount={milestones.length}
                 createPending={createMutation.isPending}
                 submitDisabled={createMutation.isPending || !disputeFundValid}
               />

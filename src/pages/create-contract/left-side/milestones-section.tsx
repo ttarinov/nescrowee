@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { MilestoneCard } from "./milestone-card";
@@ -29,15 +27,16 @@ export function MilestonesSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-base font-semibold">Milestones *</Label>
-        <Button type="button" variant="ghost" size="sm" onClick={onAdd}>
-          <HugeiconsIcon icon={PlusSignIcon} size={16} className="mr-1" /> Add
-        </Button>
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Milestones</span>
+        <button
+          type="button"
+          onClick={onAdd}
+          className="w-7 h-7 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={14} />
+        </button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Each milestone is funded and released independently. Click a row to edit description and timeline.
-      </p>
-      <div className="space-y-1">
+      <div className="rounded-lg border border-border/50 overflow-hidden">
         {milestones.map((m, i) => (
           <MilestoneCard
             key={m.id}

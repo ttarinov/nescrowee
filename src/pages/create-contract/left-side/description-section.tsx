@@ -1,5 +1,4 @@
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { DescriptionEditor } from "./description-editor";
 
 interface DescriptionSectionProps {
   value: string;
@@ -8,14 +7,10 @@ interface DescriptionSectionProps {
 
 export function DescriptionSection({ value, onChange }: DescriptionSectionProps) {
   return (
-    <div>
-      <Textarea
-        id="desc"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Scope of work, deliverables, timeline, acceptance criteria..."
-        className="mt-2 resize-none min-h-[400px]"
-      />
+    <div className="mt-2 pt-4">
+      <div className="py-5 rounded-[var(--radius)] bg-black/40 backdrop-blur-2xl">
+        <DescriptionEditor value={value} onChange={onChange} />
+      </div>
     </div>
   );
 }
