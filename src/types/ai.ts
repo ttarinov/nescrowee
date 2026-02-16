@@ -37,4 +37,3 @@ export const AI_MODELS = [
   },
 ] as const;
 
-export const APPEAL_MODEL_ID = "deepseek-ai/DeepSeek-V3.1";
