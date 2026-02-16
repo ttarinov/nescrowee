@@ -6,7 +6,7 @@ use std::collections::HashMap;
 macro_rules! emit_event {
     ($event:expr, { $($key:expr => $val:expr),* $(,)? }) => {
         env::log_str(&format!(
-            "EVENT_JSON:{{\"standard\":\"milestone-trust\",\"event\":\"{}\",\"data\":{{{}}}}}",
+            "EVENT_JSON:{{\"standard\":\"nescrowee\",\"event\":\"{}\",\"data\":{{{}}}}}",
             $event,
             [$( format!("\"{}\":\"{}\"", $key, $val) ),*].join(",")
         ));

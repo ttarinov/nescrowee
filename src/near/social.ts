@@ -9,7 +9,7 @@ export interface SocialMessage {
 }
 
 export async function getChatMessages(contractId: string): Promise<SocialMessage[]> {
-  const keys = [`*/milestone-trust/chat/${contractId}/**`];
+  const keys = [`*/nescrowee/chat/${contractId}/**`];
 
   const response = await fetch(nearConfig.nodeUrl, {
     method: "POST",
@@ -38,7 +38,7 @@ export async function getChatMessages(contractId: string): Promise<SocialMessage
   const messages: SocialMessage[] = [];
 
   for (const [accountId, accountData] of Object.entries(socialData)) {
-    const chat = (accountData as Record<string, unknown>)?.["milestone-trust"] as Record<string, unknown> | undefined;
+    const chat = (accountData as Record<string, unknown>)?.["nescrowee"] as Record<string, unknown> | undefined;
     const contractChat = chat?.chat as Record<string, unknown> | undefined;
     const chatMessages = contractChat?.[contractId] as Record<string, unknown> | undefined;
 
@@ -66,7 +66,7 @@ export async function sendChatMessage(
   const msgId = `${Date.now()}`;
   const data = {
     [accountId]: {
-      "milestone-trust": {
+      "nescrowee": {
         chat: {
           [contractId]: {
             [msgId]: {

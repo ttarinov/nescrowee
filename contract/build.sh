@@ -4,6 +4,6 @@ set -e
 RUSTFLAGS='-C link-arg=-s' cargo build --target wasm32-unknown-unknown --release
 
 mkdir -p res
-cp target/wasm32-unknown-unknown/release/milestone_trust.wasm res/
+cp target/wasm32-unknown-unknown/release/nescrowee.wasm res/
 
-echo "Build complete: res/milestone_trust.wasm"
+echo "Build complete: res/nescrowee.wasm"

@@ -14,8 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['LTC Picon', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        heading: ['LTC Picon', 'system-ui', 'sans-serif'],
+        'ltc-picon-condensed': ['LTC Picon Condensed', 'LTC Picon', 'system-ui', 'sans-serif'],
+        'ltc-picon-extended': ['LTC Picon Extended', 'LTC Picon', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -59,6 +62,8 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: "hsl(var(--surface) / <alpha-value>)",
+        surfaceHighlight: "hsl(var(--surfaceHighlight) / <alpha-value>)",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -85,8 +90,8 @@ export default {
           to: { height: "0" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(174 72% 52% / 0.1)" },
-          "50%": { boxShadow: "0 0 40px hsl(174 72% 52% / 0.25)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(262 60% 58% / 0.15)" },
+          "50%": { boxShadow: "0 0 40px hsl(262 60% 58% / 0.25)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0px)" },

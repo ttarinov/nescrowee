@@ -6,7 +6,7 @@ import { KeyPair, connect, keyStores } from "near-api-js";
 // Env vars needed:
 //   HOT_PAY_WEBHOOK_SECRET  — webhook secret from HOT Pay dashboard
 //   NEAR_RELAY_PRIVATE_KEY  — ed25519:... key of relay account (for signing fundContract tx)
-//   NEAR_RELAY_ACCOUNT_ID   — relay NEAR account (e.g. relay.milestone-trust.near)
+//   NEAR_RELAY_ACCOUNT_ID   — relay NEAR account (e.g. relay.nescrowee.near)
 //   NEAR_CONTRACT_ID        — escrow contract address
 //   NEAR_NETWORK            — testnet | mainnet
 
