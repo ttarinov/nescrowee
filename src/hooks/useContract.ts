@@ -9,18 +9,20 @@ import {
   completeMilestone,
   approveMilestone,
   raiseDispute,
-  submitInvestigationRound,
+  submitAiResolution,
   acceptResolution,
   appealResolution,
   type CreateContractArgs,
 } from "@/near/contract";
 import { runInvestigation } from "@/agent/investigation";
 import { signatureToBytes, addressToBytes } from "@/agent/client";
-import type { InvestigationRoundResult } from "@/agent/types";
 import { anonymizeDisputeContext } from "@/utils/anonymize";
-import { investigationPrompt, investigationAppealPrompt } from "@/utils/promptHash";
+import { sendStructuredMessage, getChatMessages } from "@/near/social";
+import type { EvidenceData } from "@/near/social";
+import { retrieveEvidence } from "@/nova/client";
 import type { EscrowContract } from "@/types/escrow";
 import { APPEAL_MODEL_ID } from "@/types/ai";
+import { standardPrompt } from "@/utils/promptHash";
 
 export function useContractDetail(contractId: string | undefined) {
   return useQuery({
@@ -122,12 +124,14 @@ export function useSubmitAiResolution() {
       isAppeal,
       chatHistory,
       onRoundComplete,
+      accountId,
     }: {
       contract: EscrowContract;
       milestoneId: string;
       isAppeal: boolean;
       chatHistory?: Array<{ sender: string; content: string }>;
-      onRoundComplete?: (round: InvestigationRoundResult) => void;
+      onRoundComplete?: (round: any) => void;
+      accountId?: string | null;
     }) => {
       const milestone = contract.milestones.find((m) => m.id === milestoneId);
       const dispute = contract.disputes.find(
@@ -136,8 +140,33 @@ export function useSubmitAiResolution() {
       if (!dispute || !milestone) throw new Error("Dispute or milestone not found");
 
       const modelId = isAppeal ? APPEAL_MODEL_ID : contract.model_id;
-      const prompt = isAppeal ? investigationAppealPrompt : investigationPrompt;
-      const maxRounds = isAppeal ? 5 : 3;
+      const prompt = standardPrompt;
+
+      let evidence: Array<{ fileName: string; content: string }> | undefined;
+      if (accountId) {
+        try {
+          const allMessages = await getChatMessages(contract.id);
+          const evidenceMessages = allMessages.filter((m) => m.type === "evidence" && m.data);
+          const textEvidence: Array<{ fileName: string; content: string }> = [];
+
+          for (const msg of evidenceMessages) {
+            const data = msg.data as EvidenceData;
+            if (!data.cid) continue;
+            const isTextFile = /\.(txt|md|csv|json|log)$/i.test(data.fileName);
+            if (!isTextFile) continue;
+
+            try {
+              const buffer = await retrieveEvidence(accountId, contract.id, data.cid);
+              textEvidence.push({
+                fileName: data.fileName,
+                content: new TextDecoder().decode(buffer),
+              });
+            } catch { /* skip files we can't decrypt */ }
+          }
+
+          if (textEvidence.length > 0) evidence = textEvidence;
+        } catch { /* proceed without evidence if retrieval fails */ }
+      }
 
       const context = anonymizeDisputeContext({
         contract: {
@@ -157,32 +186,52 @@ export function useSubmitAiResolution() {
           explanation: isAppeal ? dispute.explanation : null,
         },
         chatHistory,
+        evidence,
       });
 
-      const result = await runInvestigation(
-        modelId,
-        prompt,
-        context,
-        maxRounds,
-        async (round) => {
-          onRoundComplete?.(round);
+      const result = await runInvestigation(modelId, prompt, context);
 
-          await submitInvestigationRound(
-            contract.id,
-            milestoneId,
-            round.round_number,
-            round.analysis,
-            round.findings,
-            round.confidence,
-            round.needs_more_analysis,
-            round.resolution,
-            round.explanation,
-            signatureToBytes(round.tee.signature),
-            addressToBytes(round.tee.signing_address),
-            round.tee.text,
-          );
-        },
+      onRoundComplete?.({
+        round_number: 1,
+        analysis: result.explanation,
+        findings: result.explanation,
+        confidence: result.confidence,
+        needs_more_analysis: false,
+        resolution: result.resolution,
+        explanation: result.explanation,
+        tee: result.tee,
+      });
+
+      await submitAiResolution(
+        contract.id,
+        milestoneId,
+        result.resolution,
+        result.explanation,
+        signatureToBytes(result.tee.signature),
+        addressToBytes(result.tee.signing_address),
+        result.tee.text,
       );
+
+      if (accountId) {
+        await sendStructuredMessage(
+          accountId,
+          contract.id,
+          "AI Resolution",
+          "ai_resolution",
+          {
+            round_number: 1,
+            analysis: result.explanation,
+            findings: result.explanation,
+            confidence: result.confidence,
+            needs_more_analysis: false,
+            model_id: modelId,
+            tee_verified: true,
+            resolution: result.resolution,
+            explanation: result.explanation,
+          },
+        );
+        queryClient.invalidateQueries({ queryKey: ["chat", contract.id] });
+      }
 
       return result;
     },

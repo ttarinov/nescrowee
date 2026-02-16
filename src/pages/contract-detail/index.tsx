@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import StatusBadge from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,9 @@ import {
   PlayIcon,
   LockIcon,
   ExternalLink,
+  Attachment01Icon,
 } from "@hugeicons/core-free-icons";
-import { nearConfig } from "@/near/config";
+import { nearConfig, hotPayItemId, hotPayCheckoutBase } from "@/near/config";
 import { toast } from "sonner";
 import { useWallet } from "@/hooks/useWallet";
 import {
@@ -43,7 +44,9 @@ import {
 } from "@/hooks/useContract";
 import { useChat } from "./useChat";
 import type { Resolution } from "@/types/dispute";
-import type { InvestigationRoundResult } from "@/agent/types";
+import type { AiRoundData, EvidenceData } from "@/near/social";
+import { sendStructuredMessage } from "@/near/social";
+import { uploadEvidence as novaUpload, createEvidenceVault, isVaultMember } from "@/nova/client";
 
 function FundMilestoneDialog({
   contractId,
@@ -60,7 +63,10 @@ function FundMilestoneDialog({
 }) {
   const amountNear = (Number(BigInt(amountYocto || "0")) / 1e24).toFixed(2);
   const memo = `mt-${contractId}-${milestoneId}`;
-  const hotPayUrl = `https://hot-labs.org/pay/?to=${nearConfig.contractId}&amount=${amountNear}&token=NEAR&memo=${memo}`;
+  const redirectUrl = `${window.location.origin}/contracts/${contractId}`;
+  const hotPayUrl = hotPayItemId
+    ? `${hotPayCheckoutBase}?item_id=${hotPayItemId}&amount=${amountNear}&memo=${memo}&redirect_url=${encodeURIComponent(redirectUrl)}`
+    : null;
 
   return (
     <Dialog>
@@ -94,27 +100,28 @@ function FundMilestoneDialog({
             </div>
           </button>
 
-          {/* HOT Pay */}
-          <a
-            href={hotPayUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full p-4 rounded-xl border border-orange-500/25 bg-orange-500/5 hover:bg-orange-500/10 transition-all flex items-center gap-3"
-          >
-            <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
-              <span className="text-orange-400 font-bold text-sm">H</span>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-orange-400">Pay with HOT Pay</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                USDC · USDT · ETH · BNB · 30+ tokens · future: cards
-              </p>
-            </div>
-            <HugeiconsIcon icon={ExternalLink} size={14} className="text-muted-foreground shrink-0" />
-          </a>
+          {hotPayUrl && (
+            <a
+              href={hotPayUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full p-4 rounded-xl border border-orange-500/25 bg-orange-500/5 hover:bg-orange-500/10 transition-all flex items-center gap-3"
+            >
+              <div className="w-8 h-8 rounded-lg bg-orange-500/15 flex items-center justify-center shrink-0">
+                <span className="text-orange-400 font-bold text-sm">H</span>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-orange-400">Pay with HOT Pay</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  USDC · USDT · ETH · BNB · 30+ tokens via HOT Pay
+                </p>
+              </div>
+              <HugeiconsIcon icon={ExternalLink} size={14} className="text-muted-foreground shrink-0" />
+            </a>
+          )}
 
           <p className="text-[10px] text-muted-foreground text-center">
-            Memo: <code className="font-mono">{memo}</code> · auto-routes to escrow
+            Memo: <code className="font-mono">{memo}</code> · webhook auto-routes to escrow
           </p>
         </div>
       </DialogContent>
@@ -160,14 +167,10 @@ const ContractDetailPage = () => {
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeMilestoneId, setDisputeMilestoneId] = useState<string | null>(null);
   const [aiProcessing, setAiProcessing] = useState<string | null>(null);
-  const [investigationRounds, setInvestigationRounds] = useState<InvestigationRoundResult[]>([]);
   const [expandedRounds, setExpandedRounds] = useState<Set<number>>(new Set());
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-
-  const handleRoundComplete = useCallback((round: InvestigationRoundResult) => {
-    setInvestigationRounds((prev) => [...prev, round]);
-    setExpandedRounds((prev) => new Set(prev).add(round.round_number));
-  }, []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fundMutation = useFundContract();
   const startMutation = useStartMilestone();
@@ -232,12 +235,12 @@ const ContractDetailPage = () => {
 
   const triggerAiResolution = (milestoneId: string, isAppeal: boolean) => {
     setAiProcessing(milestoneId);
-    setInvestigationRounds([]);
-    setExpandedRounds(new Set());
-    const chatHistory = (messages.data || []).map((m) => ({ sender: m.sender, content: m.content }));
+    const chatHistory = (messages.data || [])
+      .filter((m) => m.type === "text")
+      .map((m) => ({ sender: m.sender, content: m.content }));
 
     aiResolutionMutation.mutate(
-      { contract, milestoneId, isAppeal, chatHistory, onRoundComplete: handleRoundComplete },
+      { contract, milestoneId, isAppeal, chatHistory, accountId },
       {
         onSuccess: () => {
           toast.success(isAppeal ? "Appeal investigation complete — TEE-verified on-chain" : "Investigation complete — TEE-verified on-chain");
@@ -299,6 +302,44 @@ const ContractDetailPage = () => {
     });
   };
 
+  const handleEvidenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !accountId || !contract) return;
+    e.target.value = "";
+
+    setUploadingEvidence(true);
+    try {
+      const hasVault = await isVaultMember(accountId, contract.id);
+      if (!hasVault) {
+        await createEvidenceVault(accountId, contract.id);
+      }
+
+      const fileBuffer = await file.arrayBuffer();
+      const result = await novaUpload(accountId, contract.id, fileBuffer, file.name);
+
+      const evidence: EvidenceData = {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        cid: result.cid,
+      };
+      await sendStructuredMessage(
+        accountId,
+        contract.id,
+        `Evidence: ${file.name}`,
+        "evidence",
+        evidence as unknown as Record<string, unknown>,
+      );
+      messages.refetch();
+      toast.success(`Evidence encrypted & uploaded via NOVA`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Evidence upload failed: ${msg}`);
+    } finally {
+      setUploadingEvidence(false);
+    }
+  };
+
   const chatMessages = messages.data || [];
 
   return (
@@ -321,6 +362,105 @@ const ContractDetailPage = () => {
                     </div>
                   )}
                   {chatMessages.map((msg) => {
+                    if (msg.type === "ai_round") {
+                      const roundData = msg.data as AiRoundData | undefined;
+                      if (!roundData) return null;
+                      const isExpanded = expandedRounds.has(roundData.round_number);
+                      return (
+                        <div key={msg.id} className="flex flex-col items-center">
+                          <div className="w-[95%] p-3 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
+                            <button
+                              className="w-full flex items-center justify-between text-left"
+                              onClick={() => setExpandedRounds((prev) => {
+                                const next = new Set(prev);
+                                next.has(roundData.round_number) ? next.delete(roundData.round_number) : next.add(roundData.round_number);
+                                return next;
+                              })}
+                            >
+                              <span className="text-xs font-mono text-primary flex items-center gap-2">
+                                <HugeiconsIcon icon={AiBrain01Icon} size={14} className="text-primary" />
+                                AI Investigation Round {roundData.round_number}/{roundData.max_rounds}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-mono text-success flex items-center gap-1">
+                                  <HugeiconsIcon icon={LockIcon} size={10} />
+                                  TEE
+                                </span>
+                                <span className="text-xs font-mono text-muted-foreground">
+                                  {roundData.confidence}%
+                                </span>
+                              </div>
+                            </button>
+                            <div className="w-full bg-secondary/50 rounded-full h-1.5">
+                              <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${roundData.confidence}%` }} />
+                            </div>
+                            {isExpanded && (
+                              <div className="pt-1 space-y-2 text-sm">
+                                <div>
+                                  <p className="text-[10px] font-mono text-primary mb-0.5">Analysis</p>
+                                  <p className="text-muted-foreground">{roundData.analysis}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] font-mono text-primary mb-0.5">Findings</p>
+                                  <p className="text-muted-foreground">{roundData.findings}</p>
+                                </div>
+                                {roundData.resolution && (
+                                  <div>
+                                    <p className="text-[10px] font-mono text-primary mb-0.5">Resolution</p>
+                                    <p className="font-medium">{roundData.resolution}{roundData.explanation ? ` — ${roundData.explanation}` : ""}</p>
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-3 text-[10px] font-mono text-muted-foreground pt-1">
+                                  <span>Model: {roundData.model_id}</span>
+                                  <span className="text-success">Ed25519 verified</span>
+                                </div>
+                              </div>
+                            )}
+                            <p className="text-[10px] text-muted-foreground font-mono">
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (msg.type === "ai_status") {
+                      return (
+                        <div key={msg.id} className="flex justify-center">
+                          <p className="text-[10px] font-mono text-primary/60 px-3 py-1 bg-primary/5 rounded-full">
+                            {msg.content}
+                          </p>
+                        </div>
+                      );
+                    }
+
+                    if (msg.type === "evidence") {
+                      const evidence = msg.data as EvidenceData | undefined;
+                      const isSelf = msg.sender === accountId;
+                      return (
+                        <div key={msg.id} className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
+                          <div className={`max-w-[85%] p-3 rounded-lg ${isSelf ? "bg-primary/10 border border-primary/20" : "bg-secondary/50 border border-border"}`}>
+                            <p className="text-xs text-muted-foreground mb-1 font-mono">
+                              {msg.sender === contract.client ? "Client" : msg.sender === contract.freelancer ? "Freelancer" : msg.sender}
+                            </p>
+                            <div className="flex items-center gap-2 py-1">
+                              <HugeiconsIcon icon={Attachment01Icon} size={16} className="text-accent shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium">{evidence?.fileName || "File"}</p>
+                                <p className="text-[10px] text-muted-foreground font-mono">
+                                  {evidence?.fileSize ? `${(evidence.fileSize / 1024).toFixed(1)} KB` : ""}
+                                  {evidence?.cid ? " · encrypted via NOVA" : " · pending upload"}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground font-mono mt-1">
+                              {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+
                     const isSelf = msg.sender === accountId;
                     return (
                       <div key={msg.id} className={`flex flex-col ${isSelf ? "items-end" : "items-start"}`}>
@@ -336,6 +476,20 @@ const ContractDetailPage = () => {
                       </div>
                     );
                   })}
+                  {aiProcessing && (
+                    <div className="flex justify-center">
+                      <div className="px-4 py-2 rounded-full bg-primary/5 border border-primary/20 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        <p className="text-xs font-mono text-primary">
+                          AI investigation in progress...
+                        </p>
+                        <span className="flex items-center gap-1 text-[10px] font-mono text-success">
+                          <HugeiconsIcon icon={LockIcon} size={10} />
+                          TEE
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <div ref={chatEndRef} />
                 </div>
 
@@ -355,7 +509,23 @@ const ContractDetailPage = () => {
                         className="text-sm min-h-[80px] max-h-[150px] resize-none pr-16"
                         rows={3}
                       />
-                      <div className="absolute right-2 bottom-2 flex items-center gap-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*,.pdf,.txt,.doc,.docx"
+                        className="hidden"
+                        onChange={handleEvidenceUpload}
+                      />
+                      <div className="absolute right-2 bottom-2 flex items-center gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={uploadingEvidence}
+                        >
+                          <HugeiconsIcon icon={Attachment01Icon} size={16} />
+                        </Button>
                         <Button
                           variant="hero"
                           size="sm"
@@ -581,76 +751,19 @@ const ContractDetailPage = () => {
 
                       {(dispute.status === "Pending" || dispute.status === "Appealed") && (
                         <div className="space-y-2">
-                          {aiProcessing === dispute.milestone_id && investigationRounds.length > 0 && (
-                            <div className="space-y-2">
-                              {investigationRounds.map((round) => {
-                                const maxR = dispute.is_appeal ? 5 : 3;
-                                const isExpanded = expandedRounds.has(round.round_number);
-                                return (
-                                  <div key={round.round_number} className="p-3 rounded-lg bg-card border border-border space-y-1">
-                                    <button
-                                      className="w-full flex items-center justify-between text-left"
-                                      onClick={() => setExpandedRounds((prev) => {
-                                        const next = new Set(prev);
-                                        next.has(round.round_number) ? next.delete(round.round_number) : next.add(round.round_number);
-                                        return next;
-                                      })}
-                                    >
-                                      <span className="text-xs font-mono text-primary flex items-center gap-2">
-                                        <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="text-success" />
-                                        Round {round.round_number}/{maxR}
-                                      </span>
-                                      <span className="text-xs font-mono text-muted-foreground">
-                                        confidence: {round.confidence}%
-                                      </span>
-                                    </button>
-                                    {isExpanded && (
-                                      <div className="pt-2 space-y-1 text-sm text-muted-foreground">
-                                        <p><span className="text-xs font-mono text-primary">Analysis:</span> {round.analysis}</p>
-                                        <p><span className="text-xs font-mono text-primary">Findings:</span> {round.findings}</p>
-                                        <div className="w-full bg-secondary/50 rounded-full h-1.5 mt-1">
-                                          <div className="bg-primary h-1.5 rounded-full transition-all" style={{ width: `${round.confidence}%` }} />
-                                        </div>
-                                        <p className="text-[10px] text-success font-mono">TEE-verified Ed25519</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
                           {aiProcessing === dispute.milestone_id ? (
                             <div className="flex items-center gap-2">
-                              <p className={`text-xs font-mono animate-pulse ${dispute.is_appeal ? "text-warning" : "text-primary"}`}>
-                                {dispute.is_appeal ? "DeepSeek V3.1" : "AI"} investigation round {investigationRounds.length + 1}/{dispute.is_appeal ? 5 : 3} in progress...
+                              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                              <p className="text-xs font-mono text-primary">
+                                AI investigating · see chat
                               </p>
-                              <span className="flex items-center gap-1 text-[10px] font-mono text-success shrink-0">
-                                <HugeiconsIcon icon={LockIcon} size={10} />
-                                private
-                              </span>
                             </div>
                           ) : (
-                            <p className={`text-xs font-mono ${dispute.is_appeal ? "text-warning" : "text-muted-foreground"}`}>
-                              Waiting for {dispute.is_appeal ? "appeal " : ""}investigation...
+                            <p className="text-xs font-mono text-muted-foreground">
+                              {dispute.investigation_rounds.length > 0
+                                ? `${dispute.investigation_rounds.length} round${dispute.investigation_rounds.length > 1 ? "s" : ""} completed · see chat`
+                                : `Waiting for ${dispute.is_appeal ? "appeal " : ""}investigation...`}
                             </p>
-                          )}
-
-                          {aiProcessing !== dispute.milestone_id && dispute.investigation_rounds.length > 0 && (
-                            <div className="space-y-2">
-                              {dispute.investigation_rounds.map((round) => (
-                                <div key={round.round_number} className="p-3 rounded-lg bg-card border border-border space-y-1">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs font-mono text-primary flex items-center gap-2">
-                                      <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="text-success" />
-                                      Round {round.round_number}/{dispute.max_rounds}
-                                    </span>
-                                    <span className="text-xs font-mono text-muted-foreground">confidence: {round.confidence}%</span>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground">{round.analysis}</p>
-                                  <p className="text-[10px] text-success font-mono">TEE-verified Ed25519</p>
-                                </div>
-                              ))}
-                            </div>
                           )}
                         </div>
                       )}
