@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlusSignIcon,
@@ -28,6 +21,7 @@ import {
   StarIcon,
   LockIcon,
   Calendar01Icon,
+  ZapIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { useWallet } from "@/hooks/useWallet";
@@ -229,8 +223,6 @@ const CreateContractPage = () => {
     <div className="min-h-screen pt-24 pb-12">
       <div className="container mx-auto px-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-3xl font-bold mb-8">Create Contract</h1>
-
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-6 items-start">
               {/* Left: title + description + milestones */}
@@ -338,221 +330,178 @@ const CreateContractPage = () => {
                 </div>
               </div>
 
-              {/* Right: settings */}
-              <div className="space-y-5 p-6 rounded-2xl bg-card border border-border">
-                {/* Role */}
-                <div>
-                  <Label className="text-xs text-muted-foreground uppercase tracking-wide mb-2 block">I am the</Label>
-                  <div className="flex gap-2">
-                    <Button type="button" variant={userRole === "client" ? "hero" : "outline"} size="sm" className="flex-1" onClick={() => setUserRole("client")}>
-                      <HugeiconsIcon icon={UserCheck01Icon} size={14} className="mr-1" /> Client
-                    </Button>
-                    <Button type="button" variant={userRole === "freelancer" ? "hero" : "outline"} size="sm" className="flex-1" onClick={() => setUserRole("freelancer")}>
-                      <HugeiconsIcon icon={UserGroupIcon} size={14} className="mr-1" /> Freelancer
-                    </Button>
+              <div className="w-full max-w-lg mx-auto flex flex-col font-sans text-white relative overflow-hidden rounded-[40px] shadow-2xl border border-white/20 bg-black/40 backdrop-blur-2xl">
+                <div className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-[-50px] right-[-50px] w-[200px] h-[200px] bg-purple-500/20 rounded-full blur-[80px] pointer-events-none" />
+                <div className="p-8 pb-4 relative z-10 flex justify-between items-end">
+                  <div>
+                    <div className="text-sm font-medium text-white/50 mb-1 tracking-wide">Nescrowee</div>
+                    <h2 className="text-3xl font-bold tracking-tight text-white drop-shadow-lg">New Contract</h2>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+                    <div className="w-4 h-4 rounded-full bg-gradient-to-tr from-blue-400 to-purple-400" />
                   </div>
                 </div>
-
-                {/* Counterparty */}
-                <div>
-                  <Label className="text-sm font-medium">
-                    {userRole === "client" ? "Freelancer" : "Client"} wallet
-                    <span className="text-muted-foreground font-normal ml-1">(optional)</span>
-                  </Label>
-                  <div className="relative mt-1.5">
-                    <Input
-                      value={counterpartyAddress}
-                      onChange={(e) => {
-                        setCounterpartyAddress(e.target.value);
-                        checkCounterparty(e.target.value);
-                      }}
-                      placeholder="alice.near or leave empty → invite link"
-                      className={`font-mono text-sm pr-8 ${
-                        counterpartyStatus === "valid" ? "border-success" :
-                        counterpartyStatus === "invalid" || counterpartyStatus === "bad-format" ? "border-destructive" : ""
-                      }`}
-                    />
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs">
-                      {counterpartyStatus === "checking" && (
-                        <span className="text-muted-foreground animate-pulse">…</span>
-                      )}
-                      {counterpartyStatus === "valid" && (
-                        <span className="text-success font-mono">✓</span>
-                      )}
-                      {(counterpartyStatus === "invalid" || counterpartyStatus === "bad-format") && (
-                        <span className="text-destructive font-mono">✗</span>
-                      )}
-                    </div>
-                  </div>
-                  {counterpartyStatus === "bad-format" && (
-                    <p className="text-[10px] text-destructive mt-1">
-                      Use format: alice.near / alice.testnet / 64-char hex
-                    </p>
-                  )}
-                  {counterpartyStatus === "invalid" && (
-                    <p className="text-[10px] text-destructive mt-1">
-                      Account not found on {import.meta.env.VITE_NEAR_NETWORK || "testnet"}
-                    </p>
-                  )}
-                  {counterpartyStatus === "valid" && (
-                    <p className="text-[10px] text-success mt-1">Account verified on-chain ✓</p>
-                  )}
-                  {counterpartyStatus === "idle" && (
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      Leave empty to generate an invite link instead
-                    </p>
-                  )}
-                </div>
-
-                {/* Dispute Fund */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <HugeiconsIcon icon={Shield01Icon} size={14} className="text-primary" />
-                    <Label className="text-sm font-medium">Dispute Fund</Label>
-                    <HugeiconsIcon icon={InformationCircleIcon} size={13} className="text-muted-foreground" />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Reserved from each funded milestone. Pays for TEE-verified AI investigation.
-                    Leftover always goes to the freelancer.
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-1">
-                      <Input
-                        type="number"
-                        value={disputeFundPct}
-                        onChange={(e) => setDisputeFundPct(e.target.value)}
-                        min={DISPUTE_FUND_MIN}
-                        max={DISPUTE_FUND_MAX}
-                        className={`font-mono pr-6 ${!disputeFundValid && disputeFundPct ? "border-destructive" : ""}`}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-8 relative z-10">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-white/60 ml-2">I am the</label>
+                    <div className="bg-white/10 p-1 rounded-full flex relative backdrop-blur-md border border-white/10">
+                      <div
+                        className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/20 rounded-full shadow-lg transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${userRole === "freelancer" ? "left-[calc(50%+2px)]" : "left-1"}`}
                       />
-                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+                      <button
+                        type="button"
+                        onClick={() => setUserRole("client")}
+                        className={`flex-1 py-3 text-sm font-medium relative z-10 transition-colors ${userRole === "client" ? "text-white" : "text-white/40"}`}
+                      >
+                        Client
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUserRole("freelancer")}
+                        className={`flex-1 py-3 text-sm font-medium relative z-10 transition-colors ${userRole === "freelancer" ? "text-white" : "text-white/40"}`}
+                      >
+                        Freelancer
+                      </button>
                     </div>
-                    <div className="flex gap-1">
-                      {["5", "10", "15"].map((v) => (
-                        <button key={v} type="button" onClick={() => setDisputeFundPct(v)}
-                          className={`px-2 py-1 text-xs rounded font-mono transition-all ${disputeFundPct === v ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:bg-secondary/80"}`}>
-                          {v}%
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-white/60 ml-2">Freelancer wallet (optional)</label>
+                    <div className="group relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+                      <input
+                        type="text"
+                        value={counterpartyAddress}
+                        onChange={(e) => {
+                          setCounterpartyAddress(e.target.value);
+                          checkCounterparty(e.target.value);
+                        }}
+                        placeholder="alice.near or leave empty → invite link"
+                        className={`relative w-full bg-white/5 border rounded-2xl px-5 py-4 text-white placeholder-white/20 focus:outline-none focus:bg-white/10 focus:border-white/30 transition-all backdrop-blur-sm shadow-[0_4px_20px_rgba(0,0,0,0.2)] font-mono text-sm ${
+                          counterpartyStatus === "valid" ? "border-green-500/50" : counterpartyStatus === "invalid" || counterpartyStatus === "bad-format" ? "border-red-500/50" : "border-white/10"
+                        }`}
+                      />
+                    </div>
+                    {counterpartyStatus === "bad-format" && (
+                      <p className="text-xs text-red-400 ml-2">Use format: alice.near / alice.testnet</p>
+                    )}
+                    {counterpartyStatus === "invalid" && (
+                      <p className="text-xs text-red-400 ml-2">Account not found on {import.meta.env.VITE_NEAR_NETWORK || "testnet"}</p>
+                    )}
+                    {counterpartyStatus === "valid" && (
+                      <p className="text-xs text-green-400 ml-2">Account verified on-chain ✓</p>
+                    )}
+                    {counterpartyStatus === "idle" && (
+                      <p className="text-xs text-white/40 ml-2 flex items-center gap-1">
+                        <HugeiconsIcon icon={InformationCircleIcon} size={12} /> Leave empty to generate an invite link instead
+                      </p>
+                    )}
+                  </div>
+                  <div className="bg-white/5 rounded-[32px] p-6 border border-white/10 backdrop-blur-md">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-white">Dispute Fund</h3>
+                        <p className="text-xs text-white/50 mt-1 leading-relaxed max-w-[200px]">
+                          Reserved from each funded milestone. Pays for TEE-verified AI investigation.
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-light text-white">{disputeFundPct}%</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mb-4">
+                      {[5, 10, 15].map((pctVal) => (
+                        <button
+                          key={pctVal}
+                          type="button"
+                          onClick={() => setDisputeFundPct(String(pctVal))}
+                          className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${disputeFundPct === String(pctVal) ? "bg-white text-black shadow-lg" : "bg-white/5 text-white/60 hover:bg-white/10"}`}
+                        >
+                          {pctVal}%
                         </button>
                       ))}
                     </div>
+                    {!disputeFundValid && disputeFundPct && (
+                      <p className="text-[10px] text-red-400 text-center">Minimum {DISPUTE_FUND_MIN}%, maximum {DISPUTE_FUND_MAX}%</p>
+                    )}
+                    <p className="text-[10px] text-white/30 text-center">Leftover always goes to the freelancer.</p>
                   </div>
-                  {!disputeFundValid && disputeFundPct && (
-                    <p className="text-[11px] text-destructive">Minimum {DISPUTE_FUND_MIN}%, maximum {DISPUTE_FUND_MAX}%</p>
-                  )}
-                  {disputeFundValid && totalNear > 0 && (
-                    <p className="text-[11px] font-mono text-primary">
-                      {disputeFundNear.toFixed(3)} NEAR reserved · covers ~{Math.floor(disputeFundNear / 0.001).toLocaleString()} standard disputes
+                  <div className="space-y-4">
+                    <div className="ml-2">
+                      <h3 className="text-lg font-bold text-white">AI Dispute Model</h3>
+                      <p className="text-xs text-white/50 mt-1">Standard disputes run 2 rounds. Appeals escalate to DeepSeek V3.1.</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3">
+                      {AI_MODELS.map((model) => {
+                        const isSelected = selectedModel === model.id;
+                        return (
+                          <div
+                            key={model.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setSelectedModel(model.id)}
+                            onKeyDown={(e) => e.key === "Enter" && setSelectedModel(model.id)}
+                            className={`relative p-4 rounded-2xl border transition-all cursor-pointer ${isSelected ? "bg-white/10 border-white/40 shadow-lg" : "bg-transparent border-white/5 hover:bg-white/5"}`}
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-bold text-white">{model.name}</span>
+                              {isSelected && <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_#4ade80]" />}
+                            </div>
+                            <div className="text-xs text-white/40">{MODEL_COST_LABEL[model.id] ?? "—"}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-white/30 ml-2 flex items-center gap-1">
+                      <HugeiconsIcon icon={Shield01Icon} size={10} /> All models run in TEE — signatures verified on-chain.
                     </p>
-                  )}
-                </div>
-
-                {/* AI Dispute Model */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <HugeiconsIcon icon={AiBrain01Icon} size={14} className="text-primary" />
-                    <Label className="text-sm font-medium">AI Dispute Model</Label>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Standard disputes run 2 rounds. Appeals escalate to DeepSeek V3.1 (deeper agentic logic, more steps).
-                    All models run in TEE — signatures are verified on-chain.
-                  </p>
-                  <Select value={selectedModel} onValueChange={(v) => setSelectedModel(v as ModelId)}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue>
-                        {selectedModelData && (
-                          <div className="flex items-center gap-2">
-                            <span>{selectedModelData.name}</span>
-                            <StarRating stars={selectedModelData.stars} />
-                            <span className="text-[10px] text-muted-foreground font-mono ml-auto">
-                              {MODEL_COST_LABEL[selectedModel]}
-                            </span>
-                          </div>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {AI_MODELS.map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
-                          <div className="flex flex-col gap-0.5 py-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm">{model.name}</span>
-                              <StarRating stars={model.stars} />
-                            </div>
-                            <div className="flex gap-2 text-[10px] text-muted-foreground font-mono flex-wrap">
-                              <span>{model.use_case}</span>
-                              <span>·</span>
-                              <span>{MODEL_COST_LABEL[model.id]}</span>
-                              <span>·</span>
-                              <span>{model.speed}</span>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   {promptHash && (
-                    <div className="flex items-center justify-between gap-2">
-                      <code className="text-[10px] font-mono text-muted-foreground truncate">{promptHash.slice(0, 32)}…</code>
-                      <a href="/disputes" className="text-[10px] text-primary hover:underline whitespace-nowrap">How disputes work →</a>
+                    <div className="bg-black/20 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/50">
+                          <HugeiconsIcon icon={InformationCircleIcon} size={20} />
+                        </div>
+                        <div>
+                          <div className="text-xs font-mono text-white/40">{promptHash.slice(0, 16)}...</div>
+                          <a href="/how-it-works" className="text-xs text-white font-medium mt-0.5 hover:underline">How it works →</a>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
-
-                {/* Feature badges */}
-                <div className="flex flex-wrap gap-2">
-                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-success bg-success/8 border border-success/15 px-2.5 py-1.5 rounded-lg">
-                    <HugeiconsIcon icon={LockIcon} size={12} />
-                    Private AI — identity scrubbed
-                  </span>
-                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-orange-400 bg-orange-500/8 border border-orange-500/15 px-2.5 py-1.5 rounded-lg">
-                    <span className="font-bold text-[10px]">H</span>
-                    HOT Pay — fund with any token
-                  </span>
-                </div>
-
-                {/* Summary */}
-                <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Summary</p>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total</span>
-                    <div className="text-right">
-                      <span className="font-mono font-bold">{totalNear.toFixed(2)} NEAR</span>
-                      {totalUsd !== null && (
-                        <span className="text-xs text-muted-foreground ml-1.5">≈${totalUsd.toFixed(0)}</span>
-                      )}
+                <div className="p-6 bg-white/5 backdrop-blur-xl border-t border-white/10 z-20">
+                  <div className="grid grid-cols-2 gap-4 mb-4 text-xs">
+                    <div>
+                      <div className="text-white/40 mb-1">Total Value</div>
+                      <div className="text-lg font-bold text-white">{totalNear.toFixed(2)} NEAR <span className="text-white/30 text-sm font-normal">≈${totalUsd != null ? totalUsd.toFixed(0) : "0"}</span></div>
+                    </div>
+                    <div>
+                      <div className="text-white/40 mb-1">Dispute Fund</div>
+                      <div className="text-white">{pct}% · {disputeFundNear.toFixed(3)} NEAR</div>
+                    </div>
+                    <div>
+                      <div className="text-white/40 mb-1">AI Model</div>
+                      <div className="text-white">{selectedModelData?.name}</div>
+                    </div>
+                    <div>
+                      <div className="text-white/40 mb-1">Milestones</div>
+                      <div className="text-white">{milestones.length}</div>
                     </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Dispute fund</span>
-                    <span className="font-mono text-xs">{pct}% · {disputeFundNear.toFixed(3)} NEAR</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">AI model</span>
-                    <span className="font-mono text-xs">{selectedModelData?.name}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Milestones</span>
-                    <span className="font-mono">{milestones.length}</span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
+                  <div className="flex items-center gap-2 text-[10px] text-white/30 mb-4 bg-black/20 p-2 rounded-lg">
+                    <HugeiconsIcon icon={ZapIcon} size={10} className="text-yellow-400" />
                     Gas ~$0.001/action, paid by your wallet automatically.
-                  </p>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={createMutation.isPending || !disputeFundValid}
+                    className="w-full py-4 bg-white text-black rounded-2xl font-bold text-lg shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-[1.02] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {createMutation.isPending ? "Creating on-chain…" : counterpartyAddress ? "Deploy Contract" : "Create Invite"}
+                    <HugeiconsIcon icon={ArrowRight01Icon} size={18} />
+                  </button>
                 </div>
-
-                <Button
-                  type="submit"
-                  variant="hero"
-                  size="lg"
-                  className="w-full"
-                  disabled={createMutation.isPending || !disputeFundValid}
-                >
-                  {createMutation.isPending
-                    ? "Creating on-chain…"
-                    : counterpartyAddress
-                    ? "Create Contract"
-                    : "Create & Get Invite Link"}
-                  <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="ml-1" />
-                </Button>
               </div>
             </div>
           </form>
