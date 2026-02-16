@@ -54,7 +54,7 @@ const ContractsPage = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="p-5 rounded-xl bg-card border border-border animate-pulse h-24" />
+              <div key={i} className="p-5 rounded-xl bg-card animate-pulse h-24" />
             ))}
           </div>
         ) : !contracts?.length ? (
