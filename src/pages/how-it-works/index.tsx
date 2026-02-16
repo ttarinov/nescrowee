@@ -6,13 +6,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import {
   getStandardPromptHash,
-  getAppealPromptHash,
-  getInvestigationPromptHash,
-  getInvestigationAppealPromptHash,
   standardPrompt,
-  appealPrompt,
-  investigationPrompt,
-  investigationAppealPrompt,
 } from "@/utils/promptHash";
 import OnThisPageSidebar from "./on-this-page-sidebar";
 import ArchitectureDiagram from "./architecture-diagram";
@@ -42,10 +36,7 @@ const SectionHeading = ({
 );
 
 const promptMeta = [
-  { key: "standard", title: "Standard Resolution Prompt", content: standardPrompt },
-  { key: "appeal", title: "Appeal Resolution Prompt", content: appealPrompt },
-  { key: "investigation", title: "Investigation Prompt", content: investigationPrompt },
-  { key: "investigation-appeal", title: "Appeal Investigation Prompt", content: investigationAppealPrompt },
+  { key: "standard", title: "Dispute Resolution Prompt", content: standardPrompt },
 ];
 
 const HowItWorksPage = () => {
@@ -56,18 +47,8 @@ const HowItWorksPage = () => {
   const [hashes, setHashes] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    void Promise.all([
-      getStandardPromptHash(),
-      getAppealPromptHash(),
-      getInvestigationPromptHash(),
-      getInvestigationAppealPromptHash(),
-    ]).then(([s, a, i, ia]) => {
-      setHashes({
-        standard: s,
-        appeal: a,
-        investigation: i,
-        "investigation-appeal": ia,
-      });
+    void getStandardPromptHash().then((hash) => {
+      setHashes({ standard: hash });
     });
   }, []);
 
@@ -94,7 +75,7 @@ const HowItWorksPage = () => {
                 What happens when there&apos;s a disagreement
               </SectionHeading>
               <p className="text-gray-400 max-w-2xl">
-                Either party can raise a dispute at any time on an active milestone. The smart contract triggers an AI investigation in real time, and verifies every step cryptographically. No waiting for support tickets.
+                The client can raise a dispute on any milestone submitted for review. The AI analyzes the situation in a single comprehensive pass, and the smart contract verifies the decision cryptographically. No waiting for support tickets.
               </p>
             </div>
             <div className="mt-4 md:mt-0 px-4 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg text-purple-300 text-sm font-medium">
@@ -113,7 +94,7 @@ const HowItWorksPage = () => {
         <section id="which-ai" className="scroll-mt-28">
           <SectionHeading icon={CpuIcon}>Which AI handles your dispute</SectionHeading>
           <p className="text-gray-400 mb-10">
-            Contract creators choose the standard dispute model when creating the contract. Appeals always use DeepSeek V3.1 for maximum thoroughness. All models run inside TEE hardware.
+            Contract creators choose the dispute resolution model when creating the contract. All models run inside TEE hardware — every response is Ed25519-signed and verified on-chain.
           </p>
           <AIModelsSection />
         </section>

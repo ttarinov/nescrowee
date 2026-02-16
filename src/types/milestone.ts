@@ -6,4 +6,5 @@ export interface Milestone {
   description: string;
   amount: string;
   status: MilestoneStatus;
+  payment_request_deadline_ns: number | null;
 }

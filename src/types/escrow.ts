@@ -12,6 +12,7 @@ export interface EscrowContract {
   total_amount: string;
   funded_amount: string;
   security_deposit_pct: number;
+  security_pool: string;
   milestones: Milestone[];
   status: ContractStatus;
   created_at: number;

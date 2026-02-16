@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  FileEditIcon,
   Wallet03Icon,
   LegalHammerIcon,
   CheckmarkCircle02Icon,
@@ -18,12 +17,14 @@ import { cn } from "@/lib/utils";
 
 function FlowCard({
   icon,
+  image,
   title,
   description,
   number,
   variant = "default",
 }: {
-  icon: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  icon?: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  image?: string;
   title: string;
   description: string;
   number?: number;
@@ -66,11 +67,15 @@ function FlowCard({
       )}
       <div
         className={cn(
-          "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br",
+          "flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br overflow-hidden",
           iconStyles[variant]
         )}
       >
-        <HugeiconsIcon icon={icon} size={26} />
+        {image ? (
+          <img src={image} alt={title} className="h-full w-full object-contain p-1" />
+        ) : (
+          icon && <HugeiconsIcon icon={icon} size={26} />
+        )}
       </div>
       <div className="min-w-0 flex-1 pt-0.5">
         <h4 className="mb-2 text-base font-semibold text-[hsl(var(--foreground))]">
@@ -207,13 +212,29 @@ export function HowItWorksFlow() {
         </div>
 
         <div className="flex flex-col items-center">
-          <FlowCard
-            number={1}
-            icon={FileEditIcon}
-            title="Create a contract"
-            description="Client describes the job, breaks it into milestones with clear deliverables and amounts in NEAR."
-            variant="purple"
-          />
+          <div
+            className={cn(
+              "relative flex w-full max-w-[520px] flex-row items-start gap-5 rounded-2xl border px-7 py-6 text-left transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/30",
+              "border-purple-500/20 bg-gradient-to-br from-purple-500/[0.08] to-purple-900/[0.04]"
+            )}
+          >
+            <div className="absolute -top-3 left-6 rounded-full border border-purple-500/30 bg-gradient-to-r from-purple-600/20 to-purple-800/20 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-purple-300">
+              1
+            </div>
+            <img
+              src="/illustration-test.png"
+              alt="Create a contract"
+              className="h-32 w-32 shrink-0 object-contain"
+            />
+            <div className="min-w-0 flex-1 pt-0.5">
+              <h4 className="mb-2 text-lg font-semibold text-[hsl(var(--foreground))]">
+                Create a contract
+              </h4>
+              <p className="text-base leading-relaxed text-[hsl(var(--muted-foreground))]">
+                Client describes the job, breaks it into milestones with clear deliverables and amounts in NEAR.
+              </p>
+            </div>
+          </div>
 
           <Arrow label="contract saved on-chain" />
 

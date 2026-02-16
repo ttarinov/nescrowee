@@ -1,7 +1,7 @@
 import { nearConfig } from "./config";
 import { signAndSendTransaction } from "./wallet";
 import type { EscrowContract } from "@/types/escrow";
-import type { Dispute, InvestigationRound } from "@/types/dispute";
+import type { Dispute } from "@/types/dispute";
 
 const GAS = "300000000000000";
 const NO_DEPOSIT = "0";
@@ -59,6 +59,10 @@ export async function getPromptHash(contractId: string): Promise<string | null> 
   return viewMethod<string | null>("get_prompt_hash", { contract_id: contractId });
 }
 
+export async function getAiProcessingFee(): Promise<string> {
+  return viewMethod<string>("get_ai_processing_fee");
+}
+
 export interface CreateContractArgs {
   title: string;
   description: string;
@@ -97,12 +101,20 @@ export function startMilestone(contractId: string, milestoneId: string) {
   return callMethod("start_milestone", { contract_id: contractId, milestone_id: milestoneId });
 }
 
-export function completeMilestone(contractId: string, milestoneId: string) {
-  return callMethod("complete_milestone", { contract_id: contractId, milestone_id: milestoneId });
+export function requestPayment(contractId: string, milestoneId: string) {
+  return callMethod("request_payment", { contract_id: contractId, milestone_id: milestoneId });
+}
+
+export function cancelPaymentRequest(contractId: string, milestoneId: string) {
+  return callMethod("cancel_payment_request", { contract_id: contractId, milestone_id: milestoneId });
 }
 
 export function approveMilestone(contractId: string, milestoneId: string) {
   return callMethod("approve_milestone", { contract_id: contractId, milestone_id: milestoneId });
+}
+
+export function autoApprovePayment(contractId: string, milestoneId: string) {
+  return callMethod("auto_approve_payment", { contract_id: contractId, milestone_id: milestoneId });
 }
 
 export function raiseDispute(contractId: string, milestoneId: string, reason: string) {
@@ -133,50 +145,22 @@ export function submitAiResolution(
   });
 }
 
-export function submitInvestigationRound(
-  contractId: string,
-  milestoneId: string,
-  roundNumber: number,
-  analysis: string,
-  findings: string,
-  confidence: number,
-  needsMoreAnalysis: boolean,
-  resolution: unknown | null,
-  explanation: string | null,
-  signature: number[],
-  signingAddress: number[],
-  teeText: string,
-) {
-  return callMethod("submit_investigation_round", {
-    contract_id: contractId,
-    milestone_id: milestoneId,
-    round_number: roundNumber,
-    analysis,
-    findings,
-    confidence,
-    needs_more_analysis: needsMoreAnalysis,
-    resolution: resolution || null,
-    explanation: explanation || null,
-    signature,
-    signing_address: signingAddress,
-    tee_text: teeText,
-  });
-}
-
-export async function getInvestigationRounds(
-  contractId: string,
-  milestoneId: string,
-): Promise<InvestigationRound[]> {
-  return viewMethod<InvestigationRound[]>("get_investigation_rounds", {
-    contract_id: contractId,
-    milestone_id: milestoneId,
-  });
-}
-
 export function acceptResolution(contractId: string, milestoneId: string) {
   return callMethod("accept_resolution", { contract_id: contractId, milestone_id: milestoneId });
 }
 
-export function appealResolution(contractId: string, milestoneId: string) {
-  return callMethod("appeal_resolution", { contract_id: contractId, milestone_id: milestoneId });
+export function finalizeResolution(contractId: string, milestoneId: string) {
+  return callMethod("finalize_resolution", { contract_id: contractId, milestone_id: milestoneId });
+}
+
+export function releaseDisputeFunds(contractId: string, milestoneId: string) {
+  return callMethod("release_dispute_funds", { contract_id: contractId, milestone_id: milestoneId });
+}
+
+export function completeContractSecurity(contractId: string) {
+  return callMethod("complete_contract_security", { contract_id: contractId });
+}
+
+export function setAiProcessingFee(feeYoctonear: string) {
+  return callMethod("set_ai_processing_fee", { fee_yoctonear: feeYoctonear });
 }

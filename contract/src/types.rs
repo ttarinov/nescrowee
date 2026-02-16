@@ -2,7 +2,8 @@ use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 use near_sdk::{AccountId, NearToken};
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum MilestoneStatus {
     NotFunded,
@@ -13,7 +14,8 @@ pub enum MilestoneStatus {
     Disputed,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum ContractStatus {
     Draft,
@@ -23,7 +25,8 @@ pub enum ContractStatus {
     Resolved,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum DisputeStatus {
     Pending,
@@ -31,7 +34,8 @@ pub enum DisputeStatus {
     Finalized,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub enum Resolution {
     Freelancer,
@@ -40,7 +44,8 @@ pub enum Resolution {
     Split { freelancer_pct: u8 },
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub struct Milestone {
     pub id: String,
@@ -51,7 +56,8 @@ pub struct Milestone {
     pub payment_request_deadline_ns: Option<u64>,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub struct Dispute {
     pub milestone_id: String,
@@ -68,7 +74,8 @@ pub struct Dispute {
     pub funds_released: bool,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]
+#[borsh(crate = "near_sdk::borsh")]
 #[serde(crate = "near_sdk::serde")]
 pub struct EscrowContract {
     pub id: String,
@@ -87,4 +94,30 @@ pub struct EscrowContract {
     pub disputes: Vec<Dispute>,
     pub model_id: String,
     pub security_pool: NearToken,
+}
+
+impl EscrowContract {
+    pub fn find_milestone(&self, milestone_id: &str) -> Option<usize> {
+        self.milestones.iter().position(|m| m.id == milestone_id)
+    }
+
+    pub fn find_dispute(&self, milestone_id: &str, status: DisputeStatus) -> Option<usize> {
+        self.disputes
+            .iter()
+            .position(|d| d.milestone_id == milestone_id && d.status == status)
+    }
+
+    pub fn all_milestones_completed(&self) -> bool {
+        self.milestones
+            .iter()
+            .all(|m| m.status == MilestoneStatus::Completed)
+    }
+
+    pub fn require_freelancer(&self) -> AccountId {
+        self.freelancer.clone().expect("No freelancer assigned")
+    }
+
+    pub fn is_party(&self, account: &AccountId) -> bool {
+        *account == self.client || self.freelancer.as_ref() == Some(account)
+    }
 }

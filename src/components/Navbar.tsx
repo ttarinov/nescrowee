@@ -10,6 +10,8 @@ const navLinks = [
   { to: "/", label: "Home" },
   { to: "/contracts", label: "Contracts" },
   { to: "/how-it-works", label: "How It Works" },
+  { to: "/blog", label: "Blog" },
+  { to: "/docs", label: "Docs" },
 ];
 
 const WalletPopoverContent = ({

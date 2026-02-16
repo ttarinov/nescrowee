@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    nodePolyfills({ include: ["buffer", "process", "stream", "util"] }),
+    nodePolyfills({ include: ["buffer", "process", "stream", "util", "crypto"] }),
     mode === "development" && componentTagger(),
   ].filter(Boolean),
   resolve: {

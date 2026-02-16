@@ -297,11 +297,14 @@
 
   html {
     font-family: 'LTC Picon', system-ui, sans-serif;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     font-family: inherit;
+    overflow-x: hidden;
   }
 
   h1, h2 {

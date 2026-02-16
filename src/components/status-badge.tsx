@@ -12,8 +12,6 @@ const statusStyles: Record<string, string> = {
   Funded: "bg-warning/15 text-warning border-warning/30",
   SubmittedForReview: "bg-accent/15 text-accent border-accent/30",
   AiResolved: "bg-accent/15 text-accent border-accent/30",
-  Appealed: "bg-warning/15 text-warning border-warning/30",
-  AppealResolved: "bg-accent/15 text-accent border-accent/30",
   Finalized: "bg-success/15 text-success border-success/30",
 };
 
@@ -22,7 +20,6 @@ const statusLabels: Record<string, string> = {
   InProgress: "In Progress",
   SubmittedForReview: "Submitted for Review",
   AiResolved: "AI Resolved",
-  AppealResolved: "Appeal Resolved",
 };
 
 const StatusBadge = ({ status }: { status: string }) => (

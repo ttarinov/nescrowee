@@ -2,32 +2,37 @@ import { motion } from "framer-motion";
 
 const integrations = [
   {
-    name: "NEAR",
-    why: "Holds the escrow and contract rules. Transparent and unstoppable.",
+    name: "NEAR Protocol",
+    track: "Only on NEAR",
+    why: "Smart contract escrow, on-chain dispute resolution, and NEAR Social DB for decentralized chat. Everything verifiable, nothing hidden.",
     logo: "/near-logo.png",
     big: true,
   },
   {
-    name: "HOT Wallet",
-    why: "Easy sign-in and payments. No seed phrases to manage.",
+    name: "HOT Kit",
+    track: "HOT Ecosystem",
+    why: "Multi-wallet connector supporting HOT Wallet, MyNearWallet, Meteor, and more. One integration, every NEAR wallet.",
     logo: "/hot-logo.svg",
     big: false,
   },
   {
     name: "NEAR AI Cloud",
-    why: "Runs the dispute AI in secure hardware (TEE). Every answer is signed and verifiable.",
+    track: "AI That Works For You",
+    why: "Dispute AI runs inside TEE hardware. Every response is Ed25519-signed and verified on-chain. Unbribable judge.",
     logo: null,
     big: false,
   },
   {
     name: "HOT Pay",
-    why: "Fund escrow from 30+ chains. Pay with USDC, ETH, and more.",
+    track: "HOT Pay",
+    why: "Pay from any chain, settled on NEAR. Fund escrow with USDC, ETH, BNB, and 30+ tokens via OmniBridge.",
     logo: null,
     big: false,
   },
   {
     name: "NOVA",
-    why: "Encrypted storage for evidence files. AI can read them without exposing them.",
+    track: "Private Web",
+    why: "Encrypted evidence vaults. Files are encrypted client-side, stored on NOVA, and only decryptable by contract parties and AI.",
     logo: null,
     big: false,
   },
@@ -66,11 +71,16 @@ const IntegrationsSection = () => (
               </>
             )}
             <div className="relative z-10">
-              {item.logo ? (
-                <img src={item.logo} alt="" className={`object-contain opacity-90 ${item.big ? "h-12 md:h-14 mb-4" : "h-8 w-auto mb-3"}`} />
-              ) : (
-                <div className={`rounded-xl bg-white/10 shrink-0 ${item.big ? "w-12 h-12 md:w-14 md:h-14 mb-4" : "w-8 h-8 mb-3"}`} />
-              )}
+              <div className="flex items-center gap-2 mb-2">
+                {item.logo ? (
+                  <img src={item.logo} alt="" className={`object-contain opacity-90 ${item.big ? "h-12 md:h-14" : "h-8 w-auto"}`} />
+                ) : (
+                  <div className={`rounded-xl bg-white/10 shrink-0 ${item.big ? "w-12 h-12 md:w-14 md:h-14" : "w-8 h-8"}`} />
+                )}
+                <span className="text-[10px] font-mono uppercase tracking-wider text-primary/70 bg-primary/10 px-2 py-0.5 rounded-full">
+                  {item.track}
+                </span>
+              </div>
               <div className={`font-bold text-white ${item.big ? "text-xl md:text-2xl mb-2" : "text-base mb-1"}`}>{item.name}</div>
               <div className={`text-white/60 ${item.big ? "text-sm md:text-base leading-relaxed" : "text-xs"}`}>{item.why}</div>
             </div>

@@ -1,9 +1,9 @@
-use near_sdk::{env, near_bindgen};
+use near_sdk::{env, near_bindgen, NearToken, Promise};
 
 use crate::types::*;
-use crate::Contract;
+use crate::{Contract, ContractExt};
 
-const DISPUTE_DEADLINE_NS: u64 = 48 * 60 * 60 * 1_000_000_000; // 48 hours
+const DISPUTE_DEADLINE_NS: u64 = 48 * 60 * 60 * 1_000_000_000;
 
 #[near_bindgen]
 impl Contract {
@@ -13,27 +13,22 @@ impl Contract {
         milestone_id: String,
         reason: String,
     ) {
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
         let caller = env::predecessor_account_id();
-        assert!(
-            caller == contract.client || Some(&caller) == contract.freelancer.as_ref(),
-            "Only contract parties can raise disputes"
-        );
-
-        let milestone = contract
-            .milestones
-            .iter_mut()
-            .find(|m| m.id == milestone_id)
-            .expect("Milestone not found");
+        assert_eq!(caller, contract.client, "Only client can raise disputes");
 
         assert!(
-            milestone.status == MilestoneStatus::InProgress
-                || milestone.status == MilestoneStatus::Funded
-                || milestone.status == MilestoneStatus::SubmittedForReview,
-            "Cannot dispute this milestone"
+            contract.security_pool.as_yoctonear() >= self.ai_processing_fee.as_yoctonear(),
+            "Insufficient security deposit for AI processing"
         );
 
-        milestone.status = MilestoneStatus::Disputed;
+        let idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
+        assert!(
+            contract.milestones[idx].status == MilestoneStatus::SubmittedForReview,
+            "Can only dispute milestones submitted for review"
+        );
+
+        contract.milestones[idx].status = MilestoneStatus::Disputed;
         contract.status = ContractStatus::Disputed;
 
         contract.disputes.push(Dispute {
@@ -44,16 +39,14 @@ impl Contract {
             resolution: None,
             explanation: None,
             deadline_ns: None,
-            client_accepted: false,
-            freelancer_accepted: false,
-            is_appeal: false,
+            ai_fee_deducted: false,
             tee_signature: None,
             tee_signing_address: None,
             tee_text: None,
-            investigation_rounds: vec![],
-            max_rounds: 3,
             funds_released: false,
         });
+
+        self.contracts.insert(contract_id.clone(), contract);
 
         emit_event!("dispute_raised", {
             "contract_id" => contract_id,
@@ -71,8 +64,16 @@ impl Contract {
         signing_address: Vec<u8>,
         tee_text: String,
     ) {
+        let sig: &[u8; 64] = signature
+            .as_slice()
+            .try_into()
+            .expect("Signature must be 64 bytes");
+        let pubkey: &[u8; 32] = signing_address
+            .as_slice()
+            .try_into()
+            .expect("Signing address must be 32 bytes");
         assert!(
-            env::ed25519_verify(&signature, tee_text.as_bytes(), &signing_address),
+            env::ed25519_verify(sig, tee_text.as_bytes(), pubkey),
             "Invalid TEE signature"
         );
         assert!(
@@ -80,31 +81,51 @@ impl Contract {
             "Signing address not in trusted TEE list"
         );
 
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
-        let dispute = contract
-            .disputes
-            .iter_mut()
-            .find(|d| {
-                d.milestone_id == milestone_id
-                    && (d.status == DisputeStatus::Pending || d.status == DisputeStatus::Appealed)
-            })
+        if let Resolution::Split { freelancer_pct } = &resolution {
+            assert!(*freelancer_pct <= 100, "Invalid split percentage");
+        }
+
+        let fee = self.ai_processing_fee;
+        let owner = self.owner.clone();
+
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
+
+        let dispute_idx = contract
+            .find_dispute(&milestone_id, DisputeStatus::Pending)
             .expect("No active dispute for this milestone");
 
-        let new_status = if dispute.is_appeal {
-            DisputeStatus::AppealResolved
-        } else {
-            DisputeStatus::AiResolved
-        };
+        if !contract.disputes[dispute_idx].ai_fee_deducted && fee.as_yoctonear() > 0 {
+            contract.security_pool = NearToken::from_yoctonear(
+                contract.security_pool.as_yoctonear().saturating_sub(fee.as_yoctonear()),
+            );
+            let _ = Promise::new(owner).transfer(fee);
+            contract.disputes[dispute_idx].ai_fee_deducted = true;
+        }
 
-        dispute.status = new_status;
-        dispute.resolution = Some(resolution);
-        dispute.explanation = Some(explanation);
-        dispute.deadline_ns = Some(env::block_timestamp() + DISPUTE_DEADLINE_NS);
-        dispute.client_accepted = false;
-        dispute.freelancer_accepted = false;
-        dispute.tee_signature = Some(signature);
-        dispute.tee_signing_address = Some(signing_address);
-        dispute.tee_text = Some(tee_text);
+        contract.disputes[dispute_idx].resolution = Some(resolution.clone());
+        contract.disputes[dispute_idx].explanation = Some(explanation);
+        contract.disputes[dispute_idx].tee_signature = Some(signature);
+        contract.disputes[dispute_idx].tee_signing_address = Some(signing_address);
+        contract.disputes[dispute_idx].tee_text = Some(tee_text);
+
+        match resolution {
+            Resolution::ContinueWork => {
+                contract.disputes[dispute_idx].status = DisputeStatus::Finalized;
+                contract.disputes[dispute_idx].funds_released = true;
+
+                let milestone_idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
+                contract.milestones[milestone_idx].status = MilestoneStatus::InProgress;
+                contract.milestones[milestone_idx].payment_request_deadline_ns = None;
+                contract.status = ContractStatus::Active;
+            }
+            _ => {
+                contract.disputes[dispute_idx].status = DisputeStatus::AiResolved;
+                contract.disputes[dispute_idx].deadline_ns =
+                    Some(env::block_timestamp() + DISPUTE_DEADLINE_NS);
+            }
+        }
+
+        self.contracts.insert(contract_id.clone(), contract);
 
         emit_event!("ai_resolution", {
             "contract_id" => contract_id,
@@ -112,170 +133,43 @@ impl Contract {
         });
     }
 
-    pub fn submit_investigation_round(
-        &mut self,
-        contract_id: String,
-        milestone_id: String,
-        round_number: u8,
-        analysis: String,
-        findings: String,
-        confidence: u8,
-        needs_more_analysis: bool,
-        resolution: Option<Resolution>,
-        explanation: Option<String>,
-        signature: Vec<u8>,
-        signing_address: Vec<u8>,
-        tee_text: String,
-    ) {
-        assert!(
-            env::ed25519_verify(&signature, tee_text.as_bytes(), &signing_address),
-            "Invalid TEE signature"
-        );
-        assert!(
-            self.trusted_tee_addresses.contains(&signing_address),
-            "Signing address not in trusted TEE list"
-        );
-
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
-        let dispute = contract
-            .disputes
-            .iter_mut()
-            .find(|d| {
-                d.milestone_id == milestone_id
-                    && (d.status == DisputeStatus::Pending || d.status == DisputeStatus::Appealed)
-            })
-            .expect("No active dispute for this milestone");
-
-        let phase_round_count = dispute
-            .investigation_rounds
-            .iter()
-            .filter(|r| r.is_appeal == dispute.is_appeal)
-            .count();
-        assert!(
-            round_number as usize == phase_round_count + 1,
-            "Invalid round number"
-        );
-
-        dispute.investigation_rounds.push(InvestigationRound {
-            round_number,
-            analysis,
-            findings,
-            confidence,
-            needs_more_analysis,
-            is_appeal: dispute.is_appeal,
-            tee_signature: signature.clone(),
-            tee_signing_address: signing_address.clone(),
-            tee_text: tee_text.clone(),
-            timestamp: env::block_timestamp(),
-        });
-
-        let is_final = !needs_more_analysis || round_number >= dispute.max_rounds;
-
-        if is_final {
-            if let (Some(res), Some(exp)) = (resolution, explanation) {
-                let new_status = if dispute.is_appeal {
-                    DisputeStatus::AppealResolved
-                } else {
-                    DisputeStatus::AiResolved
-                };
-                dispute.status = new_status;
-                dispute.resolution = Some(res);
-                dispute.explanation = Some(exp);
-                dispute.deadline_ns = Some(env::block_timestamp() + 48 * 60 * 60 * 1_000_000_000);
-                dispute.client_accepted = false;
-                dispute.freelancer_accepted = false;
-                dispute.tee_signature = Some(signature);
-                dispute.tee_signing_address = Some(signing_address);
-                dispute.tee_text = Some(tee_text);
-            }
-        }
-
-        emit_event!("investigation_round", {
-            "contract_id" => contract_id,
-            "milestone_id" => milestone_id,
-            "round" => round_number
-        });
-    }
-
     pub fn accept_resolution(&mut self, contract_id: String, milestone_id: String) {
         let caller = env::predecessor_account_id();
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
 
-        let dispute = contract
-            .disputes
-            .iter_mut()
-            .find(|d| {
-                d.milestone_id == milestone_id
-                    && (d.status == DisputeStatus::AiResolved
-                        || d.status == DisputeStatus::AppealResolved)
-            })
+        assert!(contract.is_party(&caller), "Only contract parties can accept");
+
+        let dispute_idx = contract
+            .find_dispute(&milestone_id, DisputeStatus::AiResolved)
             .expect("No resolved dispute to accept");
 
-        if caller == contract.client {
-            dispute.client_accepted = true;
-        } else if Some(&caller) == contract.freelancer.as_ref() {
-            dispute.freelancer_accepted = true;
-        } else {
-            panic!("Only contract parties can accept");
-        }
+        contract.disputes[dispute_idx].status = DisputeStatus::Finalized;
 
-        if dispute.client_accepted && dispute.freelancer_accepted {
-            dispute.status = DisputeStatus::Finalized;
-            emit_event!("dispute_finalized", {
-                "contract_id" => contract_id,
-                "milestone_id" => milestone_id
-            });
-        }
-    }
+        self.contracts.insert(contract_id.clone(), contract);
 
-    pub fn appeal_resolution(&mut self, contract_id: String, milestone_id: String) {
-        let caller = env::predecessor_account_id();
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
-
-        assert!(
-            caller == contract.client || Some(&caller) == contract.freelancer.as_ref(),
-            "Only contract parties can appeal"
-        );
-
-        let dispute = contract
-            .disputes
-            .iter_mut()
-            .find(|d| d.milestone_id == milestone_id && d.status == DisputeStatus::AiResolved)
-            .expect("Can only appeal standard AI resolution");
-
-        dispute.status = DisputeStatus::Appealed;
-        dispute.is_appeal = true;
-        dispute.client_accepted = false;
-        dispute.freelancer_accepted = false;
-        dispute.max_rounds = 5;
-
-        emit_event!("dispute_appealed", {
+        emit_event!("dispute_finalized", {
             "contract_id" => contract_id,
             "milestone_id" => milestone_id
         });
     }
 
     pub fn finalize_resolution(&mut self, contract_id: String, milestone_id: String) {
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
-        let dispute = contract
-            .disputes
-            .iter_mut()
-            .find(|d| {
-                d.milestone_id == milestone_id
-                    && (d.status == DisputeStatus::AiResolved
-                        || d.status == DisputeStatus::AppealResolved)
-            })
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
+
+        let dispute_idx = contract
+            .find_dispute(&milestone_id, DisputeStatus::AiResolved)
             .expect("No resolved dispute to finalize");
 
-        let both_accepted = dispute.client_accepted && dispute.freelancer_accepted;
-        let timed_out = dispute
+        let timed_out = contract.disputes[dispute_idx]
             .deadline_ns
             .map(|d| env::block_timestamp() >= d)
             .unwrap_or(false);
 
-        assert!(both_accepted || timed_out, "Cannot finalize yet: not accepted and not timed out");
+        assert!(timed_out, "Cannot finalize yet: deadline not reached");
 
-        dispute.status = DisputeStatus::Finalized;
+        contract.disputes[dispute_idx].status = DisputeStatus::Finalized;
+
+        self.contracts.insert(contract_id.clone(), contract);
 
         emit_event!("dispute_finalized", {
             "contract_id" => contract_id,

@@ -1,7 +1,6 @@
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
-use near_sdk::collections::UnorderedMap;
+use near_sdk::store::IterableMap;
 use near_sdk::{env, near_bindgen, AccountId, NearToken, PanicOnDefault};
-use std::collections::HashMap;
 
 macro_rules! emit_event {
     ($event:expr, { $($key:expr => $val:expr),* $(,)? }) => {
@@ -24,8 +23,8 @@ use types::*;
 #[derive(BorshDeserialize, BorshSerialize, PanicOnDefault)]
 #[borsh(crate = "near_sdk::borsh")]
 pub struct Contract {
-    pub contracts: UnorderedMap<String, EscrowContract>,
-    pub account_contracts: HashMap<AccountId, Vec<String>>,
+    pub contracts: IterableMap<String, EscrowContract>,
+    pub account_contracts: IterableMap<AccountId, Vec<String>>,
     pub trusted_tee_addresses: Vec<Vec<u8>>,
     pub owner: AccountId,
     pub next_id: u64,
@@ -37,8 +36,8 @@ impl Contract {
     #[init]
     pub fn new(owner: AccountId) -> Self {
         Self {
-            contracts: UnorderedMap::new(b"c"),
-            account_contracts: HashMap::new(),
+            contracts: IterableMap::new(b"c"),
+            account_contracts: IterableMap::new(b"a"),
             trusted_tee_addresses: vec![],
             owner,
             next_id: 0,
@@ -46,36 +45,38 @@ impl Contract {
         }
     }
 
-    pub fn register_tee_address(&mut self, address: Vec<u8>) {
+    fn require_owner(&self) {
         assert_eq!(
             env::predecessor_account_id(),
             self.owner,
-            "Only owner can register TEE addresses"
+            "Only owner"
         );
+    }
+
+    fn link_account(&mut self, account: &AccountId, contract_id: &str) {
+        let mut ids = self.account_contracts.get(account).cloned().unwrap_or_default();
+        ids.push(contract_id.to_string());
+        self.account_contracts.insert(account.clone(), ids);
+    }
+
+    pub fn register_tee_address(&mut self, address: Vec<u8>) {
+        self.require_owner();
         if !self.trusted_tee_addresses.contains(&address) {
             self.trusted_tee_addresses.push(address);
         }
     }
 
     pub fn remove_tee_address(&mut self, address: Vec<u8>) {
-        assert_eq!(
-            env::predecessor_account_id(),
-            self.owner,
-            "Only owner can remove TEE addresses"
-        );
+        self.require_owner();
         self.trusted_tee_addresses.retain(|a| a != &address);
     }
 
-    pub fn get_trusted_tee_addresses(&self) -> Vec<Vec<u8>> {
-        self.trusted_tee_addresses.clone()
+    pub fn get_trusted_tee_addresses(&self) -> &[Vec<u8>] {
+        &self.trusted_tee_addresses
     }
 
     pub fn set_ai_processing_fee(&mut self, fee_yoctonear: u128) {
-        assert_eq!(
-            env::predecessor_account_id(),
-            self.owner,
-            "Only owner can set AI processing fee"
-        );
+        self.require_owner();
         self.ai_processing_fee = NearToken::from_yoctonear(fee_yoctonear);
     }
 
@@ -94,15 +95,22 @@ impl Contract {
         model_id: String,
     ) -> String {
         assert!(
-            security_deposit_pct >= 5 && security_deposit_pct <= 30,
+            (5..=30).contains(&security_deposit_pct),
             "Security deposit must be between 5% and 30%"
         );
+        assert!(!milestones.is_empty(), "At least one milestone required");
 
         let client = env::predecessor_account_id();
+        assert!(
+            freelancer.as_ref() != Some(&client),
+            "Cannot be your own freelancer"
+        );
+
         self.next_id += 1;
         let contract_id = format!("c{}", self.next_id);
 
         let total_amount: u128 = milestones.iter().map(|m| m.amount).sum();
+        assert!(total_amount > 0, "Total amount must be greater than zero");
 
         let invite_token = if freelancer.is_none() {
             Some(format!(
@@ -128,6 +136,12 @@ impl Contract {
             })
             .collect();
 
+        let status = if freelancer.is_some() {
+            ContractStatus::Active
+        } else {
+            ContractStatus::Draft
+        };
+
         let escrow = EscrowContract {
             id: contract_id.clone(),
             title,
@@ -138,11 +152,7 @@ impl Contract {
             funded_amount: NearToken::from_yoctonear(0),
             security_deposit_pct,
             milestones: escrow_milestones,
-            status: if freelancer.is_some() {
-                ContractStatus::Active
-            } else {
-                ContractStatus::Draft
-            },
+            status,
             created_at: env::block_timestamp(),
             invite_token,
             prompt_hash,
@@ -151,18 +161,11 @@ impl Contract {
             security_pool: NearToken::from_yoctonear(0),
         };
 
-        self.contracts.insert(&contract_id, &escrow);
-
-        self.account_contracts
-            .entry(client)
-            .or_default()
-            .push(contract_id.clone());
+        self.contracts.insert(contract_id.clone(),escrow);
+        self.link_account(&client, &contract_id);
 
         if let Some(ref f) = freelancer {
-            self.account_contracts
-                .entry(f.clone())
-                .or_default()
-                .push(contract_id.clone());
+            self.link_account(f, &contract_id);
         }
 
         emit_event!("contract_created", {
@@ -173,14 +176,9 @@ impl Contract {
     }
 
     pub fn join_contract(&mut self, contract_id: String, invite_token: String) {
-        let contract = self
-            .contracts
-            .get_mut(&contract_id)
-            .expect("Contract not found");
-        assert!(
-            contract.freelancer.is_none(),
-            "Contract already has a freelancer"
-        );
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
+
+        assert!(contract.freelancer.is_none(), "Contract already has a freelancer");
         assert!(
             contract.invite_token.as_ref() == Some(&invite_token),
             "Invalid invite token"
@@ -193,10 +191,8 @@ impl Contract {
         contract.status = ContractStatus::Active;
         contract.invite_token = None;
 
-        self.account_contracts
-            .entry(freelancer)
-            .or_default()
-            .push(contract_id.clone());
+        self.contracts.insert(contract_id.clone(),contract);
+        self.link_account(&freelancer, &contract_id);
 
         emit_event!("contract_joined", {
             "contract_id" => contract_id
@@ -204,22 +200,22 @@ impl Contract {
     }
 
     pub fn get_contract(&self, contract_id: String) -> Option<EscrowContract> {
-        self.contracts.get(&contract_id)
+        self.contracts.get(&contract_id).cloned()
     }
 
     pub fn get_contracts_by_account(&self, account_id: AccountId) -> Vec<EscrowContract> {
         self.account_contracts
             .get(&account_id)
-            .map(|ids| {
+            .map(|ids: &Vec<String>| {
                 ids.iter()
-                    .filter_map(|id| self.contracts.get(id))
+                    .filter_map(|id| self.contracts.get(id).cloned())
                     .collect()
             })
             .unwrap_or_default()
     }
 
     pub fn get_dispute(&self, contract_id: String, milestone_id: String) -> Option<Dispute> {
-        self.contracts.get(&contract_id).and_then(|c| {
+        self.contracts.get(&contract_id).cloned().and_then(|c| {
             c.disputes
                 .iter()
                 .find(|d| d.milestone_id == milestone_id)
@@ -228,7 +224,7 @@ impl Contract {
     }
 
     pub fn get_prompt_hash(&self, contract_id: String) -> Option<String> {
-        self.contracts.get(&contract_id).map(|c| c.prompt_hash)
+        self.contracts.get(&contract_id).map(|c| c.prompt_hash.clone())
     }
 }
 
@@ -239,3 +235,6 @@ pub struct MilestoneInput {
     pub description: String,
     pub amount: u128,
 }
+
+#[cfg(test)]
+mod tests;
