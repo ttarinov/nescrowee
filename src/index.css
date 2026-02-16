@@ -1,4 +1,212 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Hairline.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Ultra-light.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Semi-bold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Extra-bold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon';
+  src: url('/fonts/LCTPicon-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedHairline.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedUltra-light.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedMedium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedSemi-bold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedExtra-bold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Condensed';
+  src: url('/fonts/LCTPicon-CondensedBlack.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-stretch: condensed;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedHairline.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedUltra-light.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedMedium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedSemi-bold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedExtra-bold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'LTC Picon Extended';
+  src: url('/fonts/LCTPicon-ExtendedBlack.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-stretch: expanded;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -6,57 +214,59 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 95%;
+    --background: 224 40% 5%;
+    --foreground: 0 0% 98%;
 
-    --card: 222 44% 9%;
-    --card-foreground: 210 40% 95%;
+    --card: 224 35% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222 44% 9%;
-    --popover-foreground: 210 40% 95%;
+    --popover: 224 35% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 174 72% 52%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 262 60% 58%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 222 30% 14%;
-    --secondary-foreground: 210 40% 85%;
+    --secondary: 224 25% 12%;
+    --secondary-foreground: 0 0% 90%;
 
-    --muted: 222 30% 14%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 224 25% 12%;
+    --muted-foreground: 0 0% 55%;
 
     --accent: 262 60% 58%;
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 72% 55%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
     --success: 152 60% 45%;
-    --success-foreground: 210 40% 98%;
+    --success-foreground: 0 0% 98%;
 
     --warning: 38 92% 55%;
-    --warning-foreground: 222 47% 6%;
+    --warning-foreground: 224 40% 5%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 174 72% 52%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 262 60% 58%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --sidebar-background: 222 44% 8%;
-    --sidebar-foreground: 210 40% 85%;
-    --sidebar-primary: 174 72% 52%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 30% 14%;
-    --sidebar-accent-foreground: 210 40% 85%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 174 72% 52%;
+    --sidebar-background: 224 35% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 262 60% 58%;
+    --sidebar-primary-foreground: 224 40% 5%;
+    --sidebar-accent: 224 25% 12%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 262 60% 58%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(174 72% 52%), hsl(174 72% 38%));
-    --gradient-accent: linear-gradient(135deg, hsl(262 60% 58%), hsl(174 72% 52%));
-    --gradient-card: linear-gradient(145deg, hsl(222 44% 11%), hsl(222 44% 7%));
-    --gradient-hero: linear-gradient(180deg, hsl(222 47% 8%) 0%, hsl(222 47% 4%) 100%);
-    --shadow-glow: 0 0 40px hsl(174 72% 52% / 0.15);
-    --shadow-card: 0 4px 24px hsl(222 47% 2% / 0.5);
+    --surface: 224 35% 8%;
+    --surfaceHighlight: 224 32% 11%;
+    --gradient-primary: linear-gradient(135deg, hsl(262 60% 58%), hsl(280 60% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(262 60% 58%), hsl(280 60% 65%));
+    --gradient-card: linear-gradient(145deg, hsl(224 35% 11%), hsl(224 35% 6%));
+    --gradient-hero: linear-gradient(180deg, hsl(224 40% 6%) 0%, hsl(224 40% 3%) 100%);
+    --shadow-glow: 0 0 40px hsl(262 60% 58% / 0.2);
+    --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
   }
 }
 
@@ -65,9 +275,37 @@
     @apply border-border;
   }
 
+  html,
+  body,
+  * {
+    cursor: none !important;
+  }
+
+  @media (pointer: coarse) {
+    html,
+    body,
+    * {
+      cursor: auto !important;
+    }
+  }
+
+  @media (pointer: fine) {
+    a, button, input, textarea, select, [role="button"], [data-hover] {
+      cursor: none !important;
+    }
+  }
+
+  html {
+    font-family: 'LTC Picon', system-ui, sans-serif;
+  }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Montserrat', system-ui, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: inherit;
+  }
+
+  h1, h2 {
+    letter-spacing: 0.02em;
   }
 
   .font-mono {
@@ -99,12 +337,138 @@
   }
 
   .glass {
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--border) / 0.5);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 
   .glow {
     box-shadow: var(--shadow-glow);
+  }
+
+  @property --shiny-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  .shiny-cta-hero {
+    --shiny-angle: 0deg;
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: hsl(var(--foreground));
+    background: linear-gradient(hsl(var(--background)), hsl(var(--background))) padding-box,
+      conic-gradient(
+        from var(--shiny-angle),
+        transparent 0%,
+        hsl(262 60% 58% / 0.9) 5%,
+        hsl(262 55% 65% / 0.95) 20%,
+        hsl(262 60% 58% / 0.9) 35%,
+        transparent 45%,
+        transparent 100%
+      ) border-box;
+    border: 2px solid transparent;
+    box-shadow: inset 0 0 0 1px hsl(var(--border));
+    outline: none;
+    transition: box-shadow 0.3s;
+    cursor: pointer;
+    isolation: isolate;
+    outline-offset: 4px;
+    z-index: 0;
+    animation: shiny-spin 2.5s linear infinite;
+  }
+
+  .shiny-cta-hero:active {
+    transform: translateY(1px);
+  }
+
+  .shiny-cta-hero::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    width: 100%;
+    aspect-ratio: 1;
+    background: linear-gradient(
+      -50deg,
+      transparent,
+      hsl(262 60% 58% / 0.5),
+      transparent
+    );
+    mask-image: radial-gradient(circle at bottom, transparent 40%, black);
+    opacity: 0.6;
+    animation: shiny-shimmer 4s linear infinite;
+  }
+
+  .shiny-cta-hero > span {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .shiny-cta-hero > span::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    width: calc(100% + 1rem);
+    height: calc(100% + 1rem);
+    box-shadow: inset 0 -1ex 2rem 4px hsl(262 60% 58% / 0.25);
+    opacity: 0;
+    border-radius: inherit;
+    animation: shiny-breathe 4.5s linear infinite;
+  }
+
+  @keyframes shiny-spin {
+    to {
+      --shiny-angle: 360deg;
+    }
+  }
+
+  @keyframes shiny-shimmer {
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @keyframes shiny-breathe {
+    0%, 100% {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -50%) scale(1.2);
+    }
   }
 }
