@@ -28,16 +28,15 @@ pub enum ContractStatus {
 pub enum DisputeStatus {
     Pending,
     AiResolved,
-    Appealed,
-    AppealResolved,
     Finalized,
 }
 
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
+#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, PartialEq)]
 #[serde(crate = "near_sdk::serde")]
 pub enum Resolution {
     Freelancer,
     Client,
+    ContinueWork,
     Split { freelancer_pct: u8 },
 }
 
@@ -49,21 +48,7 @@ pub struct Milestone {
     pub description: String,
     pub amount: NearToken,
     pub status: MilestoneStatus,
-}
-
-#[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
-#[serde(crate = "near_sdk::serde")]
-pub struct InvestigationRound {
-    pub round_number: u8,
-    pub analysis: String,
-    pub findings: String,
-    pub confidence: u8,
-    pub needs_more_analysis: bool,
-    pub is_appeal: bool,
-    pub tee_signature: Vec<u8>,
-    pub tee_signing_address: Vec<u8>,
-    pub tee_text: String,
-    pub timestamp: u64,
+    pub payment_request_deadline_ns: Option<u64>,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone)]
@@ -76,14 +61,10 @@ pub struct Dispute {
     pub resolution: Option<Resolution>,
     pub explanation: Option<String>,
     pub deadline_ns: Option<u64>,
-    pub client_accepted: bool,
-    pub freelancer_accepted: bool,
-    pub is_appeal: bool,
+    pub ai_fee_deducted: bool,
     pub tee_signature: Option<Vec<u8>>,
     pub tee_signing_address: Option<Vec<u8>>,
     pub tee_text: Option<String>,
-    pub investigation_rounds: Vec<InvestigationRound>,
-    pub max_rounds: u8,
     pub funds_released: bool,
 }
 
@@ -105,4 +86,5 @@ pub struct EscrowContract {
     pub prompt_hash: String,
     pub disputes: Vec<Dispute>,
     pub model_id: String,
+    pub security_pool: NearToken,
 }

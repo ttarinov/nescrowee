@@ -29,6 +29,7 @@ pub struct Contract {
     pub trusted_tee_addresses: Vec<Vec<u8>>,
     pub owner: AccountId,
     pub next_id: u64,
+    pub ai_processing_fee: NearToken,
 }
 
 #[near_bindgen]
@@ -41,6 +42,7 @@ impl Contract {
             trusted_tee_addresses: vec![],
             owner,
             next_id: 0,
+            ai_processing_fee: NearToken::from_yoctonear(0),
         }
     }
 
@@ -68,6 +70,19 @@ impl Contract {
         self.trusted_tee_addresses.clone()
     }
 
+    pub fn set_ai_processing_fee(&mut self, fee_yoctonear: u128) {
+        assert_eq!(
+            env::predecessor_account_id(),
+            self.owner,
+            "Only owner can set AI processing fee"
+        );
+        self.ai_processing_fee = NearToken::from_yoctonear(fee_yoctonear);
+    }
+
+    pub fn get_ai_processing_fee(&self) -> NearToken {
+        self.ai_processing_fee
+    }
+
     pub fn create_contract(
         &mut self,
         title: String,
@@ -78,6 +93,11 @@ impl Contract {
         prompt_hash: String,
         model_id: String,
     ) -> String {
+        assert!(
+            security_deposit_pct >= 5 && security_deposit_pct <= 30,
+            "Security deposit must be between 5% and 30%"
+        );
+
         let client = env::predecessor_account_id();
         self.next_id += 1;
         let contract_id = format!("c{}", self.next_id);
@@ -85,7 +105,12 @@ impl Contract {
         let total_amount: u128 = milestones.iter().map(|m| m.amount).sum();
 
         let invite_token = if freelancer.is_none() {
-            Some(format!("{:x}", env::random_seed().iter().fold(0u64, |acc, &b| acc.wrapping_mul(256).wrapping_add(b as u64))))
+            Some(format!(
+                "{:x}",
+                env::random_seed()
+                    .iter()
+                    .fold(0u64, |acc, &b| acc.wrapping_mul(256).wrapping_add(b as u64))
+            ))
         } else {
             None
         };
@@ -99,6 +124,7 @@ impl Contract {
                 description: m.description,
                 amount: NearToken::from_yoctonear(m.amount),
                 status: MilestoneStatus::NotFunded,
+                payment_request_deadline_ns: None,
             })
             .collect();
 
@@ -122,6 +148,7 @@ impl Contract {
             prompt_hash,
             disputes: vec![],
             model_id,
+            security_pool: NearToken::from_yoctonear(0),
         };
 
         self.contracts.insert(&contract_id, &escrow);
@@ -146,8 +173,14 @@ impl Contract {
     }
 
     pub fn join_contract(&mut self, contract_id: String, invite_token: String) {
-        let contract = self.contracts.get_mut(&contract_id).expect("Contract not found");
-        assert!(contract.freelancer.is_none(), "Contract already has a freelancer");
+        let contract = self
+            .contracts
+            .get_mut(&contract_id)
+            .expect("Contract not found");
+        assert!(
+            contract.freelancer.is_none(),
+            "Contract already has a freelancer"
+        );
         assert!(
             contract.invite_token.as_ref() == Some(&invite_token),
             "Invalid invite token"
@@ -196,22 +229,6 @@ impl Contract {
 
     pub fn get_prompt_hash(&self, contract_id: String) -> Option<String> {
         self.contracts.get(&contract_id).map(|c| c.prompt_hash)
-    }
-
-    pub fn get_investigation_rounds(
-        &self,
-        contract_id: String,
-        milestone_id: String,
-    ) -> Vec<InvestigationRound> {
-        self.contracts
-            .get(&contract_id)
-            .and_then(|c| {
-                c.disputes
-                    .iter()
-                    .find(|d| d.milestone_id == milestone_id)
-                    .map(|d| d.investigation_rounds.clone())
-            })
-            .unwrap_or_default()
     }
 }
 
