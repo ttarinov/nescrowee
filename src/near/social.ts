@@ -1,11 +1,35 @@
 import { nearConfig } from "./config";
 import { signAndSendTransaction } from "./wallet";
 
+export type MessageType = "text" | "ai_round" | "ai_status" | "evidence" | "ai_resolution";
+
+export interface AiRoundData {
+  round_number: number;
+  max_rounds: number;
+  analysis: string;
+  findings: string;
+  confidence: number;
+  needs_more_analysis: boolean;
+  model_id: string;
+  tee_verified: boolean;
+  resolution?: string;
+  explanation?: string;
+}
+
+export interface EvidenceData {
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  cid?: string;
+}
+
 export interface SocialMessage {
   id: string;
   sender: string;
   content: string;
   timestamp: number;
+  type: MessageType;
+  data?: AiRoundData | EvidenceData | Record<string, unknown>;
 }
 
 export async function getChatMessages(contractId: string): Promise<SocialMessage[]> {
@@ -46,11 +70,23 @@ export async function getChatMessages(contractId: string): Promise<SocialMessage
 
     for (const [msgId, msgData] of Object.entries(chatMessages)) {
       const msg = msgData as Record<string, string>;
+      let type: MessageType = "text";
+      let parsedData: SocialMessage["data"];
+
+      if (msg.type && msg.data) {
+        type = msg.type as MessageType;
+        try {
+          parsedData = JSON.parse(msg.data);
+        } catch { /* treat as text */ }
+      }
+
       messages.push({
         id: `${accountId}/${msgId}`,
         sender: accountId,
         content: msg.text || "",
         timestamp: parseInt(msg.timestamp || "0"),
+        type,
+        data: parsedData,
       });
     }
   }
@@ -72,6 +108,47 @@ export async function sendChatMessage(
             [msgId]: {
               text: content,
               timestamp: msgId,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  return signAndSendTransaction({
+    receiverId: nearConfig.socialDbContract,
+    actions: [
+      {
+        type: "FunctionCall",
+        params: {
+          methodName: "set",
+          args: { data },
+          gas: "300000000000000",
+          deposit: "50000000000000000000000",
+        },
+      },
+    ],
+  });
+}
+
+export async function sendStructuredMessage(
+  accountId: string,
+  contractId: string,
+  content: string,
+  type: MessageType,
+  messageData: Record<string, unknown>,
+) {
+  const msgId = `${Date.now()}`;
+  const data = {
+    [accountId]: {
+      "nescrowee": {
+        chat: {
+          [contractId]: {
+            [msgId]: {
+              text: content,
+              timestamp: msgId,
+              type,
+              data: JSON.stringify(messageData),
             },
           },
         },

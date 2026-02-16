@@ -19,8 +19,8 @@ export async function fetchNearPrice(): Promise<number | null> {
 }
 
 export const MODEL_COST_LABEL: Record<string, string> = {
-  "Qwen/Qwen3-30B-A3B": "~$0.003 / dispute · ~$0.01 / appeal",
-  "openai/gpt-oss-120b": "~$0.005 / dispute · ~$0.015 / appeal",
-  "deepseek-ai/DeepSeek-V3.1": "~$0.02 / dispute · ~$0.08 / appeal",
-  "THUDM/GLM-4.1V-9B-Thinking": "~$0.003 / dispute · ~$0.01 / appeal",
+  "Qwen/Qwen3-30B-A3B": "~0.003 USDC / dispute · ~0.01 USDC / appeal",
+  "openai/gpt-oss-120b": "~0.005 USDC / dispute · ~0.015 USDC / appeal",
+  "deepseek-ai/DeepSeek-V3.1": "~0.02 USDC / dispute · ~0.08 USDC / appeal",
+  "THUDM/GLM-4.1V-9B-Thinking": "~0.003 USDC / dispute · ~0.01 USDC / appeal",
 };

@@ -1,7 +1,4 @@
 import standardPrompt from "@/agent/prompts/standard.md?raw";
-import appealPrompt from "@/agent/prompts/appeal.md?raw";
-import investigationPrompt from "@/agent/prompts/investigation.md?raw";
-import investigationAppealPrompt from "@/agent/prompts/investigation-appeal.md?raw";
 
 export async function hashPrompt(text: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -15,16 +12,20 @@ export async function getStandardPromptHash(): Promise<string> {
   return hashPrompt(standardPrompt);
 }
 
+export const appealPrompt = standardPrompt;
+export const investigationPrompt = standardPrompt;
+export const investigationAppealPrompt = standardPrompt;
+
 export async function getAppealPromptHash(): Promise<string> {
-  return hashPrompt(appealPrompt);
+  return hashPrompt(standardPrompt);
 }
 
 export async function getInvestigationPromptHash(): Promise<string> {
-  return hashPrompt(investigationPrompt);
+  return hashPrompt(standardPrompt);
 }
 
 export async function getInvestigationAppealPromptHash(): Promise<string> {
-  return hashPrompt(investigationAppealPrompt);
+  return hashPrompt(standardPrompt);
 }
 
-export { standardPrompt, appealPrompt, investigationPrompt, investigationAppealPrompt };
+export { standardPrompt };

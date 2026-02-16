@@ -2,21 +2,15 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "node:crypto";
 import { KeyPair, connect, keyStores } from "near-api-js";
 
-// HOT Pay sends a POST with HMAC-SHA256 signature in the header
-// Env vars needed:
-//   HOT_PAY_WEBHOOK_SECRET  — webhook secret from HOT Pay dashboard
-//   NEAR_RELAY_PRIVATE_KEY  — ed25519:... key of relay account (for signing fundContract tx)
-//   NEAR_RELAY_ACCOUNT_ID   — relay NEAR account (e.g. relay.nescrowee.near)
-//   NEAR_CONTRACT_ID        — escrow contract address
-//   NEAR_NETWORK            — testnet | mainnet
-
 interface HotPayEvent {
-  memo: string;
-  amount: string;      // in yoctoNEAR (smallest unit)
-  token_id: string;
-  sender_id: string;
-  near_trx: string;
+  type: "PAYMENT_STATUS_UPDATE";
+  item_id: string;
   status: "SUCCESS" | "PENDING" | "FAILED" | string;
+  memo: string;
+  amount: string;
+  amount_float: number;
+  amount_usd: number;
+  near_trx: string;
 }
 
 function verifySignature(rawBody: Buffer, signature: string, secret: string): boolean {
@@ -25,8 +19,7 @@ function verifySignature(rawBody: Buffer, signature: string, secret: string): bo
 }
 
 function parseMemo(memo: string): { contractId: string; milestoneId: string } | null {
-  // memo format: mt-{contractId}-{milestoneId}
-  const match = memo.match(/^mt-([^-]+)-([^-]+)$/);
+  const match = memo.match(/^mt-([^-]+)-(.+)$/);
   if (!match) return null;
   return { contractId: match[1], milestoneId: match[2] };
 }
@@ -54,7 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Invalid JSON" });
   }
 
-  if (event.status !== "SUCCESS") {
+  if (event.type !== "PAYMENT_STATUS_UPDATE" || event.status !== "SUCCESS") {
     return res.status(200).json({ ok: true, skipped: true });
   }
 
@@ -63,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ ok: true, skipped: "unrecognized memo" });
   }
 
-  const { contractId, milestoneId } = parsed;
+  const { contractId } = parsed;
 
   const relayKey = process.env.NEAR_RELAY_PRIVATE_KEY;
   const relayAccountId = process.env.NEAR_RELAY_ACCOUNT_ID;
@@ -95,9 +88,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       attachedDeposit: BigInt(event.amount),
     });
 
-    return res.status(200).json({ ok: true, contractId, milestoneId });
+    return res.status(200).json({
+      ok: true,
+      contractId,
+      near_trx: event.near_trx,
+    });
   } catch (err) {
-    console.error("NEAR call failed:", err);
+    console.error("NEAR relay failed:", err);
     return res.status(500).json({ error: "NEAR transaction failed" });
   }
 }

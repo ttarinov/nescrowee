@@ -7,27 +7,35 @@ interface RoleSelectorProps {
 
 export function RoleSelector({ value, onChange }: RoleSelectorProps) {
   return (
-    <div className="space-y-3">
-      <label className="text-sm font-medium text-white/60 ml-2">I am the</label>
-      <div className="bg-white/10 p-1 rounded-full flex relative backdrop-blur-md border border-white/10">
-        <div
-          className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/20 rounded-full shadow-lg transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] ${value === "freelancer" ? "left-[calc(50%+2px)]" : "left-1"}`}
-        />
-        <button
-          type="button"
-          onClick={() => onChange("client")}
-          className={`flex-1 py-3 text-sm font-medium relative z-10 transition-colors ${value === "client" ? "text-white" : "text-white/40"}`}
-        >
-          Client
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange("freelancer")}
-          className={`flex-1 py-3 text-sm font-medium relative z-10 transition-colors ${value === "freelancer" ? "text-white" : "text-white/40"}`}
-        >
-          Freelancer
-        </button>
-      </div>
+    <div className="flex gap-0 rounded-full">
+      <button
+        type="button"
+        onClick={() => onChange("client")}
+        className={`flex-1 py-2 text-xs font-medium rounded-full transition-all ${value === "client" ? "bg-gradient-to-r from-purple-500 to-purple-950 text-white shadow-md" : "text-white/50 hover:text-white/70"}`}
+      >
+        {value === "client" ? (
+          <>
+            <span className="opacity-70">I am the </span>
+            <span className="font-bold">Client</span>
+          </>
+        ) : (
+          "Client"
+        )}
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("freelancer")}
+        className={`flex-1 py-2 text-xs font-medium rounded-full transition-all ${value === "freelancer" ? "bg-gradient-to-r from-purple-500 to-purple-950 text-white shadow-md" : "text-white/50 hover:text-white/70"}`}
+      >
+        {value === "freelancer" ? (
+          <>
+            <span className="opacity-70">I am the </span>
+            <span className="font-bold">Freelancer</span>
+          </>
+        ) : (
+          "Freelancer"
+        )}
+      </button>
     </div>
   );
 }

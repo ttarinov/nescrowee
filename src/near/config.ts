@@ -20,3 +20,6 @@ const configs = {
 } as const;
 
 export const nearConfig = configs[NETWORK as keyof typeof configs] || configs.testnet;
+
+export const hotPayItemId = import.meta.env.VITE_HOT_PAY_ITEM_ID || "";
+export const hotPayCheckoutBase = "https://pay.hot-labs.org/payment";

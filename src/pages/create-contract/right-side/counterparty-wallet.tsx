@@ -1,5 +1,4 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import { InformationCircleIcon } from "@hugeicons/core-free-icons";
+import type { UserRole } from "../types";
 
 type CounterpartyStatus = "idle" | "checking" | "valid" | "invalid" | "bad-format";
 
@@ -7,28 +6,24 @@ interface CounterpartyWalletProps {
   value: string;
   status: CounterpartyStatus;
   onChange: (value: string) => void;
+  userRole: UserRole;
 }
 
-export function CounterpartyWallet({ value, status, onChange }: CounterpartyWalletProps) {
+export function CounterpartyWallet({ value, status, onChange, userRole }: CounterpartyWalletProps) {
+  const placeholder =
+    userRole === "client"
+      ? "freelancer's wallet or empty to generate a link"
+      : "client's wallet or empty to generate a link";
+
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-white/60 ml-2">Freelancer wallet (optional)</label>
-      <div className="group relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="alice.near or leave empty → invite link"
-          className={`relative w-full bg-white/5 border rounded-2xl px-5 py-4 text-white placeholder-white/20 focus:outline-none focus:bg-white/10 focus:border-white/30 transition-all backdrop-blur-sm shadow-[0_4px_20px_rgba(0,0,0,0.2)] font-mono text-sm ${
-            status === "valid"
-              ? "border-green-500/50"
-              : status === "invalid" || status === "bad-format"
-                ? "border-red-500/50"
-                : "border-white/10"
-          }`}
-        />
-      </div>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full bg-white/5 rounded-2xl px-5 py-4 text-white placeholder-white/30 focus:outline-none focus:bg-white/10 transition-colors font-mono text-sm border-0"
+      />
       {status === "bad-format" && (
         <p className="text-xs text-red-400 ml-2">Use format: alice.near / alice.testnet</p>
       )}

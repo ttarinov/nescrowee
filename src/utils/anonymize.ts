@@ -12,8 +12,9 @@ export function anonymizeDisputeContext(params: {
   milestone: { title: string; description: string; amount: string };
   dispute: { raised_by: string; reason: string; explanation?: string | null };
   chatHistory?: Array<{ sender: string; content: string }>;
+  evidence?: Array<{ fileName: string; content: string }>;
 }): string {
-  const { contract, milestone, dispute, chatHistory } = params;
+  const { contract, milestone, dispute, chatHistory, evidence } = params;
 
   const isClientRaiser = dispute.raised_by === contract.client;
 
@@ -59,6 +60,13 @@ export function anonymizeDisputeContext(params: {
     for (const msg of chatHistory) {
       const role = msg.sender === contract.client ? "Party A" : "Party B";
       lines.push(`[${role}]: ${scrub(msg.content)}`);
+    }
+  }
+
+  if (evidence?.length) {
+    lines.push(``, `--- Evidence Files (encrypted via NOVA, decrypted for analysis) ---`);
+    for (const file of evidence) {
+      lines.push(`[File: ${file.fileName}]`, scrub(file.content), ``);
     }
   }
 
