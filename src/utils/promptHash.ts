@@ -12,20 +12,4 @@ export async function getStandardPromptHash(): Promise<string> {
   return hashPrompt(standardPrompt);
 }
 
-export const appealPrompt = standardPrompt;
-export const investigationPrompt = standardPrompt;
-export const investigationAppealPrompt = standardPrompt;
-
-export async function getAppealPromptHash(): Promise<string> {
-  return hashPrompt(standardPrompt);
-}
-
-export async function getInvestigationPromptHash(): Promise<string> {
-  return hashPrompt(standardPrompt);
-}
-
-export async function getInvestigationAppealPromptHash(): Promise<string> {
-  return hashPrompt(standardPrompt);
-}
-
 export { standardPrompt };
