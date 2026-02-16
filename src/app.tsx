@@ -12,7 +12,6 @@ import HomePage from "./pages/home";
 import ContractsPage from "./pages/contracts";
 import ContractDetailPage from "./pages/contract-detail";
 import CreateContractPage from "./pages/create-contract";
-import ContractDetailSandboxPage from "./pages/contract-detail-sandbox";
 import HowItWorksPage from "./pages/how-it-works";
 import NotFoundPage from "./pages/not-found";
 
@@ -34,7 +33,6 @@ const App = () => (
               <Route path="/contracts" element={<ContractsPage />} />
               <Route path="/contracts/:id" element={<ContractDetailPage />} />
               <Route path="/create" element={<CreateContractPage />} />
-              <Route path="/contract-detail-sandbox" element={<ContractDetailSandboxPage />} />
               <Route path="/how-it-works" element={<HowItWorksPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
