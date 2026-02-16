@@ -13,6 +13,16 @@ interface HotPayEvent {
   near_trx: string;
 }
 
+interface NearTxResult {
+  transaction: {
+    receiver_id: string;
+    actions: Array<{ Transfer?: { deposit: string } }>;
+  };
+  receipts_outcome: Array<{
+    outcome: { status: { SuccessValue?: string; Failure?: unknown } };
+  }>;
+}
+
 function verifySignature(rawBody: Buffer, signature: string, secret: string): boolean {
   const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
   return crypto.timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(signature, "hex"));
@@ -22,6 +32,57 @@ function parseMemo(memo: string): { contractId: string; milestoneId: string } | 
   const match = memo.match(/^mt-([^-]+)-(.+)$/);
   if (!match) return null;
   return { contractId: match[1], milestoneId: match[2] };
+}
+
+async function verifySettlementTx(
+  nodeUrl: string,
+  txHash: string,
+  relayAccountId: string,
+  expectedAmount: string,
+): Promise<{ verified: boolean; error?: string }> {
+  try {
+    const response = await fetch(nodeUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "verify",
+        method: "tx",
+        params: { tx_hash: txHash, sender_account_id: relayAccountId, wait_until: "EXECUTED" },
+      }),
+    });
+
+    const rpcResult = await response.json() as { result?: NearTxResult; error?: { message: string } };
+    if (rpcResult.error || !rpcResult.result) {
+      return { verified: false, error: `Settlement tx ${txHash} not found on-chain` };
+    }
+
+    const tx = rpcResult.result;
+
+    const receiverId = tx.transaction.receiver_id;
+    if (receiverId !== relayAccountId) {
+      return { verified: false, error: `Settlement recipient ${receiverId} does not match relay ${relayAccountId}` };
+    }
+
+    const transferAction = tx.transaction.actions.find((a) => a.Transfer);
+    if (!transferAction?.Transfer) {
+      return { verified: false, error: "Settlement tx has no Transfer action" };
+    }
+
+    const onChainAmount = transferAction.Transfer.deposit;
+    if (onChainAmount !== expectedAmount) {
+      return { verified: false, error: `Amount mismatch: on-chain ${onChainAmount} vs webhook ${expectedAmount}` };
+    }
+
+    const failed = tx.receipts_outcome.some((r) => r.outcome.status.Failure);
+    if (failed) {
+      return { verified: false, error: "Settlement tx failed on-chain" };
+    }
+
+    return { verified: true };
+  } catch (err) {
+    return { verified: false, error: `Failed to verify settlement tx: ${err}` };
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -67,17 +128,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "Relay NEAR credentials not configured" });
   }
 
+  const nodeUrl = network === "mainnet"
+    ? "https://rpc.mainnet.near.org"
+    : "https://rpc.testnet.near.org";
+
+  // Verify the settlement tx on-chain before relaying
+  // This prevents attacks where a compromised webhook secret is used to craft fake webhooks
+  if (event.near_trx) {
+    const verification = await verifySettlementTx(nodeUrl, event.near_trx, relayAccountId, event.amount);
+    if (!verification.verified) {
+      console.error("Settlement verification failed:", verification.error);
+      return res.status(400).json({ error: "Settlement verification failed", detail: verification.error });
+    }
+  }
+
   try {
     const keyStore = new keyStores.InMemoryKeyStore();
     await keyStore.setKey(network, relayAccountId, KeyPair.fromString(relayKey));
 
-    const near = await connect({
-      networkId: network,
-      nodeUrl: network === "mainnet"
-        ? "https://rpc.mainnet.near.org"
-        : "https://rpc.testnet.near.org",
-      keyStore,
-    });
+    const near = await connect({ networkId: network, nodeUrl, keyStore });
 
     const account = await near.account(relayAccountId);
     await account.functionCall({
@@ -92,6 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ok: true,
       contractId,
       near_trx: event.near_trx,
+      settlement_verified: true,
     });
   } catch (err) {
     console.error("NEAR relay failed:", err);
