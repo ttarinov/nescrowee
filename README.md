@@ -2,6 +2,10 @@
 
 Decentralized freelance escrow on NEAR Protocol with TEE-verified AI dispute resolution. Zero backend. Zero oracle. Trust math, not servers.
 
+## Deploy & Test
+
+See **[DEPLOY.md](./DEPLOY.md)** for setup, deployment, and testing instructions.
+
 ## Architecture
 
 ```
@@ -73,7 +77,7 @@ near call nescrowee.testnet register_tee_address '{"address": [<bytes>]}' --acco
 | Qwen3 30B | ~10s | $0.15 / $0.55 | Standard disputes (default) |
 | GPT-OSS 120B | ~20s | $0.15 / $0.55 | Strong reasoning |
 | DeepSeek V3.1 | ~45s | $1.05 / $3.10 | Appeals (always) |
-| GLM-4.1V 9B | ~15s | $0.15 / $0.55 | Vision-capable |
+| GLM-4.7 | ~25s | $0.85 / $3.30 | Hybrid reasoning |
 
 Contract creators choose the standard dispute model. Appeals always use DeepSeek V3.1 for maximum thoroughness.
 
@@ -83,7 +87,7 @@ Anyone can independently verify the TEE attestation:
 
 ```sh
 # No authentication needed
-curl "https://cloud-api.near.ai/v1/attestation/report?model=Qwen/Qwen3-30B-A3B&signing_algo=ed25519"
+curl "https://cloud-api.near.ai/v1/attestation/report?model=deepseek-ai/DeepSeek-V3.1&signing_algo=ed25519"
 ```
 
 The response contains the public key used to sign AI responses. Match it against the `tee_signing_address` stored on-chain in each dispute resolution.

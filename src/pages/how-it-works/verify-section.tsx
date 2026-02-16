@@ -2,7 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ComputerTerminal01Icon } from "@hugeicons/core-free-icons";
 
 const TEE_ATTESTATION_URL =
-  "https://cloud-api.near.ai/v1/attestation/report?model=Qwen/Qwen3-30B-A3B&signing_algo=ed25519";
+  "https://cloud-api.near.ai/v1/attestation/report?model=deepseek-ai/DeepSeek-V3.1&signing_algo=ed25519";
 
 type PromptMetaItem = {
   key: string;

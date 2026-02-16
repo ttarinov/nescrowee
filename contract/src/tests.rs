@@ -1,3 +1,4 @@
+use near_sdk::json_types::U128;
 use near_sdk::test_utils::VMContextBuilder;
 use near_sdk::testing_env;
 use near_sdk::NearToken;
@@ -38,12 +39,12 @@ fn create_escrow_with_milestone(contract: &mut Contract) -> String {
         vec![MilestoneInput {
             title: "Milestone 1".into(),
             description: "Build feature".into(),
-            amount: 10_000_000_000_000_000_000_000_000, // 10 NEAR
+            amount: U128(10_000_000_000_000_000_000_000_000), // 10 NEAR
         }],
         Some(bob()),
         10,
         "abc123hash".into(),
-        "Qwen/Qwen3-30B-A3B".into(),
+        "Qwen/Qwen3-30B-A3B-Instruct-2507".into(),
     )
 }
 
@@ -71,7 +72,7 @@ fn test_create_contract_draft_without_freelancer() {
         vec![MilestoneInput {
             title: "M1".into(),
             description: "D1".into(),
-            amount: 1_000_000_000_000_000_000_000_000,
+            amount: U128(1_000_000_000_000_000_000_000_000),
         }],
         None,
         10,
@@ -92,7 +93,7 @@ fn test_invalid_security_pct() {
     contract.create_contract(
         "Bad".into(),
         "Desc".into(),
-        vec![MilestoneInput { title: "M".into(), description: "D".into(), amount: 1_000_000_000_000_000_000_000_000 }],
+        vec![MilestoneInput { title: "M".into(), description: "D".into(), amount: U128(1_000_000_000_000_000_000_000_000) }],
         Some(bob()),
         50,
         "hash".into(),
@@ -108,7 +109,7 @@ fn test_cannot_self_hire() {
     contract.create_contract(
         "Self".into(),
         "Desc".into(),
-        vec![MilestoneInput { title: "M".into(), description: "D".into(), amount: 1_000_000_000_000_000_000_000_000 }],
+        vec![MilestoneInput { title: "M".into(), description: "D".into(), amount: U128(1_000_000_000_000_000_000_000_000) }],
         Some(alice()),
         10,
         "hash".into(),
@@ -243,7 +244,7 @@ fn test_raise_dispute() {
     let mut contract = create_test_contract();
 
     setup_context(&owner(), 0);
-    contract.set_ai_processing_fee(50_000_000_000_000_000_000_000); // 0.05 NEAR
+    contract.set_ai_processing_fee(U128(50_000_000_000_000_000_000_000)); // 0.05 NEAR
 
     let id = create_escrow_with_milestone(&mut contract);
 
@@ -302,7 +303,7 @@ fn test_join_contract() {
     let id = contract.create_contract(
         "Open".into(),
         "Desc".into(),
-        vec![MilestoneInput { title: "M".into(), description: "D".into(), amount: 1_000_000_000_000_000_000_000_000 }],
+        vec![MilestoneInput { title: "M".into(), description: "D".into(), amount: U128(1_000_000_000_000_000_000_000_000) }],
         None,
         10,
         "hash".into(),

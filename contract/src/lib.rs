@@ -1,5 +1,6 @@
 use near_sdk::borsh::{BorshDeserialize, BorshSerialize};
 use near_sdk::store::IterableMap;
+use near_sdk::json_types::U128;
 use near_sdk::{env, near_bindgen, AccountId, NearToken, PanicOnDefault};
 
 macro_rules! emit_event {
@@ -53,6 +54,18 @@ impl Contract {
         );
     }
 
+    pub fn transfer_ownership(&mut self, new_owner: AccountId) {
+        self.require_owner();
+        self.owner = new_owner.clone();
+        emit_event!("ownership_transferred", {
+            "new_owner" => new_owner
+        });
+    }
+
+    pub fn get_owner(&self) -> &AccountId {
+        &self.owner
+    }
+
     fn link_account(&mut self, account: &AccountId, contract_id: &str) {
         let mut ids = self.account_contracts.get(account).cloned().unwrap_or_default();
         ids.push(contract_id.to_string());
@@ -75,9 +88,9 @@ impl Contract {
         &self.trusted_tee_addresses
     }
 
-    pub fn set_ai_processing_fee(&mut self, fee_yoctonear: u128) {
+    pub fn set_ai_processing_fee(&mut self, fee_yoctonear: U128) {
         self.require_owner();
-        self.ai_processing_fee = NearToken::from_yoctonear(fee_yoctonear);
+        self.ai_processing_fee = NearToken::from_yoctonear(fee_yoctonear.0);
     }
 
     pub fn get_ai_processing_fee(&self) -> NearToken {
@@ -109,7 +122,7 @@ impl Contract {
         self.next_id += 1;
         let contract_id = format!("c{}", self.next_id);
 
-        let total_amount: u128 = milestones.iter().map(|m| m.amount).sum();
+        let total_amount: u128 = milestones.iter().map(|m| m.amount.0).sum();
         assert!(total_amount > 0, "Total amount must be greater than zero");
 
         let invite_token = if freelancer.is_none() {
@@ -130,7 +143,7 @@ impl Contract {
                 id: format!("m{}", i + 1),
                 title: m.title,
                 description: m.description,
-                amount: NearToken::from_yoctonear(m.amount),
+                amount: NearToken::from_yoctonear(m.amount.0),
                 status: MilestoneStatus::NotFunded,
                 payment_request_deadline_ns: None,
             })
@@ -233,7 +246,7 @@ impl Contract {
 pub struct MilestoneInput {
     pub title: String,
     pub description: String,
-    pub amount: u128,
+    pub amount: U128,
 }
 
 #[cfg(test)]
