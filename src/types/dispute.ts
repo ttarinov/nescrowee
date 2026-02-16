@@ -3,6 +3,7 @@ export type DisputeStatus = "Pending" | "AiResolved" | "Appealed" | "AppealResol
 export type Resolution =
   | "Freelancer"
   | "Client"
+  | "ContinueWork"
   | { Split: { freelancer_pct: number } };
 
 export interface InvestigationRound {
@@ -15,6 +16,15 @@ export interface InvestigationRound {
   tee_signature: number[];
   tee_signing_address: number[];
   tee_text: string;
+  timestamp: number;
+}
+
+export interface EvidenceFile {
+  cid: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  uploadedBy: string;
   timestamp: number;
 }
 
