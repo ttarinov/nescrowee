@@ -8,7 +8,7 @@ interface DescriptionSectionProps {
 export function DescriptionSection({ value, onChange }: DescriptionSectionProps) {
   return (
     <div className="mt-2 pt-4">
-      <div className="py-5 rounded-[var(--radius)] bg-black/40 backdrop-blur-2xl">
+      <div className="py-10 pr-5 rounded-[var(--radius)] bg-black/40">
         <DescriptionEditor value={value} onChange={onChange} />
       </div>
     </div>

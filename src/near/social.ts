@@ -11,6 +11,8 @@ export interface AiResolutionData {
   resolution: string;
   explanation: string;
   context_for_freelancer?: string;
+  context?: string;
+  raw_response?: string;
 }
 
 export interface EvidenceData {

@@ -11,21 +11,20 @@ import {
   approveMilestone,
   autoApprovePayment,
   raiseDispute,
-  submitAiResolution,
   acceptResolution,
   finalizeResolution,
   releaseDisputeFunds,
   completeContractSecurity,
   type CreateContractArgs,
 } from "@/near/contract";
-import { runInvestigation } from "@/agent/investigation";
-import { signatureToBytes, addressToBytes } from "@/agent/client";
+import { submitAiResolution } from "@/near/contract";
 import { anonymizeDisputeContext } from "@/utils/anonymize";
-import { sendStructuredMessage, getChatMessages } from "@/near/social";
+import { getChatMessages, sendStructuredMessage } from "@/near/social";
 import type { EvidenceData } from "@/near/social";
 import { retrieveEvidence } from "@/nova/client";
+import { runInvestigation, type InvestigationStep, type OnStepCallback } from "@/agent/investigation";
+import { signatureToBytes, addressToBytes } from "@/agent/client";
 import type { EscrowContract } from "@/types/escrow";
-import { standardPrompt } from "@/utils/promptHash";
 
 export function useContractDetail(contractId: string | undefined) {
   return useQuery({
@@ -138,7 +137,7 @@ export function useRaiseDispute() {
   });
 }
 
-export function useSubmitAiResolution() {
+export function useRunInvestigation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -146,11 +145,13 @@ export function useSubmitAiResolution() {
       milestoneId,
       chatHistory,
       accountId,
+      onStep,
     }: {
       contract: EscrowContract;
       milestoneId: string;
       chatHistory?: Array<{ sender: string; content: string }>;
       accountId?: string | null;
+      onStep?: OnStepCallback;
     }) => {
       const milestone = contract.milestones.find((m) => m.id === milestoneId);
       const dispute = contract.disputes.find(
@@ -158,9 +159,7 @@ export function useSubmitAiResolution() {
       );
       if (!dispute || !milestone) throw new Error("Dispute or milestone not found");
 
-      const modelId = contract.model_id;
-      const prompt = standardPrompt;
-
+      onStep?.("collecting_evidence");
       let evidence: Array<{ fileName: string; content: string }> | undefined;
       if (accountId) {
         try {
@@ -187,6 +186,7 @@ export function useSubmitAiResolution() {
         } catch { /* proceed without evidence if retrieval fails */ }
       }
 
+      onStep?.("anonymizing");
       const context = anonymizeDisputeContext({
         contract: {
           client: contract.client,
@@ -207,8 +207,12 @@ export function useSubmitAiResolution() {
         evidence,
       });
 
-      const result = await runInvestigation(modelId, prompt, context);
+      onStep?.("connecting_tee");
+      const modelId = contract.model_id || "deepseek-ai/DeepSeek-V3.1";
+      const result = await runInvestigation(modelId, context, onStep);
+      const { rawResponse, ...resultWithoutRaw } = result;
 
+      onStep?.("submitting_onchain");
       await submitAiResolution(
         contract.id,
         milestoneId,
@@ -220,30 +224,40 @@ export function useSubmitAiResolution() {
       );
 
       if (accountId) {
+        const resolutionStr = typeof result.resolution === "string"
+          ? result.resolution
+          : JSON.stringify(result.resolution);
+
         await sendStructuredMessage(
           accountId,
           contract.id,
-          "AI Resolution",
+          result.explanation,
           "ai_resolution",
           {
-            analysis: result.explanation,
+            resolution: resolutionStr,
+            explanation: result.explanation,
             confidence: result.confidence,
             model_id: modelId,
             tee_verified: true,
-            resolution: result.resolution,
-            explanation: result.explanation,
-            context_for_freelancer: result.context_for_freelancer ?? undefined,
+            analysis: result.explanation,
+            context_for_freelancer: result.context_for_freelancer,
+            context,
+            raw_response: rawResponse,
           },
         );
-        queryClient.invalidateQueries({ queryKey: ["chat", contract.id] });
       }
 
-      return result;
+      onStep?.("done", result.explanation);
+      return { ...resultWithoutRaw, context, rawResponse };
     },
-    onSuccess: (_data, variables) =>
-      queryClient.invalidateQueries({ queryKey: ["contract", variables.contract.id] }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contract.id] });
+      queryClient.invalidateQueries({ queryKey: ["chat", variables.contract.id] });
+    },
   });
 }
+
+export type { InvestigationStep };
 
 export function useAcceptResolution() {
   const queryClient = useQueryClient();

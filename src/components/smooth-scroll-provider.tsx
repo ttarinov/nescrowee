@@ -50,7 +50,6 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
               }
             }
           } catch {
-            // ignore invalid URLs
           }
         }
       }

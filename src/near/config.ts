@@ -23,4 +23,4 @@ export const nearConfig = configs[NETWORK as keyof typeof configs] || configs.te
 
 export const hotPayItemId = import.meta.env.VITE_HOT_PAY_ITEM_ID || "";
 export const hotPayCheckoutBase = "https://pay.hot-labs.org/payment";
-export const hotKitApiKey = import.meta.env.VITE_HOT_KIT_API_KEY || "";
+export const hotKitApiKey = import.meta.env.VITE_HOT_PAY_API_KEY || "";

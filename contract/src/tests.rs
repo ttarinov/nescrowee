@@ -329,3 +329,29 @@ fn test_get_prompt_hash() {
     assert_eq!(contract.get_prompt_hash(id), Some("abc123hash".into()));
     assert_eq!(contract.get_prompt_hash("nonexistent".into()), None);
 }
+
+#[test]
+fn test_get_pending_disputes() {
+    let mut contract = create_test_contract();
+
+    setup_context(&owner(), 0);
+    contract.set_ai_processing_fee(U128(50_000_000_000_000_000_000_000));
+
+    let id = create_escrow_with_milestone(&mut contract);
+
+    assert!(contract.get_pending_disputes().is_empty());
+
+    setup_context(&alice(), 11_000_000_000_000_000_000_000_000);
+    contract.fund_contract(id.clone());
+
+    setup_context(&bob(), 0);
+    contract.start_milestone(id.clone(), "m1".into());
+    contract.request_payment(id.clone(), "m1".into());
+
+    setup_context(&alice(), 0);
+    contract.raise_dispute(id.clone(), "m1".into(), "Incomplete".into());
+
+    let pending = contract.get_pending_disputes();
+    assert_eq!(pending.len(), 1);
+    assert_eq!(pending[0], (id, "m1".to_string()));
+}

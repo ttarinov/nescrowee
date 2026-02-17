@@ -96,7 +96,7 @@ export function MilestoneItem({
 
   return (
     <motion.div
-      className="p-4 flex items-start gap-3 border-b border-white/10 last:border-b-0"
+      className="p-4 flex items-start gap-3 last:border-b-0"
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}

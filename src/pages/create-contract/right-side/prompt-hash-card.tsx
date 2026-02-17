@@ -11,7 +11,7 @@ export function PromptHashCard({ promptHash }: PromptHashCardProps) {
       <div className="flex items-center gap-3">
         <div>
           <div className="text-xs font-mono text-white/40">{promptHash.slice(0, 44)}...</div>
-          <Link to="/how-it-works" className="text-xs text-white font-medium mt-0.5 hover:underline">
+          <Link to="/how-it-works" target="_blank" className="text-xs text-white font-medium mt-0.5 hover:underline">
             How it works →
           </Link>
         </div>

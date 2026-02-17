@@ -83,7 +83,7 @@ export function MilestoneCard({
           onChange={(e) => onUpdate("amount", e.target.value)}
           onClick={(e) => e.stopPropagation()}
           onFocus={expandIfCollapsed}
-          className="w-16 text-right bg-muted/60 px-2 py-1 rounded-lg border border-border/40 text-xs font-bold tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          className="w-16 text-right bg-muted/60 px-2 py-1 rounded-lg border border-border/40 text-xs font-bold tabular-nums text-foreground focus:outline-none focus:ring-1 focus:ring-ring [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           placeholder="0"
         />
         <span className="text-xs text-muted-foreground shrink-0">N</span>
@@ -111,7 +111,7 @@ export function MilestoneCard({
               value={timelineInputValue}
               onChange={(e) => handleTimelineChange(e.target.value, timelineUnit)}
               onClick={(e) => e.stopPropagation()}
-              className="h-9 w-24 text-sm font-mono bg-white/5 rounded-2xl px-4 py-2 text-foreground placeholder-white/30 focus:outline-none focus:bg-white/10 transition-colors border-0"
+              className="h-9 w-24 text-sm font-mono bg-white/5 rounded-2xl px-4 py-2 text-foreground placeholder-white/30 focus:outline-none focus:bg-white/10 transition-colors border-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <select
               value={timelineUnit}

@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
@@ -14,14 +14,16 @@ import {
   useApproveMilestone,
   useAutoApprovePayment,
   useRaiseDispute,
-  useSubmitAiResolution,
+  useRunInvestigation,
   useAcceptResolution,
   useReleaseDisputeFunds,
   useCompleteContractSecurity,
+  type InvestigationStep,
 } from "@/hooks/useContract";
 import { useChat } from "./useChat";
 import { ChatPanel } from "./chat";
 import { Sidebar } from "./sidebar";
+import { InvestigationPanel } from "./components/investigation-panel";
 
 const ContractDetailPage = () => {
   const { id } = useParams();
@@ -30,7 +32,17 @@ const ContractDetailPage = () => {
   const { messages, sendMessage } = useChat(id);
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeMilestoneId, setDisputeMilestoneId] = useState<string | null>(null);
-  const [aiProcessing, setAiProcessing] = useState<string | null>(null);
+  const [investigationStep, setInvestigationStep] = useState<InvestigationStep | null>(null);
+  const [investigationDetail, setInvestigationDetail] = useState<string | undefined>();
+  const [investigationError, setInvestigationError] = useState<string | undefined>();
+  const [investigationContext, setInvestigationContext] = useState<string | undefined>();
+  const [investigationRawResponse, setInvestigationRawResponse] = useState<string | undefined>();
+  const [investigationResult, setInvestigationResult] = useState<{
+    resolution: string;
+    explanation: string;
+    confidence: number;
+    context_for_freelancer: string | null;
+  } | null>(null);
 
   const fundMutation = useFundContract();
   const startMutation = useStartMilestone();
@@ -39,10 +51,15 @@ const ContractDetailPage = () => {
   const approveMutation = useApproveMilestone();
   const autoApproveMutation = useAutoApprovePayment();
   const disputeMutation = useRaiseDispute();
-  const aiResolutionMutation = useSubmitAiResolution();
+  const investigationMutation = useRunInvestigation();
   const acceptMutation = useAcceptResolution();
   const releaseFundsMutation = useReleaseDisputeFunds();
   const securityMutation = useCompleteContractSecurity();
+
+  const onStep = useCallback((step: InvestigationStep, detail?: string) => {
+    setInvestigationStep(step);
+    if (detail) setInvestigationDetail(detail);
+  }, []);
 
   if (isLoading) {
     return (
@@ -130,21 +147,38 @@ const ContractDetailPage = () => {
   };
 
   const triggerAiResolution = (milestoneId: string) => {
-    setAiProcessing(milestoneId);
+    setInvestigationStep("collecting_evidence");
+    setInvestigationDetail(undefined);
+    setInvestigationError(undefined);
+    setInvestigationContext(undefined);
+    setInvestigationRawResponse(undefined);
+    setInvestigationResult(null);
+
     const chatHistory = (messages.data || [])
       .filter((m) => m.type === "text")
       .map((m) => ({ sender: m.sender, content: m.content }));
 
-    aiResolutionMutation.mutate(
-      { contract, milestoneId, chatHistory, accountId },
+    investigationMutation.mutate(
+      { contract, milestoneId, chatHistory, accountId, onStep },
       {
-        onSuccess: () => {
-          toast.success("AI resolution complete — TEE-verified on-chain");
-          setAiProcessing(null);
+        onSuccess: (data) => {
+          toast.success("AI resolution submitted on-chain");
+          setInvestigationContext(data.context);
+          setInvestigationRawResponse(data.rawResponse);
+          const resStr = typeof data.resolution === "string"
+            ? data.resolution
+            : JSON.stringify(data.resolution);
+          setInvestigationResult({
+            resolution: resStr,
+            explanation: data.explanation,
+            confidence: data.confidence,
+            context_for_freelancer: data.context_for_freelancer,
+          });
         },
         onError: (e) => {
-          toast.error(`AI resolution failed: ${e.message}`);
-          setAiProcessing(null);
+          setInvestigationStep("error");
+          setInvestigationError(e.message);
+          toast.error(`Investigation failed: ${e.message}`);
         },
       }
     );
@@ -157,7 +191,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId: targetMilestoneId, reason: disputeReason },
       {
         onSuccess: () => {
-          toast.success("Dispute raised — requesting AI resolution via NEAR AI...");
+          toast.success("Dispute raised — starting AI investigation...");
           setDisputeReason("");
           setDisputeMilestoneId(null);
           triggerAiResolution(targetMilestoneId);
@@ -207,7 +241,7 @@ const ContractDetailPage = () => {
   const chatMessages = messages.data || [];
 
   return (
-    <div className="h-screen pt-24 flex flex-col">
+    <div className="h-screen flex flex-col">
       <div className="w-full mx-6 flex flex-col flex-1 min-h-0">
         <Link
           to="/contracts"
@@ -221,14 +255,31 @@ const ContractDetailPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <ChatPanel
-            contract={contract}
-            messages={chatMessages}
-            onSendMessage={handleSendMessage}
-            accountId={accountId}
-            aiProcessing={aiProcessing}
-            onEvidenceUploaded={() => messages.refetch()}
-          />
+          <div className="flex-1 min-w-0 flex flex-col">
+            <ChatPanel
+              contract={contract}
+              messages={chatMessages}
+              onSendMessage={handleSendMessage}
+              accountId={accountId}
+              aiProcessing={investigationStep && investigationStep !== "done" && investigationStep !== "error" ? "active" : null}
+              onEvidenceUploaded={() => messages.refetch()}
+            />
+            <AnimatePresence>
+              {investigationStep && (
+                <div className="px-4 pb-4">
+                  <InvestigationPanel
+                    currentStep={investigationStep}
+                    detail={investigationDetail}
+                    error={investigationError}
+                    context={investigationContext}
+                    rawResponse={investigationRawResponse}
+                    result={investigationResult ?? undefined}
+                    onClose={() => setInvestigationStep(null)}
+                  />
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
 
           <Sidebar
             contract={contract}
@@ -253,14 +304,14 @@ const ContractDetailPage = () => {
             onAcceptResolution={handleAcceptResolution}
             onReleaseFunds={handleReleaseDisputeFunds}
             onReleaseSecurityDeposit={handleReleaseSecurityDeposit}
-            aiProcessing={aiProcessing}
+            aiProcessing={investigationStep && investigationStep !== "done" && investigationStep !== "error" ? "active" : null}
             fundPending={fundMutation.isPending}
             startPending={startMutation.isPending}
             requestPaymentPending={requestPaymentMutation.isPending}
             cancelPaymentPending={cancelPaymentMutation.isPending}
             approvePending={approveMutation.isPending}
             autoApprovePending={autoApproveMutation.isPending}
-            disputePending={disputeMutation.isPending || aiResolutionMutation.isPending}
+            disputePending={disputeMutation.isPending || investigationMutation.isPending}
             acceptPending={acceptMutation.isPending}
             releaseFundsPending={releaseFundsMutation.isPending}
             securityPending={securityMutation.isPending}
