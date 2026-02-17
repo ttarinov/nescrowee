@@ -1,19 +1,24 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AiBrain01Icon,
   LockIcon,
-  File02Icon,
   CheckmarkCircle02Icon,
-  ArrowRight01Icon,
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  SecurityBlockIcon,
+  ViewIcon,
 } from "@hugeicons/core-free-icons";
 import type { AiResolutionData, SocialMessage } from "@/near/social";
 import type { EscrowContract } from "@/types/escrow";
+import { AI_SYSTEM_PROMPT } from "@/constants/ai-prompt";
 
 interface AiProcessDialogProps {
   open: boolean;
@@ -23,67 +28,66 @@ interface AiProcessDialogProps {
   messages: SocialMessage[];
 }
 
-function SummaryCard({
-  summary,
-  modelId,
-  confidence,
-}: {
-  summary: string;
-  modelId: string;
-  confidence: number;
-}) {
+function ResolutionBadge({ resolution }: { resolution: string }) {
+  const colors: Record<string, string> = {
+    Freelancer: "bg-success/10 text-success border-success/20",
+    Client: "bg-destructive/10 text-destructive border-destructive/20",
+    ContinueWork: "bg-warning/10 text-warning border-warning/20",
+  };
+  const isSplit = resolution.startsWith("{");
+  const colorClass = isSplit
+    ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+    : colors[resolution] || "bg-muted text-muted-foreground border-border";
+  const label = isSplit ? `Split ${JSON.parse(resolution)?.Split?.freelancer_pct}%` : resolution;
+
   return (
-    <div className="rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 shadow-sm">
-      <div className="flex items-center gap-2 mb-2">
-        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={18} className="text-primary shrink-0" />
-        <span className="text-xs font-mono font-semibold text-primary uppercase tracking-wider">
-          Summary
-        </span>
-        <span className="text-[10px] font-mono text-muted-foreground ml-auto">
-          {modelId} · {confidence}%
-        </span>
-      </div>
-      <p className="text-sm text-foreground leading-relaxed">{summary}</p>
-    </div>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${colorClass}`}>
+      {label}
+    </span>
   );
 }
 
-function FileTriggeredCard({ fileName, source }: { fileName: string; source: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-muted/30 overflow-hidden">
-      <div className="px-4 py-2.5 bg-muted/50 border-b border-border flex items-center gap-2">
-        <HugeiconsIcon icon={File02Icon} size={16} className="text-muted-foreground shrink-0" />
-        <span className="font-mono text-sm font-medium truncate">{fileName}</span>
-        <span className="text-[10px] font-mono text-muted-foreground ml-auto shrink-0">
-          {source}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function ProcessStep({
-  step,
-  label,
-  isActive,
+function CollapsibleSection({
+  title,
+  icon,
+  defaultOpen = false,
+  children,
 }: {
-  step: number;
-  label: string;
-  isActive: boolean;
+  title: string;
+  icon: typeof AiBrain01Icon;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
 }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="flex items-center gap-3">
-      <span
-        className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-mono font-semibold ${
-          isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-        }`}
+    <section>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-2 mb-2 hover:opacity-80 transition-opacity"
       >
-        {String(step).padStart(2, "0")}
-      </span>
-      <span className={`text-sm ${isActive ? "font-medium text-foreground" : "text-muted-foreground"}`}>
-        {label}
-      </span>
-    </div>
+        <HugeiconsIcon icon={icon} size={14} className="text-muted-foreground shrink-0" />
+        <span className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">
+          {title}
+        </span>
+        <HugeiconsIcon
+          icon={open ? ArrowUp01Icon : ArrowDown01Icon}
+          size={14}
+          className="text-muted-foreground ml-auto"
+        />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
   );
 }
 
@@ -91,20 +95,8 @@ export function AiProcessDialog({
   open,
   onOpenChange,
   resolutionData,
-  contract,
-  messages,
 }: AiProcessDialogProps) {
-  const evidenceMessages = messages.filter((m) => m.type === "evidence");
-  const chatMessages = messages.filter((m) => m.type === "text");
-
-  const stages = [
-    "Load chat history",
-    "Load evidence files (NOVA)",
-    "Anonymize context (Party A/B)",
-    "Call NEAR AI Cloud (TEE)",
-    "Verify Ed25519 signature",
-    "Resolution complete",
-  ];
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -125,87 +117,48 @@ export function AiProcessDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 py-5 space-y-6">
-          <SummaryCard
-            summary={resolutionData.analysis || resolutionData.explanation}
-            modelId={resolutionData.model_id}
-            confidence={resolutionData.confidence}
-          />
-
+        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 py-5 space-y-5">
           <section>
-            <h3 className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-              <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
-              Pipeline
-            </h3>
-            <div className="space-y-2">
-              {stages.map((stage, i) => (
-                <ProcessStep
-                  key={stage}
-                  step={i + 1}
-                  label={stage}
-                  isActive={i === stages.length - 1}
-                />
-              ))}
+            <div className="flex items-center gap-2 mb-2">
+              <HugeiconsIcon icon={CheckmarkCircle02Icon} size={16} className="text-primary shrink-0" />
+              <span className="text-xs font-mono font-semibold text-primary uppercase tracking-wider">
+                Decision
+              </span>
+              <ResolutionBadge resolution={resolutionData.resolution} />
+              <span className="text-[10px] font-mono text-muted-foreground ml-auto">
+                {resolutionData.model_id} · {resolutionData.confidence}%
+              </span>
             </div>
-          </section>
-
-          {evidenceMessages.length > 0 && (
-            <section>
-              <h3 className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                <HugeiconsIcon icon={File02Icon} size={14} />
-                Evidence Files Used
-              </h3>
-              <div className="space-y-3">
-                {evidenceMessages.map((msg) => {
-                  const evidence = msg.data as { fileName?: string } | undefined;
-                  return (
-                    <FileTriggeredCard
-                      key={msg.id}
-                      fileName={evidence?.fileName || "Unknown file"}
-                      source="NOVA evidence vault"
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {chatMessages.length > 0 && (
-            <section>
-              <h3 className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Chat History Analyzed
-              </h3>
-              <div className="rounded-lg border border-border bg-muted/20 p-4">
-                <p className="text-xs text-muted-foreground font-mono leading-relaxed">
-                  {chatMessages.length} message{chatMessages.length !== 1 ? "s" : ""} from contract chat
+            <p className="text-sm text-foreground leading-relaxed">
+              {resolutionData.analysis || resolutionData.explanation}
+            </p>
+            {resolutionData.context_for_freelancer && (
+              <div className="mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
+                <p className="text-[10px] font-mono text-warning mb-1 uppercase tracking-wider">
+                  Instructions for Freelancer
+                </p>
+                <p className="text-sm text-foreground/90 leading-relaxed">
+                  {resolutionData.context_for_freelancer}
                 </p>
               </div>
-            </section>
+            )}
+          </section>
+
+          {resolutionData.raw_response && (
+            <CollapsibleSection title="AI Reasoning" icon={AiBrain01Icon}>
+              <pre className="text-[11px] text-foreground/80 leading-relaxed whitespace-pre-wrap font-mono bg-muted/30 rounded-lg p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                {resolutionData.raw_response}
+              </pre>
+            </CollapsibleSection>
           )}
 
-          <section>
-            <h3 className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Resolution
-            </h3>
-            <div className="rounded-lg border border-border bg-muted/20 p-4">
-              <p className="text-sm font-medium mb-2">{resolutionData.resolution}</p>
-              {resolutionData.explanation && (
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {resolutionData.explanation}
-                </p>
-              )}
-              {resolutionData.context_for_freelancer && (
-                <div className="mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
-                  <p className="text-[10px] font-mono text-warning mb-1 uppercase tracking-wider">
-                    Instructions for Freelancer
-                  </p>
-                  <p className="text-sm text-foreground/90 leading-relaxed">
-                    {resolutionData.context_for_freelancer}
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
+          {resolutionData.context && (
+            <CollapsibleSection title="Context Provided" icon={SecurityBlockIcon}>
+              <pre className="text-[11px] text-foreground/80 leading-relaxed whitespace-pre-wrap font-mono bg-muted/30 rounded-lg p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                {resolutionData.context}
+              </pre>
+            </CollapsibleSection>
+          )}
 
           <section>
             <h3 className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -227,6 +180,30 @@ export function AiProcessDialog({
                 )}
               </div>
             </div>
+          </section>
+
+          <section>
+            <button
+              onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+              className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <HugeiconsIcon icon={ViewIcon} size={12} />
+              {showSystemPrompt ? "Hide" : "View"} System Prompt
+            </button>
+            <AnimatePresence>
+              {showSystemPrompt && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <pre className="mt-2 text-[11px] text-foreground/80 leading-relaxed whitespace-pre-wrap font-mono bg-muted/30 rounded-lg p-3 max-h-64 overflow-y-auto custom-scrollbar">
+                    {AI_SYSTEM_PROMPT}
+                  </pre>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </section>
         </div>
       </DialogContent>

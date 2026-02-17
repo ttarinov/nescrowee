@@ -80,7 +80,7 @@ export function FundMilestoneDialog({
                 <span className="text-orange-400 font-bold text-sm">H</span>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-orange-400">Pay from any chain</p>
+                <p className="text-sm font-semibold text-orange-400">HOT PAY</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   USDC · USDT · ETH · BNB · 30+ tokens · settled on NEAR
                 </p>
