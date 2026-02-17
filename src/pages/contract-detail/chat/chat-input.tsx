@@ -1,6 +1,4 @@
 import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUp01Icon, Attachment01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
@@ -25,14 +23,19 @@ export function ChatInput({
   onEvidenceUploaded,
 }: ChatInputProps) {
   const [value, setValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = async () => {
     if (!value.trim() || sendPending) return;
     try {
       await onSend(value);
       setValue("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
     } catch { /* keep text on error */ }
   };
 
@@ -74,49 +77,78 @@ export function ChatInput({
     }
   };
 
+  const hasContent = value.trim().length > 0;
+
   return (
-    <div className="p-3 shrink-0">
-      <div className="relative flex items-end rounded-2xl bg-muted/40 focus-within:bg-muted/60 transition-colors">
-        <Textarea
-          placeholder="Type a message..."
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
-          className="min-h-[64px] max-h-[160px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-2xl px-4 py-3.5 pr-14 text-sm placeholder:text-muted-foreground"
-          rows={3}
-        />
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,.pdf,.txt,.doc,.docx"
-          className="hidden"
-          onChange={handleEvidenceUpload}
-        />
-        <div className="absolute right-2 bottom-2 flex items-center gap-1.5">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 rounded-full text-muted-foreground hover:text-foreground"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploadingEvidence}
-            title="Upload evidence (encrypted via NOVA)"
-          >
-            <HugeiconsIcon icon={Attachment01Icon} size={16} />
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="h-8 w-8 p-0 rounded-full shrink-0"
-            onClick={handleSend}
-            disabled={sendPending || !value.trim()}
-          >
-            <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
-          </Button>
+    <div className="shrink-0 p-4 md:p-6 bg-gradient-to-t from-[#030014] via-[#030014] to-transparent">
+      <div className="max-w-3xl mx-auto">
+        <div
+          className={`relative flex items-end gap-2 p-2 pl-3 rounded-[32px] transition-all duration-300 ${
+            isFocused
+              ? "bg-[#1a1625] shadow-[0_0_30px_rgba(139,92,246,0.1)]"
+              : "bg-[#13101c] hover:bg-[#1a1625]"
+          }`}
+        >
+          <div className="flex items-center gap-1 pb-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.txt,.doc,.docx"
+              className="hidden"
+              onChange={handleEvidenceUpload}
+            />
+            <button
+              className="p-2 rounded-full text-gray-400 hover:text-purple-300 hover:bg-purple-500/20 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingEvidence}
+              title="Upload evidence (encrypted via NOVA)"
+            >
+              <HugeiconsIcon icon={Attachment01Icon} size={18} />
+            </button>
+          </div>
+
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Message..."
+            rows={1}
+            className="flex-1 bg-transparent text-slate-200 placeholder-slate-500 text-sm py-3 px-1 focus:outline-none resize-none max-h-32 custom-scrollbar min-h-[44px]"
+            style={{ height: "auto" }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "auto";
+              target.style.height = `${target.scrollHeight}px`;
+            }}
+          />
+
+          <div className="pb-1 pr-1">
+            <button
+              className={`p-2.5 rounded-full transition-all duration-300 flex items-center justify-center ${
+                hasContent && !sendPending
+                  ? "bg-purple-600 text-white shadow-lg shadow-purple-900/40 hover:scale-105 active:scale-95"
+                  : "bg-[#2a2438] text-gray-500 cursor-not-allowed"
+              }`}
+              disabled={!hasContent || sendPending}
+              onClick={handleSend}
+            >
+              <HugeiconsIcon icon={ArrowUp01Icon} size={18} />
+            </button>
+          </div>
+        </div>
+
+        <div className="text-center mt-3">
+          <span className="text-[10px] text-gray-600 font-medium">
+            Stored on NEAR Social DB · Each message costs gas
+          </span>
         </div>
       </div>
     </div>
