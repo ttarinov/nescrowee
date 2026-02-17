@@ -170,6 +170,7 @@ const ContractDetailPage = () => {
             accountId={accountId}
             onEvidenceUploaded={() => messages.refetch()}
             investigation={investigation}
+            chatError={messages.isError}
           />
 
           <Sidebar

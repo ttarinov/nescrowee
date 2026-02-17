@@ -13,7 +13,7 @@ import {
   useReleaseDisputeFunds,
   useOverrideToContinueWork,
   useAcceptAndRelease,
-  useFinalizeResolution,
+  useFinalizeAndRelease,
   useCompleteContractSecurity,
 } from "@/hooks/useContract";
 import type { EscrowContract } from "@/types/escrow";
@@ -65,7 +65,7 @@ export function useContractActions(
   const releaseFundsMutation = useReleaseDisputeFunds();
   const overrideContinueMutation = useOverrideToContinueWork();
   const acceptAndReleaseMutation = useAcceptAndRelease();
-  const finalizeResolutionMutation = useFinalizeResolution();
+  const finalizeAndReleaseMutation = useFinalizeAndRelease();
   const securityMutation = useCompleteContractSecurity();
 
   const contractId = contract?.id ?? "";
@@ -187,22 +187,14 @@ export function useContractActions(
     }, [contractId, acceptAndReleaseMutation]),
 
     finalizeAndRelease: useCallback((milestoneId: string) => {
-      finalizeResolutionMutation.mutate(
+      finalizeAndReleaseMutation.mutate(
         { contractId, milestoneId },
         {
-          onSuccess: () => {
-            releaseFundsMutation.mutate(
-              { contractId, milestoneId },
-              {
-                onSuccess: () => toast.success("Resolution finalized and funds released"),
-                onError: (e) => toast.error(formatWalletError(e)),
-              },
-            );
-          },
+          onSuccess: () => toast.success("Resolution finalized and funds released"),
           onError: (e) => toast.error(formatWalletError(e)),
         },
       );
-    }, [contractId, finalizeResolutionMutation, releaseFundsMutation]),
+    }, [contractId, finalizeAndReleaseMutation]),
 
     releaseSecurityDeposit: useCallback(() => {
       securityMutation.mutate(
@@ -227,7 +219,7 @@ export function useContractActions(
     releaseFunds: releaseFundsMutation.isPending,
     overrideContinue: overrideContinueMutation.isPending,
     acceptAndRelease: acceptAndReleaseMutation.isPending,
-    finalizeAndRelease: finalizeResolutionMutation.isPending || releaseFundsMutation.isPending,
+    finalizeAndRelease: finalizeAndReleaseMutation.isPending,
     security: securityMutation.isPending,
   };
 

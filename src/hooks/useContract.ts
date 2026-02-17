@@ -352,6 +352,18 @@ export function useAcceptAndRelease() {
   });
 }
 
+export function useFinalizeAndRelease() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) => {
+      await finalizeResolution(contractId, milestoneId);
+      await releaseDisputeFunds(contractId, milestoneId);
+    },
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
 export function useCompleteContractSecurity() {
   const queryClient = useQueryClient();
   return useMutation({

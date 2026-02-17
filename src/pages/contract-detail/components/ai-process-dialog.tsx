@@ -11,16 +11,13 @@ import {
   ViewIcon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
-import type { AiResolutionData, SocialMessage } from "@/near/social";
-import type { EscrowContract } from "@/types/escrow";
+import type { AiResolutionData } from "@/near/social";
 import { AI_SYSTEM_PROMPT } from "@/constants/ai-prompt";
 
 interface AiProcessDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   resolutionData: AiResolutionData;
-  contract: EscrowContract;
-  messages: SocialMessage[];
 }
 
 export function AiProcessDialog({

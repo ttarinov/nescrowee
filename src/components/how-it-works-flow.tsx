@@ -154,6 +154,63 @@ function SplitBranch({
   );
 }
 
+type FlowCardVariant = "default" | "purple" | "success" | "dispute" | "ai" | "warning";
+
+type FlowCardData = {
+  icon: Parameters<typeof HugeiconsIcon>[0]["icon"];
+  title: string;
+  description: string;
+  variant: FlowCardVariant;
+  number?: number;
+};
+
+const MAIN_FLOW_CARDS: FlowCardData[] = [
+  {
+    number: 2,
+    icon: Wallet03Icon,
+    title: "Client funds the escrow",
+    description: "Client sends NEAR to the smart contract. The money is locked &mdash; nobody can touch it until the milestone is approved.",
+    variant: "purple",
+  },
+  {
+    number: 3,
+    icon: LegalHammerIcon,
+    title: "Freelancer does the work",
+    description: "Freelancer picks up the milestone, does the work, and submits it for review. Chat happens on NEAR Social &mdash; also on-chain.",
+    variant: "default",
+  },
+  {
+    number: 4,
+    icon: CheckmarkCircle02Icon,
+    title: "Client reviews the work",
+    description: "Client looks at the delivered work. If everything looks good, they approve. If not, they can raise a dispute.",
+    variant: "default",
+  },
+];
+
+const ARROW_LABELS = ["contract saved on-chain", "money locked in smart contract", "work submitted for review"];
+
+const DISPUTE_FLOW_CARDS: FlowCardData[] = [
+  {
+    icon: AlertCircleIcon,
+    title: "Dispute raised",
+    description: "Either party explains the problem. The reason is saved on-chain. Milestone is frozen.",
+    variant: "dispute",
+  },
+  {
+    icon: AiBrain01Icon,
+    title: "AI investigates",
+    description: "The smart contract triggers NEAR AI. The AI reads the contract, milestones, and chat, then runs 2-3 rounds of analysis &mdash; all signed by secure hardware (TEE).",
+    variant: "ai",
+  },
+  {
+    icon: BalanceScaleIcon,
+    title: "Resolution",
+    description: "AI decides: pay freelancer, refund client, or split. Each party can accept or appeal for a deeper investigation.",
+    variant: "warning",
+  },
+];
+
 export function HowItWorksFlow() {
   const [showDispute, setShowDispute] = useState(true);
 
@@ -236,35 +293,12 @@ export function HowItWorksFlow() {
             </div>
           </div>
 
-          <Arrow label="contract saved on-chain" />
-
-          <FlowCard
-            number={2}
-            icon={Wallet03Icon}
-            title="Client funds the escrow"
-            description="Client sends NEAR to the smart contract. The money is locked &mdash; nobody can touch it until the milestone is approved."
-            variant="purple"
-          />
-
-          <Arrow label="money locked in smart contract" />
-
-          <FlowCard
-            number={3}
-            icon={LegalHammerIcon}
-            title="Freelancer does the work"
-            description="Freelancer picks up the milestone, does the work, and submits it for review. Chat happens on NEAR Social &mdash; also on-chain."
-            variant="default"
-          />
-
-          <Arrow label="work submitted for review" />
-
-          <FlowCard
-            number={4}
-            icon={CheckmarkCircle02Icon}
-            title="Client reviews the work"
-            description="Client looks at the delivered work. If everything looks good, they approve. If not, they can raise a dispute."
-            variant="default"
-          />
+          {MAIN_FLOW_CARDS.map((card, i) => (
+            <div key={card.title} className="flex flex-col items-center w-full">
+              <Arrow label={ARROW_LABELS[i]} />
+              <FlowCard {...card} />
+            </div>
+          ))}
 
           <SplitBranch
             label="Is the client happy?"
@@ -283,26 +317,12 @@ export function HowItWorksFlow() {
             right={
               showDispute ? (
                 <div className="flex flex-col items-center">
-                  <FlowCard
-                    icon={AlertCircleIcon}
-                    title="Dispute raised"
-                    description="Either party explains the problem. The reason is saved on-chain. Milestone is frozen."
-                    variant="dispute"
-                  />
-                  <Arrow label="smart contract calls AI" />
-                  <FlowCard
-                    icon={AiBrain01Icon}
-                    title="AI investigates"
-                    description="The smart contract triggers NEAR AI. The AI reads the contract, milestones, and chat, then runs 2-3 rounds of analysis &mdash; all signed by secure hardware (TEE)."
-                    variant="ai"
-                  />
-                  <Arrow label="each round verified on-chain" />
-                  <FlowCard
-                    icon={BalanceScaleIcon}
-                    title="Resolution"
-                    description="AI decides: pay freelancer, refund client, or split. Each party can accept or appeal for a deeper investigation."
-                    variant="warning"
-                  />
+                  {DISPUTE_FLOW_CARDS.map((card, i) => (
+                    <div key={card.title} className="flex flex-col items-center w-full">
+                      {i > 0 && <Arrow label={i === 1 ? "smart contract calls AI" : "each round verified on-chain"} />}
+                      <FlowCard {...card} />
+                    </div>
+                  ))}
                   <Arrow />
                   <div className="flex w-full max-w-[520px] flex-col gap-2">
                     <div className="flex rounded-xl border border-purple-400/15 bg-gradient-to-r from-purple-500/[0.05] to-emerald-500/[0.03] px-4 py-3 text-center">

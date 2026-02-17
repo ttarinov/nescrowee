@@ -35,6 +35,7 @@ interface ChatPanelProps {
   accountId: string | null;
   onEvidenceUploaded?: () => void;
   investigation?: InvestigationState | null;
+  chatError?: boolean;
 }
 
 export function ChatPanel({
@@ -45,6 +46,7 @@ export function ChatPanel({
   accountId,
   onEvidenceUploaded,
   investigation,
+  chatError,
 }: ChatPanelProps) {
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [aiDialogData, setAiDialogData] = useState<AiResolutionData | null>(null);
@@ -81,7 +83,14 @@ export function ChatPanel({
       </div>
       <div className="flex-1 min-h-0 flex flex-col min-w-0 relative">
         <div className="flex-1 min-h-0 overflow-y-scroll p-4 pb-0">
-          {messages.length === 0 && !investigation && (
+          {chatError && (
+            <div className="flex items-center justify-center h-full min-h-[12rem]">
+              <p className="text-sm text-destructive">
+                Failed to load messages. Check your connection and try again.
+              </p>
+            </div>
+          )}
+          {!chatError && messages.length === 0 && !investigation && (
             <div className="flex items-center justify-center h-full min-h-[12rem]">
               <p className="text-sm text-muted-foreground">
                 No messages yet. Start the conversation.
@@ -121,8 +130,6 @@ export function ChatPanel({
           open={aiDialogOpen}
           onOpenChange={setAiDialogOpen}
           resolutionData={aiDialogData}
-          contract={contract}
-          messages={messages}
         />
       )}
     </div>

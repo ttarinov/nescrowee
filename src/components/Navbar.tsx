@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Wallet01Icon, Menu01Icon, Cancel01Icon, Logout01Icon } from "@hugeicons/core-free-icons";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallet } from "@/hooks/useWallet";
 import { toast } from "sonner";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -46,25 +47,7 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
   const { accountId, isConnected, connect, disconnect } = useWallet();
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        isPopoverOpen &&
-        popoverRef.current &&
-        buttonRef.current &&
-        !popoverRef.current.contains(e.target as Node) &&
-        !buttonRef.current.contains(e.target as Node)
-      ) {
-        setIsPopoverOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isPopoverOpen]);
 
   const truncatedAccount = accountId
     ? accountId.length > 20
@@ -111,39 +94,37 @@ const Navbar = () => {
                 </span>
               </button>
             ) : (
-              <div className="relative" ref={popoverRef}>
-                <button
-                  ref={buttonRef}
-                  type="button"
-                  onClick={() => setIsPopoverOpen((v) => !v)}
-                  className="bg-slate-950 text-slate-300 hover:text-white hover:border-slate-600 pl-4 pr-1 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-3 border border-slate-800"
-                >
-                  <span>{truncatedAccount}</span>
-                  <img
-                    src={`https://api.dicebear.com/7.x/identicon/svg?seed=${accountId}`}
-                    alt=""
-                    className="w-8 h-8 rounded-full border-2 border-slate-800"
-                  />
-                </button>
-                {isPopoverOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-800 z-50 p-2">
-                    <WalletPopoverContent
-                      address={accountId ?? ""}
-                      onCopy={() => {
-                        if (accountId) {
-                          navigator.clipboard.writeText(accountId);
-                          toast.success("Address copied");
-                          setIsPopoverOpen(false);
-                        }
-                      }}
-                      onDisconnect={() => {
-                        disconnect();
-                        setIsPopoverOpen(false);
-                      }}
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="bg-slate-950 text-slate-300 hover:text-white hover:border-slate-600 pl-4 pr-1 py-1 rounded-full text-xs font-medium transition-all flex items-center gap-3 border border-slate-800"
+                  >
+                    <span>{truncatedAccount}</span>
+                    <img
+                      src={`https://api.dicebear.com/7.x/identicon/svg?seed=${accountId}`}
+                      alt=""
+                      className="w-8 h-8 rounded-full border-2 border-slate-800"
                     />
-                  </div>
-                )}
-              </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-56 bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-800 p-2">
+                  <WalletPopoverContent
+                    address={accountId ?? ""}
+                    onCopy={() => {
+                      if (accountId) {
+                        navigator.clipboard.writeText(accountId);
+                        toast.success("Address copied");
+                        setIsPopoverOpen(false);
+                      }
+                    }}
+                    onDisconnect={() => {
+                      disconnect();
+                      setIsPopoverOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             )}
           </div>
 
