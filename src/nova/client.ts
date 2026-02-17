@@ -1,12 +1,22 @@
-import { NovaSdk } from "nova-sdk-js";
+const PROXY_URL = "/api/nova-proxy";
 
-const NOVA_API_KEY = import.meta.env.VITE_NOVA_API_KEY || "";
+async function novaCall<T>(action: string, params: Record<string, unknown>): Promise<T> {
+  const res = await fetch(PROXY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, ...params }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `Nova ${action} failed`);
+  return data as T;
+}
+
+function getGroupName(contractId: string): string {
+  return `nescrowee-${contractId}`;
+}
+
 const NOVA_NETWORK = import.meta.env.VITE_NEAR_NETWORK || "testnet";
-
-const TESTNET_CONFIG = {
-  rpcUrl: "https://rpc.testnet.near.org",
-  contractId: "nova-sdk-6.testnet",
-} as const;
 
 function getNovaAccountId(nearAccountId: string): string {
   return NOVA_NETWORK === "testnet"
@@ -14,30 +24,15 @@ function getNovaAccountId(nearAccountId: string): string {
     : `${nearAccountId.replace(".near", "")}.nova-sdk.near`;
 }
 
-function getGroupName(contractId: string): string {
-  return `nescrowee-${contractId}`;
-}
-
-function createSdk(nearAccountId: string): NovaSdk {
-  const novaAccount = getNovaAccountId(nearAccountId);
-  const options: Record<string, unknown> = { apiKey: NOVA_API_KEY };
-
-  if (NOVA_NETWORK === "testnet") {
-    options.rpcUrl = TESTNET_CONFIG.rpcUrl;
-    options.contractId = TESTNET_CONFIG.contractId;
-  }
-
-  return new NovaSdk(novaAccount, options);
-}
-
 export async function createEvidenceVault(
   nearAccountId: string,
   contractId: string,
 ): Promise<string> {
-  const sdk = createSdk(nearAccountId);
-  const groupName = getGroupName(contractId);
-  await sdk.registerGroup(groupName);
-  return groupName;
+  const result = await novaCall<{ groupName: string }>("registerGroup", {
+    nearAccountId,
+    contractId,
+  });
+  return result.groupName;
 }
 
 export async function addVaultMember(
@@ -45,10 +40,7 @@ export async function addVaultMember(
   contractId: string,
   memberNearAccountId: string,
 ): Promise<void> {
-  const sdk = createSdk(ownerAccountId);
-  const groupName = getGroupName(contractId);
-  const memberNovaId = getNovaAccountId(memberNearAccountId);
-  await sdk.addGroupMember(groupName, memberNovaId);
+  await novaCall("addMember", { ownerAccountId, contractId, memberNearAccountId });
 }
 
 export interface UploadResult {
@@ -63,39 +55,42 @@ export async function uploadEvidence(
   fileData: ArrayBuffer,
   fileName: string,
 ): Promise<UploadResult> {
-  const sdk = createSdk(nearAccountId);
-  const groupName = getGroupName(contractId);
-  const buffer = Buffer.from(fileData);
-  const result = await sdk.upload(groupName, buffer, fileName);
-  return {
-    cid: result.cid,
-    fileHash: result.file_hash,
-    transactionId: result.trans_id,
-  };
+  const base64 = btoa(
+    new Uint8Array(fileData).reduce((s, b) => s + String.fromCharCode(b), ""),
+  );
+  return novaCall<UploadResult>("upload", {
+    nearAccountId,
+    contractId,
+    fileData: base64,
+    fileName,
+  });
 }
 
 export async function retrieveEvidence(
   nearAccountId: string,
   contractId: string,
   cid: string,
-): Promise<Buffer> {
-  const sdk = createSdk(nearAccountId);
-  const groupName = getGroupName(contractId);
-  const { data } = await sdk.retrieve(groupName, cid);
-  return data;
+): Promise<Uint8Array> {
+  const { data } = await novaCall<{ data: string }>("retrieve", {
+    nearAccountId,
+    contractId,
+    cid,
+  });
+  const binary = atob(data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
 export async function isVaultMember(
   nearAccountId: string,
   contractId: string,
 ): Promise<boolean> {
-  const sdk = createSdk(nearAccountId);
-  const groupName = getGroupName(contractId);
-  try {
-    return await sdk.isAuthorized(groupName);
-  } catch {
-    return false;
-  }
+  const { authorized } = await novaCall<{ authorized: boolean }>("isAuthorized", {
+    nearAccountId,
+    contractId,
+  });
+  return authorized;
 }
 
 export { getGroupName, getNovaAccountId };
