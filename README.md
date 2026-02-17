@@ -1,4 +1,4 @@
-# Milestone Trust (Nescrowee)
+# Nescrowee
 
 **Trustless escrow platform for freelance contracts on NEAR blockchain with autonomous AI arbitration in Trusted Execution Environments (TEE).**
 
