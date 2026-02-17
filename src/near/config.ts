@@ -11,7 +11,7 @@ const configs = {
   },
   mainnet: {
     networkId: "mainnet",
-    nodeUrl: "https://rpc.mainnet.near.org",
+    nodeUrl: "https://rpc.fastnear.com",
     walletUrl: "https://app.mynearwallet.com",
     contractId: "nescrowee.near",
     socialDbContract: "social.near",
@@ -24,3 +24,4 @@ export const nearConfig = configs[NETWORK as keyof typeof configs] || configs.te
 export const hotPayItemId = import.meta.env.VITE_HOT_PAY_ITEM_ID || "";
 export const hotPayCheckoutBase = "https://pay.hot-labs.org/payment";
 export const hotKitApiKey = import.meta.env.VITE_HOT_PAY_API_KEY || "";
+export const hotPayRedirectDomain = import.meta.env.VITE_HOT_PAY_REDIRECT_DOMAIN || window.location.origin;

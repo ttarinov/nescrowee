@@ -10,7 +10,8 @@ import { uploadEvidence as novaUpload, createEvidenceVault, isVaultMember } from
 import type { EvidenceData } from "@/near/social";
 
 interface ChatInputProps {
-  onSend: (content: string) => void;
+  onSend: (content: string) => Promise<void> | void;
+  sendPending?: boolean;
   accountId: string | null;
   contract: EscrowContract;
   onEvidenceUploaded?: () => void;
@@ -18,6 +19,7 @@ interface ChatInputProps {
 
 export function ChatInput({
   onSend,
+  sendPending,
   accountId,
   contract,
   onEvidenceUploaded,
@@ -26,10 +28,12 @@ export function ChatInput({
   const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSend = () => {
-    if (!value.trim()) return;
-    onSend(value);
-    setValue("");
+  const handleSend = async () => {
+    if (!value.trim() || sendPending) return;
+    try {
+      await onSend(value);
+      setValue("");
+    } catch { /* keep text on error */ }
   };
 
   const handleEvidenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,8 +87,8 @@ export function ChatInput({
               handleSend();
             }
           }}
-          className="min-h-[52px] max-h-[120px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-2xl px-4 py-3 pr-14 text-sm placeholder:text-muted-foreground"
-          rows={2}
+          className="min-h-[64px] max-h-[160px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-2xl px-4 py-3.5 pr-14 text-sm placeholder:text-muted-foreground"
+          rows={3}
         />
         <input
           ref={fileInputRef}
@@ -109,6 +113,7 @@ export function ChatInput({
             size="sm"
             className="h-8 w-8 p-0 rounded-full shrink-0"
             onClick={handleSend}
+            disabled={sendPending || !value.trim()}
           >
             <HugeiconsIcon icon={ArrowUp01Icon} size={16} />
           </Button>

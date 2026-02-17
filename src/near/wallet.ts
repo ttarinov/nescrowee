@@ -61,6 +61,23 @@ export function getAccountId(): string | null {
   }
 }
 
+async function ensureConnected(): Promise<HotKit> {
+  const k = getKit();
+  if (k.near) return k;
+
+  if (getAccountId()) {
+    for (let i = 0; i < 2; i++) {
+      try {
+        await k.connect(WalletType.NEAR);
+        if (k.near) return k;
+      } catch { /* retry */ }
+      if (i === 0) await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+
+  throw new Error("Wallet not connected. Please reconnect your wallet.");
+}
+
 export async function signAndSendTransaction(params: {
   receiverId: string;
   actions: Array<{
@@ -73,14 +90,30 @@ export async function signAndSendTransaction(params: {
     };
   }>;
 }) {
-  const k = getKit();
-  const nearWallet = k.near;
-  if (!nearWallet) throw new Error("NEAR wallet not connected");
+  const k = await ensureConnected();
+  const nearWallet = k.near!;
 
-  const result = await nearWallet.sendTransaction({
-    receiverId: params.receiverId,
-    actions: params.actions,
-  });
+  let result: unknown;
+  try {
+    result = await nearWallet.sendTransaction({
+      receiverId: params.receiverId,
+      actions: params.actions,
+    });
+  } catch (err) {
+    if (!err) return null;
+    if (err instanceof Error) {
+      const msg = err.message.toLowerCase();
+      if (msg.includes("reject") || msg.includes("cancel") || msg.includes("denied")) throw err;
+      return null;
+    }
+    const msg = typeof err === "string" ? err : JSON.stringify(err);
+    if (msg === "null" || msg === "undefined" || !msg) return null;
+    const lower = msg.toLowerCase();
+    if (lower.includes("reject") || lower.includes("cancel") || lower.includes("denied")) {
+      throw new Error(msg);
+    }
+    return null;
+  }
 
   return result;
 }

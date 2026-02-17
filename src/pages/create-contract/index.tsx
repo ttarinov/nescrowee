@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { formatWalletError } from "@/utils/format-wallet-error";
 import { useWallet } from "@/hooks/useWallet";
 import { useCreateContract } from "@/hooks/useContract";
 import { getStandardPromptHash } from "@/utils/promptHash";
@@ -13,7 +14,6 @@ import { PageHeader } from "./left-side/page-header";
 import { LeftSide } from "./left-side";
 import { RightSide } from "./right-side";
 import { ConnectWalletView } from "./connect-wallet-view";
-import { InviteLinkView } from "./invite-link-view";
 
 const CreateContractPage = () => {
   const navigate = useNavigate();
@@ -29,7 +29,6 @@ const CreateContractPage = () => {
     { id: Date.now().toString(), title: "", description: "", amount: "", timelineDays: "" },
   ]);
   const [activeMilestoneId, setActiveMilestoneId] = useState<string | null>(null);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [promptHash, setPromptHash] = useState<string>("");
   const [aiModelPopoverOpen, setAiModelPopoverOpen] = useState(false);
   const [nearPrice, setNearPrice] = useState<number | null>(null);
@@ -106,27 +105,15 @@ const CreateContractPage = () => {
         model_id: selectedModel,
       });
 
-      if (!counterpartyAddress) {
-        const token = Math.random().toString(36).substring(2, 10);
-        setInviteLink(`${window.location.origin}/invite/${token}`);
-        toast.success("Contract created! Share the invite link.");
-      } else {
-        toast.success("Contract created on-chain!");
-        navigate("/contracts");
-      }
+      toast.success("Contract created on-chain!");
+      navigate("/contracts");
     } catch (err) {
-      toast.error(`Failed: ${err instanceof Error ? err.message : "Unknown error"}`);
+      toast.error(formatWalletError(err));
     }
   };
 
   if (!isConnected) {
     return <ConnectWalletView onConnect={connect} />;
-  }
-
-  if (inviteLink) {
-    return (
-      <InviteLinkView inviteLink={inviteLink} onEdit={() => setInviteLink(null)} />
-    );
   }
 
   return (

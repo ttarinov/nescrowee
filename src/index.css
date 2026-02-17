@@ -270,6 +270,12 @@
   }
 }
 
+div[class*="here-wallet"],
+div[class*="hotkit"],
+div[data-radix-portal] {
+  z-index: 9999 !important;
+}
+
 @layer base {
   * {
     @apply border-border;

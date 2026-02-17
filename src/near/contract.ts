@@ -5,6 +5,7 @@ import type { Dispute } from "@/types/dispute";
 
 const GAS = "300000000000000";
 const NO_DEPOSIT = "0";
+const CONTRACT_CREATION_DEPOSIT = "50000000000000000000000";
 
 async function viewMethod<T>(methodName: string, args: Record<string, unknown> = {}): Promise<T> {
   const response = await fetch(nearConfig.nodeUrl, {
@@ -27,7 +28,7 @@ async function viewMethod<T>(methodName: string, args: Record<string, unknown> =
   const data = await response.json();
   if (data.error) throw new Error(data.error.message);
   const resultBytes = data.result.result;
-  const resultStr = String.fromCharCode(...resultBytes);
+  const resultStr = new TextDecoder().decode(new Uint8Array(resultBytes));
   return JSON.parse(resultStr);
 }
 
@@ -86,7 +87,7 @@ export function createContract(args: CreateContractArgs) {
     security_deposit_pct: args.security_deposit_pct,
     prompt_hash: args.prompt_hash,
     model_id: args.model_id,
-  });
+  }, CONTRACT_CREATION_DEPOSIT);
 }
 
 export function joinContract(contractId: string, inviteToken: string) {

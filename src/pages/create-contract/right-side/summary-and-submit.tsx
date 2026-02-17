@@ -15,8 +15,13 @@ export function SummaryAndSubmit({
   return (
     <div className="p-6 backdrop-blur-xl border-t border-white/12 z-20">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-lg font-bold text-white">
-          {totalNear.toFixed(2)} NEAR
+        <div>
+          <div className="text-lg font-bold text-white">
+            {totalNear.toFixed(2)} NEAR
+          </div>
+          <div className="text-[10px] text-white/40 mt-0.5">
+            + 0.05 NEAR storage fee
+          </div>
         </div>
         <button
           type="submit"

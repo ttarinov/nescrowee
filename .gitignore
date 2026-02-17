@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 .vercel
-docs/
+/docs/
 
 # Contract build artifacts
 contract/target/

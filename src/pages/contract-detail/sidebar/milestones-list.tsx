@@ -1,43 +1,24 @@
 import { Progress } from "@/components/ui/progress";
 import { MilestoneItem } from "./milestone-item";
 import type { EscrowContract } from "@/types/escrow";
+import type { ContractActions, ActionsPending } from "../useContractActions";
 
 interface MilestonesListProps {
   contract: EscrowContract;
   isClient: boolean;
   isFreelancer: boolean;
-  onFund: (milestoneId: string) => void;
-  onStart: (milestoneId: string) => void;
-  onRequestPayment: (milestoneId: string) => void;
-  onCancelPaymentRequest: (milestoneId: string) => void;
-  onApprove: (milestoneId: string) => void;
-  onAutoApprove: (milestoneId: string) => void;
-  onDispute: (milestoneId: string) => void;
-  fundPending: boolean;
-  startPending: boolean;
-  requestPaymentPending: boolean;
-  cancelPaymentPending: boolean;
-  approvePending: boolean;
-  autoApprovePending: boolean;
+  actions: ContractActions;
+  pending: ActionsPending;
+  onOpenDispute: (milestoneId: string) => void;
 }
 
 export function MilestonesList({
   contract,
   isClient,
   isFreelancer,
-  onFund,
-  onStart,
-  onRequestPayment,
-  onCancelPaymentRequest,
-  onApprove,
-  onAutoApprove,
-  onDispute,
-  fundPending,
-  startPending,
-  requestPaymentPending,
-  cancelPaymentPending,
-  approvePending,
-  autoApprovePending,
+  actions,
+  pending,
+  onOpenDispute,
 }: MilestonesListProps) {
   const completed = contract.milestones.filter((m) => m.status === "Completed").length;
   const progress = contract.milestones.length > 0 ? (completed / contract.milestones.length) * 100 : 0;
@@ -61,19 +42,9 @@ export function MilestonesList({
             securityPct={contract.security_deposit_pct}
             isClient={isClient}
             isFreelancer={isFreelancer}
-            onFund={onFund}
-            onStart={onStart}
-            onRequestPayment={onRequestPayment}
-            onCancelPaymentRequest={onCancelPaymentRequest}
-            onApprove={onApprove}
-            onAutoApprove={onAutoApprove}
-            onDispute={onDispute}
-            fundPending={fundPending}
-            startPending={startPending}
-            requestPaymentPending={requestPaymentPending}
-            cancelPaymentPending={cancelPaymentPending}
-            approvePending={approvePending}
-            autoApprovePending={autoApprovePending}
+            actions={actions}
+            pending={pending}
+            onOpenDispute={onOpenDispute}
           />
         ))}
       </div>

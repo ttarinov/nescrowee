@@ -11,11 +11,7 @@ import StatusBadge from "@/components/status-badge";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EyeIcon } from "@hugeicons/core-free-icons";
 import type { EscrowContract } from "@/types/escrow";
-
-const yoctoToNear = (yocto: string) => {
-  const val = BigInt(yocto || "0");
-  return (Number(val) / 1e24).toFixed(2);
-};
+import { yoctoToNear } from "@/utils/format";
 
 interface ContractInfoProps {
   contract: EscrowContract;
@@ -24,6 +20,9 @@ interface ContractInfoProps {
 
 export function ContractInfo({ contract, userRole }: ContractInfoProps) {
   const securityPoolNear = yoctoToNear(contract.security_pool);
+  const fundedTotal = (
+    BigInt(contract.funded_amount) + BigInt(contract.security_pool)
+  ).toString();
 
   return (
     <div className="space-y-3">
@@ -46,11 +45,23 @@ export function ContractInfo({ contract, userRole }: ContractInfoProps) {
       </div>
       <div className="text-sm font-mono text-white/60 space-y-0.5">
         <p>
-          {yoctoToNear(contract.total_amount)} NEAR · {yoctoToNear(contract.funded_amount)} funded
+          {yoctoToNear(contract.total_amount)} NEAR · {yoctoToNear(fundedTotal)} funded
         </p>
         <p className="text-xs">
-          Security pool: {securityPoolNear} NEAR ({contract.security_deposit_pct}%)
+          Incl. security pool: {securityPoolNear} NEAR ({contract.security_deposit_pct}%)
         </p>
+      </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-white/30 w-14 shrink-0">Client</span>
+          <span className="text-xs font-mono text-white/60 truncate">{contract.client}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-white/30 w-14 shrink-0">Freelancer</span>
+          <span className="text-xs font-mono text-white/60 truncate">
+            {contract.freelancer || "Not assigned"}
+          </span>
+        </div>
       </div>
       <Dialog>
         <DialogTrigger asChild>

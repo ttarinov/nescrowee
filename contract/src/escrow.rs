@@ -34,13 +34,14 @@ impl Contract {
             contract.security_pool.as_yoctonear() + security_part.as_yoctonear(),
         );
 
+        let total_deposited = contract.funded_amount.as_yoctonear() + contract.security_pool.as_yoctonear();
         let mut cumulative: u128 = 0;
         for milestone in contract.milestones.iter_mut() {
             cumulative += milestone.amount.as_yoctonear();
             if milestone.status == MilestoneStatus::NotFunded
-                && contract.funded_amount.as_yoctonear() >= cumulative
+                && total_deposited >= cumulative
             {
-                milestone.status = MilestoneStatus::Funded;
+                milestone.status = MilestoneStatus::InProgress;
             }
         }
 

@@ -137,6 +137,119 @@ export function useRaiseDispute() {
   });
 }
 
+async function collectEvidence(
+  contract: EscrowContract,
+  accountId: string | null | undefined,
+  onStep?: OnStepCallback
+): Promise<Array<{ fileName: string; content: string }> | undefined> {
+  if (!accountId) return undefined;
+
+  onStep?.("collecting_evidence");
+  try {
+    const allMessages = await getChatMessages(contract.id);
+    const evidenceMessages = allMessages.filter((m) => m.type === "evidence" && m.data);
+    const textEvidence: Array<{ fileName: string; content: string }> = [];
+
+    for (const msg of evidenceMessages) {
+      const data = msg.data as EvidenceData;
+      if (!data.cid) continue;
+      const isTextFile = /\.(txt|md|csv|json|log)$/i.test(data.fileName);
+      if (!isTextFile) continue;
+
+      try {
+        const buffer = await retrieveEvidence(accountId, contract.id, data.cid);
+        textEvidence.push({
+          fileName: data.fileName,
+          content: new TextDecoder().decode(buffer),
+        });
+      } catch { /* skip files we can't decrypt */ }
+    }
+
+    return textEvidence.length > 0 ? textEvidence : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function buildAnonymizedContext(
+  contract: EscrowContract,
+  milestone: any,
+  dispute: any,
+  chatHistory?: Array<{ sender: string; content: string }>,
+  evidence?: Array<{ fileName: string; content: string }>,
+  onStep?: OnStepCallback
+): string {
+  onStep?.("anonymizing");
+  return anonymizeDisputeContext({
+    contract: {
+      client: contract.client,
+      freelancer: contract.freelancer,
+      title: contract.title,
+      description: contract.description,
+    },
+    milestone: {
+      title: milestone.title,
+      description: milestone.description,
+      amount: milestone.amount,
+    },
+    dispute: {
+      raised_by: dispute.raised_by,
+      reason: dispute.reason,
+    },
+    chatHistory,
+    evidence,
+  });
+}
+
+async function submitResolutionOnChain(
+  contractId: string,
+  milestoneId: string,
+  result: any,
+  onStep?: OnStepCallback
+): Promise<void> {
+  onStep?.("submitting_onchain");
+  await submitAiResolution(
+    contractId,
+    milestoneId,
+    result.resolution,
+    result.explanation,
+    signatureToBytes(result.tee.signature),
+    addressToBytes(result.tee.signing_address),
+    result.tee.text,
+  );
+}
+
+async function postResolutionToSocialDb(
+  accountId: string,
+  contractId: string,
+  result: any,
+  context: string,
+  modelId: string,
+  rawResponse: string
+): Promise<void> {
+  const resolutionStr = typeof result.resolution === "string"
+    ? result.resolution
+    : JSON.stringify(result.resolution);
+
+  await sendStructuredMessage(
+    accountId,
+    contractId,
+    result.explanation,
+    "ai_resolution",
+    {
+      resolution: resolutionStr,
+      explanation: result.explanation,
+      confidence: result.confidence,
+      model_id: modelId,
+      tee_verified: true,
+      analysis: result.explanation,
+      context_for_freelancer: result.context_for_freelancer,
+      context,
+      raw_response: rawResponse,
+    },
+  );
+}
+
 export function useRunInvestigation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -153,98 +266,25 @@ export function useRunInvestigation() {
       accountId?: string | null;
       onStep?: OnStepCallback;
     }) => {
-      const milestone = contract.milestones.find((m) => m.id === milestoneId);
-      const dispute = contract.disputes.find(
+      const fresh = await getContract(contract.id) ?? contract;
+      const milestone = fresh.milestones.find((m) => m.id === milestoneId);
+      const dispute = fresh.disputes.find(
         (d) => d.milestone_id === milestoneId && d.status === "Pending",
       );
       if (!dispute || !milestone) throw new Error("Dispute or milestone not found");
 
-      onStep?.("collecting_evidence");
-      let evidence: Array<{ fileName: string; content: string }> | undefined;
-      if (accountId) {
-        try {
-          const allMessages = await getChatMessages(contract.id);
-          const evidenceMessages = allMessages.filter((m) => m.type === "evidence" && m.data);
-          const textEvidence: Array<{ fileName: string; content: string }> = [];
-
-          for (const msg of evidenceMessages) {
-            const data = msg.data as EvidenceData;
-            if (!data.cid) continue;
-            const isTextFile = /\.(txt|md|csv|json|log)$/i.test(data.fileName);
-            if (!isTextFile) continue;
-
-            try {
-              const buffer = await retrieveEvidence(accountId, contract.id, data.cid);
-              textEvidence.push({
-                fileName: data.fileName,
-                content: new TextDecoder().decode(buffer),
-              });
-            } catch { /* skip files we can't decrypt */ }
-          }
-
-          if (textEvidence.length > 0) evidence = textEvidence;
-        } catch { /* proceed without evidence if retrieval fails */ }
-      }
-
-      onStep?.("anonymizing");
-      const context = anonymizeDisputeContext({
-        contract: {
-          client: contract.client,
-          freelancer: contract.freelancer,
-          title: contract.title,
-          description: contract.description,
-        },
-        milestone: {
-          title: milestone.title,
-          description: milestone.description,
-          amount: milestone.amount,
-        },
-        dispute: {
-          raised_by: dispute.raised_by,
-          reason: dispute.reason,
-        },
-        chatHistory,
-        evidence,
-      });
+      const evidence = await collectEvidence(fresh, accountId, onStep);
+      const context = buildAnonymizedContext(fresh, milestone, dispute, chatHistory, evidence, onStep);
 
       onStep?.("connecting_tee");
-      const modelId = contract.model_id || "deepseek-ai/DeepSeek-V3.1";
+      const modelId = fresh.model_id || "deepseek-ai/DeepSeek-V3.1";
       const result = await runInvestigation(modelId, context, onStep);
       const { rawResponse, ...resultWithoutRaw } = result;
 
-      onStep?.("submitting_onchain");
-      await submitAiResolution(
-        contract.id,
-        milestoneId,
-        result.resolution,
-        result.explanation,
-        signatureToBytes(result.tee.signature),
-        addressToBytes(result.tee.signing_address),
-        result.tee.text,
-      );
+      await submitResolutionOnChain(fresh.id, milestoneId, result, onStep);
 
       if (accountId) {
-        const resolutionStr = typeof result.resolution === "string"
-          ? result.resolution
-          : JSON.stringify(result.resolution);
-
-        await sendStructuredMessage(
-          accountId,
-          contract.id,
-          result.explanation,
-          "ai_resolution",
-          {
-            resolution: resolutionStr,
-            explanation: result.explanation,
-            confidence: result.confidence,
-            model_id: modelId,
-            tee_verified: true,
-            analysis: result.explanation,
-            context_for_freelancer: result.context_for_freelancer,
-            context,
-            raw_response: rawResponse,
-          },
-        );
+        await postResolutionToSocialDb(accountId, fresh.id, result, context, modelId, rawResponse);
       }
 
       onStep?.("done", result.explanation);
