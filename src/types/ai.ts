@@ -12,7 +12,7 @@ export const AI_MODELS = [
     enabled: true,
   },
   {
-    id: "anthropic/claude-sonnet-4-5-20250929",
+    id: "anthropic/claude-sonnet-4-5",
     name: "Claude Sonnet 4.5",
     description: "Excellent tool use and reasoning",
     pricing: "3.00 / 15.50 USDC per M tokens",

@@ -1,42 +1,56 @@
 import type { ChatResponse, TeeSignature } from "./types";
 
-const NEAR_AI_BASE_URL = "https://cloud-api.near.ai/v1";
-
-function getApiKey(): string {
-  const key = import.meta.env.VITE_NEAR_AI_KEY;
-  if (!key) throw new Error("VITE_NEAR_AI_KEY env var not set");
-  return key;
-}
-
 export async function callDisputeAi(
   modelId: string,
-  systemPrompt: string,
-  userContext: string,
+  context: string,
 ): Promise<ChatResponse> {
-  const res = await fetch(`${NEAR_AI_BASE_URL}/chat/completions`, {
+  const res = await fetch("/api/ai-proxy", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getApiKey()}`,
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      action: "chat",
       model: modelId,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContext },
-      ],
-      temperature: 0.1,
-      max_tokens: 2048,
+      context,
     }),
   });
 
   if (!res.ok) {
-    throw new Error(`NEAR AI error: ${res.status} ${await res.text()}`);
+    const errorData = await res.json().catch(() => null);
+    throw new Error(errorData?.error || `AI proxy error: ${res.status}`);
   }
 
-  const data = await res.json();
-  const chatId = data.id || data.chat_id;
-  const content = data.choices[0].message.content;
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error("No response body");
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let chatId = "";
+  let content = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (data === "[DONE]") continue;
+
+      try {
+        const chunk = JSON.parse(data);
+        if (!chatId) chatId = chunk.id || chunk.chat_id || "";
+        const delta = chunk.choices?.[0]?.delta?.content;
+        if (delta) content += delta;
+      } catch { /* skip malformed chunks */ }
+    }
+  }
+
+  if (!content) throw new Error("AI returned empty response");
 
   return { response: content, chatId };
 }
@@ -45,15 +59,19 @@ export async function getAiSignature(
   chatId: string,
   modelId: string,
 ): Promise<TeeSignature> {
-  const res = await fetch(
-    `${NEAR_AI_BASE_URL}/signature/${chatId}?model=${encodeURIComponent(modelId)}&signing_algo=ed25519`,
-    {
-      headers: { Authorization: `Bearer ${getApiKey()}` },
-    },
-  );
+  const res = await fetch("/api/ai-proxy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "signature",
+      chatId,
+      model: modelId,
+    }),
+  });
 
   if (!res.ok) {
-    throw new Error(`TEE signature error: ${res.status} ${await res.text()}`);
+    const errorData = await res.json().catch(() => null);
+    throw new Error(errorData?.error || `Signature proxy error: ${res.status}`);
   }
 
   return res.json();
