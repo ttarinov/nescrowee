@@ -14,10 +14,11 @@ import {
   acceptResolution,
   finalizeResolution,
   releaseDisputeFunds,
+  overrideToContinueWork,
   completeContractSecurity,
   type CreateContractArgs,
 } from "@/near/contract";
-import { submitAiResolution } from "@/near/contract";
+import { submitAiResolution, acceptResolution as acceptResolutionCall } from "@/near/contract";
 import { anonymizeDisputeContext } from "@/utils/anonymize";
 import { getChatMessages, sendStructuredMessage } from "@/near/social";
 import type { EvidenceData } from "@/near/social";
@@ -324,6 +325,28 @@ export function useReleaseDisputeFunds() {
   return useMutation({
     mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
       releaseDisputeFunds(contractId, milestoneId),
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
+export function useOverrideToContinueWork() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) =>
+      overrideToContinueWork(contractId, milestoneId),
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
+  });
+}
+
+export function useAcceptAndRelease() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ contractId, milestoneId }: { contractId: string; milestoneId: string }) => {
+      await acceptResolutionCall(contractId, milestoneId);
+      await releaseDisputeFunds(contractId, milestoneId);
+    },
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({ queryKey: ["contract", variables.contractId] }),
   });

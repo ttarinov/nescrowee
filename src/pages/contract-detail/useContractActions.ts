@@ -11,6 +11,9 @@ import {
   useRaiseDispute,
   useAcceptResolution,
   useReleaseDisputeFunds,
+  useOverrideToContinueWork,
+  useAcceptAndRelease,
+  useFinalizeResolution,
   useCompleteContractSecurity,
 } from "@/hooks/useContract";
 import type { EscrowContract } from "@/types/escrow";
@@ -25,6 +28,9 @@ export interface ContractActions {
   raiseDispute: (milestoneId: string, reason: string) => void;
   acceptResolution: (milestoneId: string) => void;
   releaseFunds: (milestoneId: string) => void;
+  overrideToContinueWork: (milestoneId: string) => void;
+  acceptAndRelease: (milestoneId: string) => void;
+  finalizeAndRelease: (milestoneId: string) => void;
   releaseSecurityDeposit: () => void;
 }
 
@@ -38,6 +44,9 @@ export interface ActionsPending {
   dispute: boolean;
   accept: boolean;
   releaseFunds: boolean;
+  overrideContinue: boolean;
+  acceptAndRelease: boolean;
+  finalizeAndRelease: boolean;
   security: boolean;
 }
 
@@ -54,6 +63,9 @@ export function useContractActions(
   const disputeMutation = useRaiseDispute();
   const acceptMutation = useAcceptResolution();
   const releaseFundsMutation = useReleaseDisputeFunds();
+  const overrideContinueMutation = useOverrideToContinueWork();
+  const acceptAndReleaseMutation = useAcceptAndRelease();
+  const finalizeResolutionMutation = useFinalizeResolution();
   const securityMutation = useCompleteContractSecurity();
 
   const contractId = contract?.id ?? "";
@@ -154,6 +166,44 @@ export function useContractActions(
       );
     }, [contractId, releaseFundsMutation]),
 
+    overrideToContinueWork: useCallback((milestoneId: string) => {
+      overrideContinueMutation.mutate(
+        { contractId, milestoneId },
+        {
+          onSuccess: () => toast.success("Freelancer is back to work"),
+          onError: (e) => toast.error(formatWalletError(e)),
+        },
+      );
+    }, [contractId, overrideContinueMutation]),
+
+    acceptAndRelease: useCallback((milestoneId: string) => {
+      acceptAndReleaseMutation.mutate(
+        { contractId, milestoneId },
+        {
+          onSuccess: () => toast.success("Resolution accepted and funds released"),
+          onError: (e) => toast.error(formatWalletError(e)),
+        },
+      );
+    }, [contractId, acceptAndReleaseMutation]),
+
+    finalizeAndRelease: useCallback((milestoneId: string) => {
+      finalizeResolutionMutation.mutate(
+        { contractId, milestoneId },
+        {
+          onSuccess: () => {
+            releaseFundsMutation.mutate(
+              { contractId, milestoneId },
+              {
+                onSuccess: () => toast.success("Resolution finalized and funds released"),
+                onError: (e) => toast.error(formatWalletError(e)),
+              },
+            );
+          },
+          onError: (e) => toast.error(formatWalletError(e)),
+        },
+      );
+    }, [contractId, finalizeResolutionMutation, releaseFundsMutation]),
+
     releaseSecurityDeposit: useCallback(() => {
       securityMutation.mutate(
         { contractId },
@@ -175,6 +225,9 @@ export function useContractActions(
     dispute: disputeMutation.isPending,
     accept: acceptMutation.isPending,
     releaseFunds: releaseFundsMutation.isPending,
+    overrideContinue: overrideContinueMutation.isPending,
+    acceptAndRelease: acceptAndReleaseMutation.isPending,
+    finalizeAndRelease: finalizeResolutionMutation.isPending || releaseFundsMutation.isPending,
     security: securityMutation.isPending,
   };
 

@@ -32,9 +32,13 @@ export function DisputesSection({
           aiProcessing={aiProcessing}
           onAcceptResolution={actions.acceptResolution}
           onReleaseFunds={actions.releaseFunds}
+          onOverrideToContinueWork={actions.overrideToContinueWork}
+          onAcceptAndRelease={actions.acceptAndRelease}
           onRunInvestigation={onRunInvestigation}
           acceptPending={pending.accept}
           releaseFundsPending={pending.releaseFunds}
+          overrideContinuePending={pending.overrideContinue}
+          acceptAndReleasePending={pending.acceptAndRelease}
         />
       ))}
     </div>

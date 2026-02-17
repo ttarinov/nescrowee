@@ -176,4 +176,40 @@ impl Contract {
             "milestone_id" => milestone_id
         });
     }
+
+    pub fn override_to_continue_work(&mut self, contract_id: String, milestone_id: String) {
+        let caller = env::predecessor_account_id();
+        let mut contract = self.contracts.get(&contract_id).cloned().expect("Contract not found");
+
+        assert_eq!(caller, contract.client, "Only client can override to continue work");
+
+        let dispute_idx = contract
+            .find_dispute(&milestone_id, DisputeStatus::AiResolved)
+            .expect("No AiResolved dispute for this milestone");
+
+        let resolution = contract.disputes[dispute_idx]
+            .resolution
+            .as_ref()
+            .expect("No resolution set");
+
+        assert!(
+            matches!(resolution, Resolution::Client | Resolution::Split { .. }),
+            "Override only allowed for Client or Split resolutions"
+        );
+
+        contract.disputes[dispute_idx].status = DisputeStatus::Finalized;
+        contract.disputes[dispute_idx].funds_released = true;
+
+        let milestone_idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
+        contract.milestones[milestone_idx].status = MilestoneStatus::InProgress;
+        contract.milestones[milestone_idx].payment_request_deadline_ns = None;
+        contract.status = ContractStatus::Active;
+
+        self.contracts.insert(contract_id.clone(), contract);
+
+        emit_event!("dispute_override_continue", {
+            "contract_id" => contract_id,
+            "milestone_id" => milestone_id
+        });
+    }
 }
