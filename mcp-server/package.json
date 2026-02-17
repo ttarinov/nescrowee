@@ -1,0 +1,22 @@
+{
+  "name": "nescrowee-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Nescrowee escrow contracts on NEAR Protocol",
+  "type": "module",
+  "bin": {
+    "nescrowee-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "near-api-js": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
