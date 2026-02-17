@@ -90,7 +90,7 @@ Credit card → pay.hot-labs.org → USD→NEAR → relay account (nescrowee-rel
 
 ## Hackathon Tracks
 
-### AI That Works For You — $3,500
+### AI That Works For You
 
 **One bounded job end-to-end: dispute resolution.** User raises dispute → AI runs in TEE → resolution + Ed25519 signature → contract verifies → funds released.
 
@@ -101,7 +101,7 @@ Credit card → pay.hot-labs.org → USD→NEAR → relay account (nescrowee-rel
 - **Audit trail:** full on-chain record — dispute → resolution type → accept/finalize → release
 - **User-owned data:** evidence in NOVA (user-controlled groups), chat in Social DB (inspectable, exportable)
 
-### Private Web (NOVA) — $3,500
+### Private Web (NOVA)
 
 **Privacy is the default, not a mode.** Without TEE verification and encrypted evidence, the system wouldn't be safe for real money and sensitive project details.
 
@@ -110,7 +110,7 @@ Credit card → pay.hot-labs.org → USD→NEAR → relay account (nescrowee-rel
 - **Privacy-preserving anonymization:** client-side PII scrubbing before AI sees anything — accounts → "Party A / Party B", emails/phones/URLs/IPs/API keys all redacted. AI judges on facts, not identity
 - **User-owned data:** inspect (Social DB, NOVA CIDs), export (retrieve from NOVA, read chat), delete (control what you post), revoke (group access)
 
-### Open Society — $3,500
+### Open Society 
 
 **Escrow as settlement infrastructure** with clear dispute handling and audit trail.
 
@@ -120,7 +120,7 @@ Credit card → pay.hot-labs.org → USD→NEAR → relay account (nescrowee-rel
 - **Open by default:** permissionless create/join/fund; composable contract (view methods, `fund_contract`)
 - **Trustless arbitration:** no central authority, AI runs in TEE, open-source prompts with SHA-256 hashes on-chain, public attestation reports
 
-### Only on NEAR (Bonus) — $4,500
+### Only on NEAR
 
 **This couldn't exist on any other chain.** Deep integration across every NEAR-specific layer:
 
@@ -133,7 +133,7 @@ Credit card → pay.hot-labs.org → USD→NEAR → relay account (nescrowee-rel
 
 *Same flow on Ethereum: $50+ per tx, 12s blocks, no native AI cloud. On NEAR: one cent, one second.*
 
-### HOT Pay — $3,000
+### HOT Pay
 
 **Core payment method, not a bolt-on.** Every milestone payment can go through HOT Pay.
 

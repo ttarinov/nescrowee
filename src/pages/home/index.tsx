@@ -210,34 +210,14 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-2xl mx-auto"
+            className="max-w-2xl mx-auto text-centerq items-center flex justify-center"
           >
-            <div className="rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl overflow-hidden mb-8">
-              <div className="px-5 py-3 border-b border-white/10">
-                <span className="text-xs font-mono text-white/35">claude_desktop_config.json</span>
-              </div>
-              <pre className="p-5 text-sm font-mono text-white/65 overflow-x-auto leading-relaxed">{`{
-  "mcpServers": {
-    "nescrowee": {
-      "command": "npx",
-      "args": ["tsx", "/path/to/nescrowee/mcp-server/src/index.ts"],
-      "env": {
-        "NEAR_ACCOUNT_ID": "your-agent.testnet",
-        "NEAR_PRIVATE_KEY": "ed25519:..."
-      }
-    }
-  }
-}`}</pre>
-            </div>
-
-            <div className="flex justify-center">
               <Link to="/docs/mcp-specification">
                 <span className="inline-flex items-center gap-2 rounded-2xl border border-purple-500/30 bg-purple-500/10 px-6 py-3 text-sm font-medium text-purple-300 hover:bg-purple-500/15 hover:border-purple-500/40 transition-colors">
                   Read the MCP docs
                   <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
                 </span>
               </Link>
-            </div>
           </motion.div>
         </div>
       </section>
