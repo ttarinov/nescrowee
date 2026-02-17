@@ -71,7 +71,12 @@ export function ChatInput({
       onEvidenceUploaded?.();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
-      toast.error(`Evidence upload failed: ${msg}`);
+      const isNovaDown = msg.toLowerCase().includes("internal server error") || msg.toLowerCase().includes("key not found") || msg.toLowerCase().includes("shade");
+      toast.error(
+        isNovaDown
+          ? "NOVA network temporarily unavailable — evidence upload paused"
+          : `Evidence upload failed: ${msg}`
+      );
     } finally {
       setUploadingEvidence(false);
     }
@@ -98,12 +103,18 @@ export function ChatInput({
               onChange={handleEvidenceUpload}
             />
             <button
-              className="p-2 rounded-full text-gray-400 hover:text-purple-300 hover:bg-purple-500/20 transition-colors"
+              className="relative p-2 rounded-full text-gray-400 hover:text-purple-300 hover:bg-purple-500/20 transition-colors disabled:opacity-50"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploadingEvidence}
-              title="Upload evidence (encrypted via NOVA)"
+              title="Upload evidence — end-to-end encrypted via NOVA"
             >
               <HugeiconsIcon icon={Attachment01Icon} size={18} />
+              {uploadingEvidence && (
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-violet-500" />
+                </span>
+              )}
             </button>
           </div>
 
@@ -145,9 +156,14 @@ export function ChatInput({
           </div>
         </div>
 
-        <div className="text-center mt-3">
+        <div className="flex items-center justify-center gap-3 mt-3">
           <span className="text-[10px] text-gray-600 font-medium">
             Stored on NEAR Social DB · Each message costs gas
+          </span>
+          <span className="text-gray-700">·</span>
+          <span className="flex items-center gap-1 text-[10px] text-violet-500/70 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-violet-500/50" />
+            Evidence encrypted by NOVA
           </span>
         </div>
       </div>

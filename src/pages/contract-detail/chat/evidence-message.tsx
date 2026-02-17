@@ -65,15 +65,18 @@ export function EvidenceMessage({
         >
           <div className="flex items-center gap-2">
             <HugeiconsIcon icon={Attachment01Icon} size={16} className="text-purple-400 shrink-0" />
-            <div>
-              <p className="text-sm font-medium">{evidence?.fileName || "File"}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{evidence?.fileName || "File"}</p>
               <p className="text-[10px] font-mono text-white/50">
                 {evidence?.fileSize ? `${(evidence.fileSize / 1024).toFixed(1)} KB` : ""}
-                {evidence?.cid ? (
-                  <span className="text-emerald-400/80"> · encrypted via NOVA</span>
-                ) : " · pending upload"}
               </p>
             </div>
+            {evidence?.cid && (
+              <span className="shrink-0 flex items-center gap-1 bg-violet-950/60 border border-violet-500/30 rounded-full px-2 py-0.5 text-[9px] font-semibold text-violet-300 tracking-wide uppercase">
+                <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
+                Nova
+              </span>
+            )}
           </div>
           <div className={`text-[9px] mt-1 ${isSelf ? "text-indigo-300/50 text-right" : "text-slate-600"}`}>
             {new Date(message.timestamp).toLocaleTimeString([], {
