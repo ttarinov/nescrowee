@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseAiResolution } from "@/agent/parser";
+import { parseAiResolution } from "@/investigation/parser";
 
 describe("parseAiResolution", () => {
   it("parses Freelancer resolution", () => {

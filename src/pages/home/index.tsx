@@ -2,14 +2,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Shield01Icon,
-  LockIcon,
-  ZapIcon,
   ArrowRight01Icon,
-  GlobeIcon,
   CpuIcon,
-  Coins01Icon,
-  ShieldKeyIcon,
   AiBrain01Icon,
   UserGroupIcon,
   Tick02Icon,
@@ -21,6 +15,7 @@ import { HowItWorksFlow } from "@/components/how-it-works-flow";
 import ContractDemoCard from "./contract-demo-card";
 import IntegrationsSection from "./integrations-section";
 import SystemExplainer from "./system-explainer";
+import TechFeaturesSection from "./tech-features-section";
 
 const fadeUp = {
   initial: { opacity: 0, y: 30 },
@@ -147,45 +142,82 @@ const HomePage = () => {
 
       <SystemExplainer />
 
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <motion.div className="text-center mb-12" {...fadeUp}>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
-              <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(262_50%_88%))] bg-clip-text text-transparent">Instant payments.</span> Fees under <span className="text-primary">0.01 USDC</span>. Disputes with <span className="text-primary">TEE</span>-verified AI.
+      <TechFeaturesSection />
+
+      <section className="py-20 md:py-28 relative overflow-hidden">
+        <div className="absolute left-1/4 top-1/2 w-[500px] h-[500px] -translate-y-1/2 rounded-full bg-purple-600/[0.07] blur-[120px] pointer-events-none" />
+        <div className="container mx-auto px-4 relative">
+          <motion.div
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-purple-400/70 bg-purple-500/10 border border-purple-500/20 px-3 py-1.5 rounded-full mb-6">
+              <HugeiconsIcon icon={CpuIcon} size={13} />
+              MCP Server
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-5 text-white">
+              AI agents can sign contracts too
             </h2>
+            <p className="text-lg text-white/60 max-w-2xl mx-auto leading-relaxed">
+              Nescrowee ships with a real MCP server. Plug it into Claude Desktop, OpenClaw, or{" "}
+              <a href="http://rentahuman.ai/" target="_blank" rel="noopener noreferrer" className="text-white/80 hover:text-white underline underline-offset-2 transition-colors">rentahuman.ai</a>
+              {" "}— and let agents hire humans or other agents with full on-chain escrow and AI arbitration.
+            </p>
           </motion.div>
-          <div className="max-w-5xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-4 mb-14">
             {[
-              { icon: ZapIcon, title: "Sub-Second Finality", desc: "Transactions confirm in ~1 second. Milestone payments are instant." },
-              { icon: Coins01Icon, title: "Fraction-of-a-Cent Fees", desc: "Gas costs under 0.01 USDC. Escrow operations are practically free." },
-              { icon: ShieldKeyIcon, title: "Human-Readable Accounts", desc: "Use alice.near instead of cryptic hashes. HOT Wallet makes onboarding seamless." },
-              { icon: CpuIcon, title: "AI-Native Infrastructure", desc: "NEAR AI Cloud provides confidential inference in TEE for dispute resolution." },
-              { icon: Shield01Icon, title: "Privacy by Design", desc: "Dispute data processed in TEE. Chat anonymized before AI analysis. No raw data exposed." },
-              { icon: GlobeIcon, title: "HOT Pay", desc: "Fund escrow from 30+ chains. One-tap funding and instant milestone payouts." },
-              { icon: LockIcon, title: "Sharded & Scalable", desc: "Nightshade sharding handles millions of contracts in parallel." },
-              { icon: UserGroupIcon, title: "Open-Source Prompts", desc: "AI dispute prompts are open-source with on-chain hash verification." },
+              {
+                icon: AiBrain01Icon,
+                label: "rentahuman.ai → human",
+                title: "Agent hires a human",
+                desc: "A rentahuman.ai agent posts a task, locks funds in escrow, and pays only when the work is delivered and verified on-chain.",
+              },
+              {
+                icon: CpuIcon,
+                label: "OpenClaw → worker agent",
+                title: "Agent hires an agent",
+                desc: "One agent delegates a subtask to another. Milestones, payment, and dispute resolution are all enforced by the smart contract.",
+              },
+              {
+                icon: UserGroupIcon,
+                label: "you → Claude Desktop",
+                title: "Human uses AI assistant",
+                desc: "Connect Claude Desktop to Nescrowee. Your AI assistant manages contracts, checks milestone status, and approves payments on your behalf.",
+              },
             ].map((item, i) => (
               <motion.div
                 key={item.title}
-                className="p-5 rounded-2xl border border-white/20 bg-black/40 backdrop-blur-2xl hover:bg-black/50 transition-colors"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: i * 0.08 }}
+                className="rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-6 hover:border-purple-500/20 hover:bg-purple-500/[0.04] transition-colors"
               >
-                <HugeiconsIcon icon={item.icon} size={24} className="text-white/90 mb-3" />
-                <h3 className="font-semibold mb-1.5 text-white">{item.title}</h3>
+                <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center mb-4">
+                  <HugeiconsIcon icon={item.icon} size={20} className="text-purple-300" />
+                </div>
+                <div className="text-xs font-mono text-white/35 mb-3">{item.label}</div>
+                <h3 className="font-semibold text-white mb-2">{item.title}</h3>
                 <p className="text-sm text-white/60 leading-relaxed">{item.desc}</p>
               </motion.div>
             ))}
           </div>
-          <motion.div className="text-center mt-10" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
-            <Link to="/how-it-works">
-              <span className="text-sm text-primary hover:underline">Tech for the curious →</span>
-            </Link>
-            <p className="text-xs text-white/50 mt-2 max-w-md mx-auto">
-              NEAR contract, NEAR AI Cloud (TEE, Ed25519), HOT Wallet, HOT Pay, NOVA for encrypted evidence.
-            </p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-2xl mx-auto text-centerq items-center flex justify-center"
+          >
+              <Link to="/docs/mcp-specification">
+                <span className="inline-flex items-center gap-2 rounded-2xl border border-purple-500/30 bg-purple-500/10 px-6 py-3 text-sm font-medium text-purple-300 hover:bg-purple-500/15 hover:border-purple-500/40 transition-colors">
+                  Read the MCP docs
+                  <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                </span>
+              </Link>
           </motion.div>
         </div>
       </section>

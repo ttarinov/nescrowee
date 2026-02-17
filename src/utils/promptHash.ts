@@ -1,4 +1,4 @@
-import standardPrompt from "@/agent/prompts/standard.md?raw";
+import { STANDARD_PROMPT as standardPrompt } from "@/investigation/prompts/standard";
 
 export async function hashPrompt(text: string): Promise<string> {
   const encoder = new TextEncoder();

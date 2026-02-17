@@ -23,8 +23,8 @@ import { anonymizeDisputeContext } from "@/utils/anonymize";
 import { getChatMessages, sendStructuredMessage } from "@/near/social";
 import type { EvidenceData } from "@/near/social";
 import { retrieveEvidence } from "@/nova/client";
-import { runInvestigation, type InvestigationStep, type OnStepCallback } from "@/agent/investigation";
-import { signatureToBytes, addressToBytes } from "@/agent/client";
+import { runInvestigation, type InvestigationStep, type OnStepCallback } from "@/investigation/investigation";
+import { signatureToBytes, addressToBytes } from "@/investigation/client";
 import type { EscrowContract } from "@/types/escrow";
 
 export function useContractDetail(contractId: string | undefined) {

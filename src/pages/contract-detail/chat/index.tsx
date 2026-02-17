@@ -16,7 +16,7 @@ import type { SocialMessage, AiResolutionData } from "@/near/social";
 import type { InvestigationStep } from "@/hooks/useContract";
 import { MessageList } from "./message-list";
 import { ChatInput } from "./chat-input";
-import { AiProcessDialog } from "../components/ai-process-dialog";
+import { AiProcessDialog } from "../dialogs/ai-process-dialog";
 
 export interface InvestigationState {
   step: InvestigationStep;
