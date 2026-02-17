@@ -7,7 +7,6 @@
   ],
   "functions": {
     "api/hot-pay-webhook.ts": {
-      "runtime": "nodejs20.x",
       "maxDuration": 15
     }
   }
