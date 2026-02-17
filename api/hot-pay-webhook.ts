@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "node:crypto";
-import { KeyPair, connect, keyStores } from "near-api-js";
+import { KeyPair, KeyPairSigner, Account, JsonRpcProvider } from "near-api-js";
+import type { KeyPairString } from "near-api-js";
 
 interface HotPayEvent {
   type: "PAYMENT_STATUS_UPDATE";
@@ -141,12 +142,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const keyStore = new keyStores.InMemoryKeyStore();
-    await keyStore.setKey(network, relayAccountId, KeyPair.fromString(relayKey));
+    const keyPair = KeyPair.fromString(relayKey as KeyPairString);
+    const signer = KeyPairSigner.fromSecretKey(keyPair.getSecretKey());
+    const provider = new JsonRpcProvider({ url: nodeUrl });
+    const account = new Account(relayAccountId, provider, signer);
 
-    const near = await connect({ networkId: network, nodeUrl, keyStore });
-
-    const account = await near.account(relayAccountId);
     await account.functionCall({
       contractId: contractAddress,
       methodName: "fund_contract",

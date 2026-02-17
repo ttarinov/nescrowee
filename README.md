@@ -8,7 +8,7 @@ When disputes arise, an AI agent investigates evidence and chat history, produce
 
 - **🔐 HOT Wallet (MPC Wallet)** — Web-based authentication without browser extensions. WalletConnect integration, session persistence, direct NEAR transaction signing.
 
-- **💳 HOT Pay Relay Architecture** — Created relay account with function-call-only access key (can ONLY call `fund_contract()`). Webhook verifies HMAC-SHA256 + on-chain settlement. Credit card → NEAR → escrow (trustless).
+- **💳 HOT Pay Relay Architecture** — Webhook verifies HMAC-SHA256 + on-chain settlement, then relay account funds the contract. Credit card → NEAR → escrow (trustless). *Will switch to HOT Pay's direct contract funding once available.*
 
 - **🛡️ Privacy-Preserving AI** — Client-side data anonymization before sending to AI. Scrubs all PII (emails, phones, URLs, accounts). "Party A vs Party B" prevents bias. GDPR-compliant.
 
@@ -52,7 +52,7 @@ When disputes arise, an AI agent investigates evidence and chat history, produce
 - Fiat-to-NEAR payment gateway for contract funding
 - Credit card → NEAR tokens → escrow contract
 - Webhook integration (HMAC-SHA256 verification)
-- Relay account with function-call-only access key
+- Relay account for automated funding (will switch to HOT Pay direct funding once available)
 - Checkout flow: `pay.hot-labs.org/payment?item_id=...&amount=...&memo=mt-{contractId}-{milestoneId}`
 
 ---
@@ -210,23 +210,26 @@ await kit.near.sendTransaction({
 
 ## 💳 HOT Pay Integration (Fiat On-Ramp)
 
-HOT Pay enables users to fund contracts with **credit cards** instead of buying NEAR tokens manually. We implemented a **relay account architecture** for trustless payment processing.
+HOT Pay enables users to fund contracts with **credit cards** instead of buying NEAR tokens manually. We implemented a **relay account architecture** for automated payment processing.
 
-### Architecture: Relay Account (Critical Innovation!)
+### Architecture: Relay Account
 
-**Problem:** HOT Pay needs to call our smart contract's `fund_contract()` method, but we can't give HOT Pay full access to our contract.
-
-**Solution:** Created a **relay account** with a **function-call-only access key**:
+**Current Implementation:**
 
 1. **Relay Account:** `nescrowee-relay.near` (or `.testnet`)
-2. **Access Key:** Limited to ONLY calling `fund_contract(contract_id)` on `nescrowee.near`
-3. **Cannot:** Transfer funds, create contracts, or do anything else
+2. **Access:** Currently uses full access key (secure because private key stored server-side only)
+3. **Automated:** Receives HOT Pay settlement → calls `fund_contract()` automatically
 
-**Security:**
-- ✅ Relay account has NO full-access key (can't be drained)
-- ✅ Can ONLY call `fund_contract()` with attached deposit
+**Security Measures:**
 - ✅ Webhook verifies HMAC-SHA256 signature from HOT Pay
 - ✅ Webhook verifies settlement transaction on-chain before relaying
+- ✅ Only processes successful payments (`status: "SUCCESS"`)
+- ✅ Private key stored securely in Vercel environment variables
+
+**Future Improvement:**
+- 🔄 Will switch to **HOT Pay direct contract calls** (`authCall()`) once available
+- 🔄 This will eliminate the relay account entirely (HOT Pay calls contract directly)
+- 🔄 Even more trustless (no intermediary account needed)
 
 ### Payment Flow
 
@@ -300,8 +303,8 @@ const match = memo.match(/^mt-([^-]+)-(.+)$/);
 
 **Why This Matters:**
 - ✅ **Trustless** — No human approval needed
-- ✅ **Verifiable** — Every step verified on-chain
-- ✅ **Secure** — Relay account can't be misused (function-call-only key)
+- ✅ **Verifiable** — Every step verified on-chain (HMAC signature + settlement tx)
+- ✅ **Automated** — Credit card payment → contract funded in minutes
 - ✅ **Transparent** — All transactions visible on NEAR Explorer
 
 **Implementation:** `api/hot-pay-webhook.ts:1-177`
@@ -530,8 +533,7 @@ Response contains the public key used to sign AI responses. Match it against the
 
 ### Option 1: Live Demo (Mainnet)
 
-1. **Visit:** https://milestone-trust.vercel.app (or your Vercel URL)
-2. **Connect Wallet:** Click "Connect Wallet" (HOT Wallet)
+1. **Visit:** https://nescrowee.vercel.app2. **Connect Wallet:** Click "Connect Wallet" (HOT Wallet)
 3. **Create Contract:**
    - Go to "Create Contract"
    - Fill in title, description, milestones
@@ -629,7 +631,7 @@ vercel logs api/hot-pay-webhook
 
 ```bash
 # Clone repo
-git clone https://github.com/yourusername/milestone-trust.git
+git clone https://github.com/ttarinov/milestone-trust.git
 cd milestone-trust
 
 # Install dependencies
@@ -704,71 +706,24 @@ cd agent && bun run test.ts all
 
 ---
 
-## 📁 Project Structure
+## 📁 Key Files
 
-```
-contract/                    # NEAR smart contract (Rust)
-  src/
-    lib.rs                   # Contract state, TEE address management
-    dispute.rs               # Ed25519 verification, dispute lifecycle
-    escrow.rs                # Funding, milestone management
-    milestone.rs             # Milestone lifecycle
-    types.rs                 # Data structures
+**Smart Contract (Rust):**
+- `contract/src/lib.rs` — Contract state, TEE address management
+- `contract/src/dispute.rs` — Ed25519 verification, dispute lifecycle
 
-src/
-  agent/
-    client.ts                # NEAR AI Cloud HTTP client
-    investigation.ts         # Multi-round investigation loop
-    parser.ts                # Parse AI responses
-    types.ts                 # Agent types (TeeSignature, InvestigationRoundResult)
-    prompts/                 # Prompt .md files (standard, appeal, analysis, evidence)
-
-  near/
-    contract.ts              # Smart contract interaction
-    social.ts                # NEAR Social DB client
-    wallet.ts                # HOT Wallet integration
-    config.ts                # Network configuration
-
-  nova/
-    client.ts                # NOVA SDK wrapper (encrypt, upload, retrieve, groups)
-
-  types/
-    milestone.ts             # Milestone types
-    dispute.ts               # Dispute types
-    escrow.ts                # Contract types
-    ai.ts                    # AI model definitions
-    contract.ts              # Barrel re-export
-
-  pages/
-    home/                    # Landing page
-    contracts/               # User's contracts list
-    contract-detail/         # Contract detail + chat + dispute UI
-      useChat.ts             # Chat hook
-    create-contract/         # Contract creation wizard
-    how-disputes-work/       # TEE explainer page
-    docs/                    # Documentation
-    blog/                    # Blog posts
-
-  components/
-    ai-chat/                 # Chat UI components
-    wallet/                  # Wallet components
-    ui/                      # shadcn/ui components
-
-api/
-  hot-pay-webhook.ts         # Vercel serverless (HOT Pay webhook)
-
-.env                         # Environment variables (gitignored)
-.env.example                 # Example env vars
-vercel.json                  # Vercel configuration
-```
+**Frontend (TypeScript + React):**
+- `src/near/wallet.ts` — HOT Wallet integration (MPC wallet, transaction signing)
+- `src/utils/anonymize.ts` — Data anonymization (Party A/B, PII scrubbing)
+- `src/agent/client.ts` — NEAR AI Cloud HTTP client (browser-side)
+- `api/hot-pay-webhook.ts` — HOT Pay webhook + relay account
 
 ---
 
 ## 🔗 Links & Resources
 
 ### Live Project
-- **Frontend:** https://milestone-trust.vercel.app (or your deployment)
-- **Mainnet Contract:** https://nearblocks.io/address/nescrowee.near
+- **Frontend:** https://nescrowee.vercel.app- **Mainnet Contract:** https://nearblocks.io/address/nescrowee.near
 - **Testnet Contract:** https://testnet.nearblocks.io/address/nescrowee.testnet
 
 ### NEAR Ecosystem
@@ -858,10 +813,10 @@ vercel.json                  # Vercel configuration
    - Implementation: `@hot-labs/kit` + NEAR plugin
 
 8. **HOT Pay Relay Architecture (Trustless Fiat On-Ramp)**
-   - Created relay account with **function-call-only access key** (can ONLY call `fund_contract()`)
+   - Relay account automates funding after payment verification
    - Webhook verifies HMAC-SHA256 signature + on-chain settlement tx before relaying
    - Credit card → NEAR tokens → escrow contract (fully automated)
-   - Relay account cannot be drained (no full-access key)
+   - Future: Will switch to HOT Pay direct contract calls (authCall) once available
    - Zero trust required in HOT Pay (all verifiable on-chain)
 
 9. **Privacy-Preserving AI Arbitration (Data Anonymization)**
