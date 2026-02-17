@@ -68,9 +68,6 @@ export function AiModelSelector({
             className="w-[var(--radix-popover-trigger-width)] rounded-2xl border-white/10 bg-card p-2"
             align="start"
           >
-            <p className="text-xs text-muted-foreground px-2 py-1 mb-2">
-              Standard disputes: 2 rounds. Appeals use DeepSeek V3.1.
-            </p>
             <div className="space-y-1">
               {AI_MODELS.filter((m) => m.enabled).map((model) => {
                 const isSelected = selectedModel === model.id;

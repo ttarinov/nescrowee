@@ -31,8 +31,10 @@ export interface SocialMessage {
   data?: AiResolutionData | EvidenceData | Record<string, unknown>;
 }
 
-export async function getChatMessages(contractId: string): Promise<SocialMessage[]> {
-  const keys = [`*/nescrowee/chat/${contractId}/**`];
+export async function getChatMessages(contractId: string, participants: string[] = []): Promise<SocialMessage[]> {
+  const keys = participants.length > 0
+    ? participants.map((p) => `${p}/nescrowee/chat/${contractId}/**`)
+    : [`*/nescrowee/chat/${contractId}/**`];
 
   const response = await fetch(nearConfig.nodeUrl, {
     method: "POST",
@@ -123,7 +125,7 @@ export async function sendChatMessage(
           methodName: "set",
           args: { data },
           gas: "300000000000000",
-          deposit: "10000000000000000000000",
+          deposit: "50000000000000000000000",
         },
       },
     ],
@@ -164,7 +166,7 @@ export async function sendStructuredMessage(
           methodName: "set",
           args: { data },
           gas: "300000000000000",
-          deposit: "10000000000000000000000",
+          deposit: "50000000000000000000000",
         },
       },
     ],

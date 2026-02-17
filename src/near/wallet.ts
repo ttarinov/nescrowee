@@ -97,11 +97,20 @@ export async function signAndSendTransaction(params: {
       actions: params.actions,
     });
   } catch (err) {
-    if (err instanceof Error) throw err;
+    if (!err) return null;
+    if (err instanceof Error) {
+      const msg = err.message.toLowerCase();
+      if (msg.includes("reject") || msg.includes("cancel") || msg.includes("denied")) throw err;
+      return null;
+    }
     const msg = typeof err === "string" ? err : JSON.stringify(err);
-    throw new Error(msg || "Transaction failed");
+    if (msg === "null" || msg === "undefined" || !msg) return null;
+    const lower = msg.toLowerCase();
+    if (lower.includes("reject") || lower.includes("cancel") || lower.includes("denied")) {
+      throw new Error(msg);
+    }
+    return null;
   }
 
-  // HOT Wallet extension may return null on success — treat as success
   return result;
 }

@@ -79,7 +79,7 @@ export function RightSide({
       />
       </div>
       <p className="text-[10px] text-white/40 mt-2 text-center">
-        Gas ~0.001 USDC/action, paid by your wallet.{" "}
+        0.05 NEAR storage fee covers on-chain data. Gas ~0.001 NEAR/action.{" "}
         <Link to="/how-it-works" className="text-white/60 hover:text-white underline">
           Read more
         </Link>

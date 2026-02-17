@@ -97,6 +97,7 @@ impl Contract {
         self.ai_processing_fee
     }
 
+    #[payable]
     pub fn create_contract(
         &mut self,
         title: String,
@@ -107,6 +108,11 @@ impl Contract {
         prompt_hash: String,
         model_id: String,
     ) -> String {
+        let deposit = env::attached_deposit();
+        assert!(
+            deposit >= NearToken::from_millinear(50),
+            "Attach at least 0.05 NEAR to cover on-chain storage"
+        );
         assert!(
             (5..=30).contains(&security_deposit_pct),
             "Security deposit must be between 5% and 30%"

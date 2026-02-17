@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { formatWalletError } from "@/utils/format-wallet-error";
@@ -28,7 +28,13 @@ const ContractDetailPage = () => {
   const { id } = useParams();
   const { accountId } = useWallet();
   const { data: contract, isLoading } = useContractDetail(id);
-  const { messages, sendMessage } = useChat(id);
+  const participants = useMemo(() => {
+    if (!contract) return [];
+    const list = [contract.client];
+    if (contract.freelancer) list.push(contract.freelancer);
+    return list;
+  }, [contract]);
+  const { messages, sendMessage } = useChat(id, participants);
   const [disputeReason, setDisputeReason] = useState("");
   const [disputeMilestoneId, setDisputeMilestoneId] = useState<string | null>(null);
   const [investigationStep, setInvestigationStep] = useState<InvestigationStep | null>(null);
@@ -227,11 +233,13 @@ const ContractDetailPage = () => {
     );
   };
 
-  const handleSendMessage = (content: string) => {
-    sendMessage.mutate(content, {
-      onSuccess: () => {},
-      onError: () => toast.error("Failed to send message"),
-    });
+  const handleSendMessage = async (content: string) => {
+    try {
+      await sendMessage.mutateAsync(content);
+    } catch {
+      toast.error("Failed to send message");
+      throw new Error("send failed");
+    }
   };
 
   const chatMessages = messages.data || [];
@@ -249,6 +257,7 @@ const ContractDetailPage = () => {
               contract={contract}
               messages={chatMessages}
               onSendMessage={handleSendMessage}
+              sendPending={sendMessage.isPending}
               accountId={accountId}
               aiProcessing={investigationStep && investigationStep !== "done" && investigationStep !== "error" ? "active" : null}
               onEvidenceUploaded={() => messages.refetch()}

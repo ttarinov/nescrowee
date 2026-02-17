@@ -32,10 +32,13 @@ export function FundMilestoneDialog({
   const freelancerGets = milestoneNear - securityAmount;
   const amountNear = milestoneNear.toFixed(2);
   const memo = `mt-${contractId}-${milestoneId}`;
-  const redirectUrl = `${hotPayRedirectDomain}/contracts/${contractId}`;
   const hotPayUrl = hotPayItemId
-    ? `${hotPayCheckoutBase}?item_id=${hotPayItemId}&amount=${amountNear}&memo=${memo}&redirect_url=${encodeURIComponent(redirectUrl)}`
+    ? `${hotPayCheckoutBase}?item_id=${hotPayItemId}&amount=${amountNear}&memo=${memo}&redirect_url=${encodeURIComponent(hotPayRedirectDomain)}`
     : null;
+
+  const handleHotPayClick = () => {
+    localStorage.setItem("hotpay-pending", JSON.stringify({ contractId, milestoneId }));
+  };
 
   return (
     <Dialog>
@@ -86,6 +89,7 @@ export function FundMilestoneDialog({
                   href={hotPayUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={handleHotPayClick}
                   className="w-full p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">

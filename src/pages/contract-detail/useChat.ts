@@ -2,14 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getChatMessages, sendChatMessage } from "@/near/social";
 import { useWallet } from "@/hooks/useWallet";
 
-export function useChat(contractId: string | undefined) {
+export function useChat(contractId: string | undefined, participants: string[] = []) {
   const { accountId } = useWallet();
   const queryClient = useQueryClient();
 
   const messages = useQuery({
     queryKey: ["chat", contractId],
-    queryFn: () => getChatMessages(contractId!),
-    enabled: !!contractId,
+    queryFn: () => getChatMessages(contractId!, participants),
+    enabled: !!contractId && participants.length > 0,
     refetchInterval: 5_000,
   });
 

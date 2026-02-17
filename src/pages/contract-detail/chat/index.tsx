@@ -14,6 +14,7 @@ interface ChatPanelProps {
   contract: EscrowContract;
   messages: SocialMessage[];
   onSendMessage: (content: string) => void;
+  sendPending?: boolean;
   accountId: string | null;
   aiProcessing: string | null;
   onEvidenceUploaded?: () => void;
@@ -23,6 +24,7 @@ export function ChatPanel({
   contract,
   messages,
   onSendMessage,
+  sendPending,
   accountId,
   aiProcessing,
   onEvidenceUploaded,
@@ -74,6 +76,7 @@ export function ChatPanel({
         {userRole && accountId && (
           <ChatInput
             onSend={onSendMessage}
+            sendPending={sendPending}
             accountId={accountId}
             contract={contract}
             onEvidenceUploaded={onEvidenceUploaded}
