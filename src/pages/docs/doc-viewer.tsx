@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
-import MarkdownViewer from "./components/markdown-viewer";
+import MarkdownViewer from "./doc-components/markdown-viewer";
 import { getDocById } from "./docs-config";
 import ApiDocsPage from "./api";
 import McpDocsPage from "./mcp";

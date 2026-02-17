@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
-import { ApiMethodCard } from "../components/api-method-card";
-import { CodeBlock } from "../components/code-block";
+import { ApiMethodCard } from "../doc-components/api-method-card";
+import { CodeBlock } from "../doc-components/code-block";
 import OnThisPageSidebar from "../on-this-page-sidebar";
 import { VIEW_METHODS, CHANGE_METHODS, OWNER_METHODS } from "./methods";
 import { MCP_TOOLS, MCP_RESOURCES } from "./mcp-data";
@@ -167,49 +167,41 @@ await submitAiResolution({
           </section>
 
           <div className="border-t border-slate-800 pt-16 mt-16">
-            <h2 className="text-4xl font-bold text-white mb-2">MCP Documentation</h2>
-            <p className="text-lg text-gray-400 mb-12">
-              Model Context Protocol specification for bot integrations with Nescrowee escrow contracts.
+            <h2 className="text-4xl font-bold text-white mb-2">MCP Server</h2>
+            <p className="text-lg text-gray-400 mb-6">
+              A real MCP server that lets AI agents create and manage escrow contracts directly. See the <Link to="/docs/mcp-specification" className="text-purple-400 hover:text-purple-300 underline">MCP documentation</Link> for setup and full details.
             </p>
           </div>
 
           <section id="mcp-overview" className="scroll-mt-28 mb-16">
             <h2 className="text-2xl font-bold text-white mb-6">Overview</h2>
-            <div className="border border-blue-500/20 bg-blue-500/5 rounded-lg p-4 mb-8">
-              <p className="text-sm text-blue-200">
-                <strong>Note:</strong> This is a proposed MCP server specification for documentation purposes. This describes what an MCP server <em>could</em> look like to enable bots to interact with Nescrowee. No actual MCP server implementation is provided—bots can call smart contract methods directly using the API reference above.
-              </p>
-            </div>
             <p className="text-gray-300 mb-6">
-              Model Context Protocol (MCP) is a standard for enabling AI agents to interact with external systems through tools and resources. An MCP server exposes capabilities that AI agents can use to perform actions and access information.
-            </p>
-            <p className="text-gray-300 mb-6">
-              This specification describes how an MCP server could wrap Nescrowee's smart contract methods, making them accessible to AI agents like OpenClaw, Claude Desktop, and other MCP-compatible systems.
+              Nescrowee has a working MCP (Model Context Protocol) server that wraps all smart contract methods, making them accessible to AI agents like Claude Desktop, OpenClaw, and rentahuman.ai. Agents can hire humans or other agents trustlessly, with disputes resolved by AI in a TEE.
             </p>
             <CodeBlock
               code={`{
   "mcpServers": {
     "nescrowee": {
-      "command": "node",
-      "args": ["nescrowee-mcp-server.js"],
+      "command": "npx",
+      "args": ["tsx", "/path/to/nescrowee/mcp-server/src/index.ts"],
       "env": {
         "NEAR_NETWORK": "testnet",
         "NEAR_CONTRACT_ID": "nescrowee.testnet",
-        "NEAR_ACCOUNT_ID": "your-bot-account.testnet",
+        "NEAR_ACCOUNT_ID": "your-bot.testnet",
         "NEAR_PRIVATE_KEY": "ed25519:..."
       }
     }
   }
 }`}
               language="json"
-              title="MCP Server Configuration (proposed)"
+              title="Claude Desktop Config"
             />
           </section>
 
           <section id="mcp-tools" className="scroll-mt-28 mb-16">
-            <h2 className="text-2xl font-bold text-white mb-6">Proposed MCP Tools</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">MCP Tools</h2>
             <p className="text-gray-300 mb-6">
-              The following tools would be available to AI agents. These wrap the smart contract methods documented above.
+              The following tools are available to AI agents. They wrap the smart contract methods documented above.
             </p>
             <div className="space-y-4">
               {MCP_TOOLS.map((tool) => (
@@ -222,7 +214,7 @@ await submitAiResolution({
           </section>
 
           <section id="mcp-resources" className="scroll-mt-28 mb-16">
-            <h2 className="text-2xl font-bold text-white mb-6">Proposed MCP Resources</h2>
+            <h2 className="text-2xl font-bold text-white mb-6">MCP Resources</h2>
             <p className="text-gray-300 mb-6">
               Resources provide read-only access to contract data:
             </p>
@@ -243,7 +235,7 @@ await submitAiResolution({
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">OpenClaw Integration</h3>
                 <p className="text-gray-300 mb-4">
-                  Here's how an OpenClaw agent could use the proposed MCP tools:
+                  How an OpenClaw agent uses MCP tools to create and manage escrow contracts:
                 </p>
                 <CodeBlock
                   code={`const contract = await mcp.callTool("create_contract", {
@@ -273,7 +265,7 @@ await mcp.callTool("start_milestone", {
               <div>
                 <h3 className="text-xl font-bold text-white mb-4">rentahuman.ai Integration</h3>
                 <p className="text-gray-300 mb-4">
-                  rentahuman.ai agents could use MCP to hire humans securely:
+                  rentahuman.ai agents use MCP to hire humans trustlessly with on-chain escrow:
                 </p>
                 <CodeBlock
                   code={`const contract = await mcp.callTool("create_contract", {
