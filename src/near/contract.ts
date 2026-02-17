@@ -158,6 +158,10 @@ export function releaseDisputeFunds(contractId: string, milestoneId: string) {
   return callMethod("release_dispute_funds", { contract_id: contractId, milestone_id: milestoneId });
 }
 
+export function overrideToContinueWork(contractId: string, milestoneId: string) {
+  return callMethod("override_to_continue_work", { contract_id: contractId, milestone_id: milestoneId });
+}
+
 export function completeContractSecurity(contractId: string) {
   return callMethod("complete_contract_security", { contract_id: contractId });
 }

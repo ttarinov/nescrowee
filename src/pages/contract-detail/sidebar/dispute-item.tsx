@@ -20,9 +20,111 @@ interface DisputeItemProps {
   aiProcessing: string | null;
   onAcceptResolution: (milestoneId: string) => void;
   onReleaseFunds: (milestoneId: string) => void;
+  onOverrideToContinueWork: (milestoneId: string) => void;
+  onAcceptAndRelease: (milestoneId: string) => void;
   onRunInvestigation?: (milestoneId: string) => void;
   acceptPending: boolean;
   releaseFundsPending: boolean;
+  overrideContinuePending: boolean;
+  acceptAndReleasePending: boolean;
+}
+
+function ResolutionActions({
+  dispute,
+  userRole,
+  onOverrideToContinueWork,
+  onAcceptAndRelease,
+  overrideContinuePending,
+  acceptAndReleasePending,
+}: {
+  dispute: Dispute;
+  userRole: "client" | "freelancer" | null;
+  onOverrideToContinueWork: (milestoneId: string) => void;
+  onAcceptAndRelease: (milestoneId: string) => void;
+  overrideContinuePending: boolean;
+  acceptAndReleasePending: boolean;
+}) {
+  if (!userRole || !dispute.resolution) return null;
+
+  const resolution = dispute.resolution;
+  const mid = dispute.milestone_id;
+
+  if (resolution === "Client") {
+    return (
+      <div className="flex flex-col gap-2 pt-2">
+        {userRole === "client" && (
+          <>
+            <Button
+              size="sm"
+              variant="default"
+              className="bg-white/20 hover:bg-white/30 text-white"
+              onClick={() => onOverrideToContinueWork(mid)}
+              disabled={overrideContinuePending}
+            >
+              <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
+              Let Freelancer Continue
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-white/60 border-white/10 hover:bg-white/10"
+              onClick={() => onAcceptAndRelease(mid)}
+              disabled={acceptAndReleasePending}
+            >
+              Accept Refund
+            </Button>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  if (resolution === "Freelancer") {
+    return (
+      <div className="flex gap-2 pt-2">
+        <Button
+          size="sm"
+          variant="default"
+          className="bg-white/20 hover:bg-white/30 text-white"
+          onClick={() => onAcceptAndRelease(mid)}
+          disabled={acceptAndReleasePending}
+        >
+          <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
+          Release Payment
+        </Button>
+      </div>
+    );
+  }
+
+  if (typeof resolution === "object" && "Split" in resolution) {
+    return (
+      <div className="flex flex-col gap-2 pt-2">
+        {userRole === "client" && (
+          <Button
+            size="sm"
+            variant="default"
+            className="bg-white/20 hover:bg-white/30 text-white"
+            onClick={() => onOverrideToContinueWork(mid)}
+            disabled={overrideContinuePending}
+          >
+            <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
+            Let Freelancer Continue
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-white/60 border-white/10 hover:bg-white/10"
+          onClick={() => onAcceptAndRelease(mid)}
+          disabled={acceptAndReleasePending}
+        >
+          Accept Split
+        </Button>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export function DisputeItem({
@@ -31,9 +133,13 @@ export function DisputeItem({
   aiProcessing,
   onAcceptResolution,
   onReleaseFunds,
+  onOverrideToContinueWork,
+  onAcceptAndRelease,
   onRunInvestigation,
   acceptPending,
   releaseFundsPending,
+  overrideContinuePending,
+  acceptAndReleasePending,
 }: DisputeItemProps) {
   return (
     <div className="p-4 rounded-2xl border border-red-500/20 space-y-3">
@@ -65,20 +171,14 @@ export function DisputeItem({
               Auto-executes: {new Date(dispute.deadline_ns / 1e6).toLocaleString()}
             </p>
           )}
-          {userRole && (
-            <div className="flex gap-2 pt-2">
-              <Button
-                size="sm"
-                variant="default"
-                className="bg-white/20 hover:bg-white/30 text-white"
-                onClick={() => onAcceptResolution(dispute.milestone_id)}
-                disabled={acceptPending}
-              >
-                <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
-                Accept
-              </Button>
-            </div>
-          )}
+          <ResolutionActions
+            dispute={dispute}
+            userRole={userRole}
+            onOverrideToContinueWork={onOverrideToContinueWork}
+            onAcceptAndRelease={onAcceptAndRelease}
+            overrideContinuePending={overrideContinuePending}
+            acceptAndReleasePending={acceptAndReleasePending}
+          />
         </div>
       )}
 

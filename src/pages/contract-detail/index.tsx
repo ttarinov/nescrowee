@@ -80,6 +80,23 @@ const ContractDetailPage = () => {
 
   const { actions, pending } = useContractActions(contract, triggerAiResolution);
 
+  useEffect(() => {
+    if (!contract) return;
+    const now = Date.now() * 1e6;
+    for (const dispute of contract.disputes) {
+      if (
+        dispute.status === "AiResolved" &&
+        dispute.deadline_ns &&
+        dispute.deadline_ns < now &&
+        !dispute.funds_released
+      ) {
+        toast.info("Auto-finalizing expired dispute resolution...");
+        actions.finalizeAndRelease(dispute.milestone_id);
+        break;
+      }
+    }
+  }, [contract?.disputes]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
