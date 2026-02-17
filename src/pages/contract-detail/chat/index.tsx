@@ -79,8 +79,8 @@ export function ChatPanel({
         <h2 className="text-sm font-semibold text-white truncate">{contract.title}</h2>
         <StatusBadge status={contract.status} />
       </div>
-      <div className="flex-1 min-h-0 flex flex-col min-w-0">
-        <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 space-y-0">
+      <div className="flex-1 min-h-0 flex flex-col min-w-0 relative">
+        <div className="flex-1 min-h-0 overflow-y-scroll p-4 pb-0">
           {messages.length === 0 && !investigation && (
             <div className="flex items-center justify-center h-full min-h-[12rem]">
               <p className="text-sm text-muted-foreground">
@@ -95,7 +95,7 @@ export function ChatPanel({
             onOpenAiProcess={handleOpenAiProcess}
           />
           {investigation && <InvestigationMessage investigation={investigation} />}
-          <div ref={chatEndRef} />
+          <div ref={chatEndRef} className="h-4" />
         </div>
 
         {reviewMilestone && (

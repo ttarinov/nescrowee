@@ -11,6 +11,10 @@ interface MessageListProps {
   onOpenAiProcess?: (data: AiResolutionData) => void;
 }
 
+function isUserMessage(msg: SocialMessage) {
+  return msg.type !== "ai_resolution";
+}
+
 export function MessageList({
   messages,
   contract,
@@ -18,18 +22,30 @@ export function MessageList({
   onOpenAiProcess,
 }: MessageListProps) {
   return (
-    <>
-      {messages.map((msg) => {
+    <div className="flex flex-col">
+      {messages.map((msg, i) => {
+        const prev = messages[i - 1];
+        const next = messages[i + 1];
+
+        const sameAsPrev = prev && isUserMessage(prev) && isUserMessage(msg) && prev.sender === msg.sender;
+        const sameAsNext = next && isUserMessage(next) && isUserMessage(msg) && next.sender === msg.sender;
+
+        const isFirstInGroup = !sameAsPrev;
+        const isLastInGroup = !sameAsNext;
+
+        const gap = isFirstInGroup ? "mt-6" : "mt-1";
+
         if (msg.type === "ai_resolution") {
           const data = msg.data as AiResolutionData | undefined;
           if (!data) return null;
           return (
-            <AiResolutionMessage
-              key={msg.id}
-              message={msg}
-              data={data}
-              onClick={() => onOpenAiProcess?.(data)}
-            />
+            <div key={msg.id} className="mt-6">
+              <AiResolutionMessage
+                message={msg}
+                data={data}
+                onClick={() => onOpenAiProcess?.(data)}
+              />
+            </div>
           );
         }
 
@@ -37,26 +53,32 @@ export function MessageList({
           const evidence = msg.data as EvidenceData | undefined;
           const isSelf = msg.sender === accountId;
           return (
-            <EvidenceMessage
-              key={msg.id}
-              message={msg}
-              evidence={evidence}
-              isSelf={isSelf}
-              contract={contract}
-            />
+            <div key={msg.id} className={gap}>
+              <EvidenceMessage
+                message={msg}
+                evidence={evidence}
+                isSelf={isSelf}
+                contract={contract}
+                showAvatar={isLastInGroup}
+                isFirstInGroup={isFirstInGroup}
+              />
+            </div>
           );
         }
 
         const isSelf = msg.sender === accountId;
         return (
-          <TextMessage
-            key={msg.id}
-            message={msg}
-            isSelf={isSelf}
-            contract={contract}
-          />
+          <div key={msg.id} className={gap}>
+            <TextMessage
+              message={msg}
+              isSelf={isSelf}
+              contract={contract}
+              showAvatar={isLastInGroup}
+              isFirstInGroup={isFirstInGroup}
+            />
+          </div>
         );
       })}
-    </>
+    </div>
   );
 }
