@@ -57,7 +57,7 @@ export async function getChatMessages(contractId: string, participants: string[]
   if (data.error) return [];
 
   const resultBytes = data.result.result;
-  const resultStr = String.fromCharCode(...resultBytes);
+  const resultStr = new TextDecoder().decode(new Uint8Array(resultBytes));
   const socialData = JSON.parse(resultStr);
 
   const messages: SocialMessage[] = [];
@@ -125,7 +125,7 @@ export async function sendChatMessage(
           methodName: "set",
           args: { data },
           gas: "300000000000000",
-          deposit: "50000000000000000000000",
+          deposit: "20000000000000000000000",
         },
       },
     ],
@@ -166,7 +166,7 @@ export async function sendStructuredMessage(
           methodName: "set",
           args: { data },
           gas: "300000000000000",
-          deposit: "50000000000000000000000",
+          deposit: "20000000000000000000000",
         },
       },
     ],

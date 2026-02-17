@@ -28,7 +28,7 @@ async function viewMethod<T>(methodName: string, args: Record<string, unknown> =
   const data = await response.json();
   if (data.error) throw new Error(data.error.message);
   const resultBytes = data.result.result;
-  const resultStr = String.fromCharCode(...resultBytes);
+  const resultStr = new TextDecoder().decode(new Uint8Array(resultBytes));
   return JSON.parse(resultStr);
 }
 

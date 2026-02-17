@@ -29,7 +29,7 @@ export function FundMilestoneDialog({
 }: FundMilestoneDialogProps) {
   const milestoneNear = Number(BigInt(amountYocto || "0")) / 1e24;
   const securityAmount = milestoneNear * securityPct / 100;
-  const freelancerGets = milestoneNear - securityAmount;
+  const workAmount = milestoneNear - securityAmount;
   const amountNear = milestoneNear.toFixed(2);
   const memo = `mt-${contractId}-${milestoneId}`;
   const hotPayUrl = hotPayItemId
@@ -58,10 +58,9 @@ export function FundMilestoneDialog({
                   <span className="text-4xl font-bold font-mono text-white">{amountNear}</span>
                   <span className="text-lg text-white/50 font-medium">NEAR</span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-white/40 font-mono">
-                  <span>{securityPct}% security deposit ({securityAmount.toFixed(3)})</span>
-                  <span className="text-white/20">·</span>
-                  <span>Freelancer gets {freelancerGets.toFixed(3)}</span>
+                <div className="flex flex-col gap-0.5 text-xs text-white/40 font-mono">
+                  <span>Work payment: {workAmount.toFixed(3)} NEAR</span>
+                  <span>Security deposit ({securityPct}%): {securityAmount.toFixed(3)} NEAR</span>
                 </div>
               </div>
             </DialogHeader>
@@ -105,7 +104,7 @@ export function FundMilestoneDialog({
             </div>
 
             <p className="text-[11px] text-white/25 text-center mt-6">
-              {securityPct}% security deposit covers AI dispute fees · returned after completion
+              {securityPct}% security deposit is included · returned after completion
             </p>
           </div>
         </div>

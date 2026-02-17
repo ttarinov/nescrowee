@@ -66,10 +66,13 @@ async function ensureConnected(): Promise<HotKit> {
   if (k.near) return k;
 
   if (getAccountId()) {
-    try {
-      await k.connect(WalletType.NEAR);
-      if (k.near) return k;
-    } catch { /* reconnect failed, will throw below */ }
+    for (let i = 0; i < 2; i++) {
+      try {
+        await k.connect(WalletType.NEAR);
+        if (k.near) return k;
+      } catch { /* retry */ }
+      if (i === 0) await new Promise((r) => setTimeout(r, 500));
+    }
   }
 
   throw new Error("Wallet not connected. Please reconnect your wallet.");

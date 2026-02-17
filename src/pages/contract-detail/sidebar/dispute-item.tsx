@@ -20,6 +20,7 @@ interface DisputeItemProps {
   aiProcessing: string | null;
   onAcceptResolution: (milestoneId: string) => void;
   onReleaseFunds: (milestoneId: string) => void;
+  onRunInvestigation?: (milestoneId: string) => void;
   acceptPending: boolean;
   releaseFundsPending: boolean;
 }
@@ -30,6 +31,7 @@ export function DisputeItem({
   aiProcessing,
   onAcceptResolution,
   onReleaseFunds,
+  onRunInvestigation,
   acceptPending,
   releaseFundsPending,
 }: DisputeItemProps) {
@@ -82,13 +84,23 @@ export function DisputeItem({
 
       {dispute.status === "Pending" && (
         <div className="space-y-2">
-          {aiProcessing === dispute.milestone_id ? (
+          {aiProcessing === "active" ? (
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
               <p className="text-xs font-mono text-purple-300">
                 AI investigating · see chat
               </p>
             </div>
+          ) : onRunInvestigation ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="w-full text-purple-300 border-purple-500/30 hover:bg-purple-500/10"
+              onClick={() => onRunInvestigation(dispute.milestone_id)}
+            >
+              <HugeiconsIcon icon={AiBrain01Icon} size={12} className="mr-1" />
+              Run AI Investigation
+            </Button>
           ) : (
             <p className="text-xs font-mono text-white/50">
               Waiting for investigation...

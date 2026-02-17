@@ -1,24 +1,23 @@
 import { DisputeItem } from "./dispute-item";
 import type { EscrowContract } from "@/types/escrow";
+import type { ContractActions, ActionsPending } from "../useContractActions";
 
 interface DisputesSectionProps {
   contract: EscrowContract;
   userRole: "client" | "freelancer" | null;
   aiProcessing: string | null;
-  onAcceptResolution: (milestoneId: string) => void;
-  onReleaseFunds: (milestoneId: string) => void;
-  acceptPending: boolean;
-  releaseFundsPending: boolean;
+  actions: ContractActions;
+  pending: ActionsPending;
+  onRunInvestigation?: (milestoneId: string) => void;
 }
 
 export function DisputesSection({
   contract,
   userRole,
   aiProcessing,
-  onAcceptResolution,
-  onReleaseFunds,
-  acceptPending,
-  releaseFundsPending,
+  actions,
+  pending,
+  onRunInvestigation,
 }: DisputesSectionProps) {
   if (contract.disputes.length === 0) return null;
 
@@ -31,10 +30,11 @@ export function DisputesSection({
           dispute={dispute}
           userRole={userRole}
           aiProcessing={aiProcessing}
-          onAcceptResolution={onAcceptResolution}
-          onReleaseFunds={onReleaseFunds}
-          acceptPending={acceptPending}
-          releaseFundsPending={releaseFundsPending}
+          onAcceptResolution={actions.acceptResolution}
+          onReleaseFunds={actions.releaseFunds}
+          onRunInvestigation={onRunInvestigation}
+          acceptPending={pending.accept}
+          releaseFundsPending={pending.releaseFunds}
         />
       ))}
     </div>

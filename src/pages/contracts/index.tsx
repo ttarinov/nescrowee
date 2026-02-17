@@ -6,11 +6,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon, ArrowRight01Icon, Wallet01Icon } from "@hugeicons/core-free-icons";
 import { useWallet } from "@/hooks/useWallet";
 import { useUserContracts } from "@/hooks/useContract";
-
-const yoctoToNear = (yocto: string) => {
-  const val = BigInt(yocto || "0");
-  return (Number(val) / 1e24).toFixed(2);
-};
+import { yoctoToNear } from "@/utils/format";
 
 const ContractsPage = () => {
   const { accountId, isConnected, connect } = useWallet();
