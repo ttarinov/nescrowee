@@ -135,7 +135,7 @@ export function DisputeFundSection({
       {promptHash && (
         <div className="pt-4 mt-4 border-t border-white/12">
           <div className="text-[10px] font-mono text-white/40">{promptHash.slice(0, 44)}...</div>
-          <Link to="/how-it-works" className="text-xs text-white font-medium mt-0.5 hover:underline inline-block">
+          <Link to="/how-it-works" target="_blank" className="text-xs text-white font-medium mt-0.5 hover:underline inline-block">
             How it works →
           </Link>
         </div>
