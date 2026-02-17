@@ -132,8 +132,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? "https://rpc.mainnet.near.org"
     : "https://rpc.testnet.near.org";
 
-  // Verify the settlement tx on-chain before relaying
-  // This prevents attacks where a compromised webhook secret is used to craft fake webhooks
   if (event.near_trx) {
     const verification = await verifySettlementTx(nodeUrl, event.near_trx, relayAccountId, event.amount);
     if (!verification.verified) {
