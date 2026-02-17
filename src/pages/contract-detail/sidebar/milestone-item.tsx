@@ -9,7 +9,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import type { Milestone } from "@/types/milestone";
 import type { ContractActions, ActionsPending } from "../useContractActions";
-import { FundMilestoneDialog } from "../components/fund-milestone-dialog";
+import { FundMilestoneDialog } from "../dialogs/fund-milestone-dialog";
 import { yoctoToNear } from "@/utils/format";
 
 function formatTimeLeft(deadlineNs: number): string {
