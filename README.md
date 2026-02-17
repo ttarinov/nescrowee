@@ -1,5 +1,7 @@
 # Nescrowee
 
+**🌐 [Live Demo](https://nescrowee.vercel.app/)**
+
 **Trustless escrow platform for freelance contracts on NEAR blockchain with autonomous AI arbitration in Trusted Execution Environments (TEE).**
 
 When disputes arise, an AI agent investigates evidence and chat history, produces a cryptographically signed resolution, and the smart contract verifies the TEE signature on-chain using Ed25519. No human mediators needed—100% verifiable, tamper-proof dispute resolution.
