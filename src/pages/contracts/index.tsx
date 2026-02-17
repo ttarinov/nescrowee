@@ -74,34 +74,41 @@ const ContractsPage = () => {
                 transition={{ delay: i * 0.05 }}
               >
                 <Link to={`/contracts/${contract.id}`}>
-                  <div className="p-5 rounded-xl bg-card border border-border hover:border-primary/30 transition-all group">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="relative p-6 rounded-[24px] bg-black/40 backdrop-blur-2xl border border-white/10 hover:border-primary/30 transition-all group overflow-hidden">
+                    <div className="absolute top-[-60px] left-[-60px] w-[180px] h-[180px] bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
+                    <div className="absolute bottom-[-40px] right-[-40px] w-[120px] h-[120px] bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                          <h3 className="font-semibold text-xl text-white group-hover:text-primary transition-colors">
                             {contract.title}
                           </h3>
                           <StatusBadge status={contract.status} />
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-1 mb-3">
+                        <p className="text-sm text-white/50 line-clamp-1 mb-3">
                           {contract.description}
                         </p>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          {contract.freelancer ? "2 parties" : "Awaiting freelancer"} · Per milestone
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div className="text-right">
-                          <p className="text-2xl font-bold font-mono">{yoctoToNear(contract.total_amount)}</p>
-                          <p className="text-xs text-muted-foreground">NEAR</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-mono text-muted-foreground">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-white/40 font-mono">
+                            {contract.freelancer ? "2 parties" : "Awaiting freelancer"}
+                          </span>
+                          <div className="flex-1 max-w-[160px] h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all"
+                              style={{ width: `${(contract.milestones.filter((m) => m.status === "Completed").length / contract.milestones.length) * 100}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-white/40 font-mono">
                             {contract.milestones.filter((m) => m.status === "Completed").length}/{contract.milestones.length}
-                          </p>
-                          <p className="text-xs text-muted-foreground">milestones</p>
+                          </span>
                         </div>
-                        <HugeiconsIcon icon={ArrowRight01Icon} size={16} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <p className="text-2xl font-bold font-mono text-white">{yoctoToNear(contract.total_amount)}</p>
+                          <p className="text-xs text-white/40">NEAR</p>
+                        </div>
+                        <HugeiconsIcon icon={ArrowRight01Icon} size={18} className="text-white/30 group-hover:text-primary transition-colors" />
                       </div>
                     </div>
                   </div>

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { WalletProvider } from "@/contexts/wallet-context";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -25,6 +25,16 @@ import DocsPage from "./pages/docs";
 import DocViewer from "./pages/docs/doc-viewer";
 
 const queryClient = new QueryClient();
+
+const MARKETING_ROUTES = ["/", "/how-it-works", "/blog", "/docs"];
+
+function ConditionalFooter() {
+  const { pathname } = useLocation();
+  const isMarketing = MARKETING_ROUTES.some(
+    (r) => pathname === r || pathname.startsWith("/blog/") || pathname.startsWith("/docs/"),
+  );
+  return isMarketing ? <Footer /> : null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -53,7 +63,7 @@ const App = () => (
               <Route path="/docs/:docId" element={<DocViewer />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
-            <Footer />
+            <ConditionalFooter />
             <FloatingChatButton />
           </BrowserRouter>
         </SmoothScrollProvider>

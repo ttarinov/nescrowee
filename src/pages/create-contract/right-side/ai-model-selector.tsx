@@ -72,9 +72,11 @@ export function AiModelSelector({
               Standard disputes: 2 rounds. Appeals use DeepSeek V3.1.
             </p>
             <div className="space-y-1">
-              {AI_MODELS.map((model) => {
+              {AI_MODELS.filter((m) => m.enabled).map((model) => {
                 const isSelected = selectedModel === model.id;
                 const costLabel = MODEL_COST_LABEL[model.id];
+                const privacyLabel = model.tee ? "TEE-Protected" : "Anonymized";
+                const privacyColor = model.tee ? "text-green-400 bg-green-500/10" : "text-blue-400 bg-blue-500/10";
                 return (
                   <button
                     key={model.id}
@@ -86,7 +88,10 @@ export function AiModelSelector({
                     className={`w-full flex justify-between items-start p-3 rounded-xl text-left transition-all ${isSelected ? "bg-primary/20 text-primary" : "hover:bg-muted"}`}
                   >
                     <div className="min-w-0">
-                      <span className="font-medium block">{model.name}</span>
+                      <span className="font-medium block flex items-center gap-2">
+                        {model.name}
+                        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${privacyColor}`}>{privacyLabel}</span>
+                      </span>
                       <span className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                         <IntelligenceBulbs count={model.stars} />
                         <span>{model.speed}</span>

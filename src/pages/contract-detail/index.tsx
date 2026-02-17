@@ -1,9 +1,8 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import { formatWalletError } from "@/utils/format-wallet-error";
 import { useWallet } from "@/hooks/useWallet";
 import {
   useContractDetail,
@@ -84,14 +83,11 @@ const ContractDetailPage = () => {
   const handleFund = (milestoneId: string) => {
     const milestone = contract.milestones.find((m) => m.id === milestoneId);
     if (!milestone) return;
-    const milestoneAmount = BigInt(milestone.amount);
-    const pct = BigInt(contract.security_deposit_pct);
-    const totalWithSecurity = milestoneAmount * (100n + pct) / 100n;
     fundMutation.mutate(
-      { contractId: contract.id, amount: totalWithSecurity.toString() },
+      { contractId: contract.id, amount: milestone.amount },
       {
         onSuccess: () => toast.success("Funding successful"),
-        onError: (e) => toast.error(`Funding failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -101,7 +97,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Milestone started"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -111,7 +107,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Payment requested — client has 48h to review"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -121,7 +117,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Payment request cancelled"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -131,7 +127,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Milestone approved — funds released to freelancer"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -141,7 +137,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Payment auto-approved — funds released"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -178,7 +174,7 @@ const ContractDetailPage = () => {
         onError: (e) => {
           setInvestigationStep("error");
           setInvestigationError(e.message);
-          toast.error(`Investigation failed: ${e.message}`);
+          toast.error(formatWalletError(e));
         },
       }
     );
@@ -196,7 +192,7 @@ const ContractDetailPage = () => {
           setDisputeMilestoneId(null);
           triggerAiResolution(targetMilestoneId);
         },
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -206,7 +202,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Resolution accepted — finalized"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -216,7 +212,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id, milestoneId },
       {
         onSuccess: () => toast.success("Dispute funds released"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -226,7 +222,7 @@ const ContractDetailPage = () => {
       { contractId: contract.id },
       {
         onSuccess: () => toast.success("Security deposit released to freelancer"),
-        onError: (e) => toast.error(`Failed: ${e.message}`),
+        onError: (e) => toast.error(formatWalletError(e)),
       }
     );
   };
@@ -241,15 +237,8 @@ const ContractDetailPage = () => {
   const chatMessages = messages.data || [];
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-[calc(100vh-5.5rem)] flex flex-col">
       <div className="w-full mx-6 flex flex-col flex-1 min-h-0">
-        <Link
-          to="/contracts"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-          Back to contracts
-        </Link>
         <motion.div
           className="flex-1 min-h-0 flex w-full min-w-0"
           initial={{ opacity: 0, y: 20 }}

@@ -83,8 +83,8 @@ export function ChatInput({
               handleSend();
             }
           }}
-          className="min-h-[52px] max-h-[120px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-2xl px-4 py-3 pr-14 text-sm placeholder:text-muted-foreground"
-          rows={2}
+          className="min-h-[64px] max-h-[160px] resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 rounded-2xl px-4 py-3.5 pr-14 text-sm placeholder:text-muted-foreground"
+          rows={3}
         />
         <input
           ref={fileInputRef}

@@ -61,6 +61,20 @@ export function getAccountId(): string | null {
   }
 }
 
+async function ensureConnected(): Promise<HotKit> {
+  const k = getKit();
+  if (k.near) return k;
+
+  if (getAccountId()) {
+    try {
+      await k.connect(WalletType.NEAR);
+      if (k.near) return k;
+    } catch { /* reconnect failed, will throw below */ }
+  }
+
+  throw new Error("Wallet not connected. Please reconnect your wallet.");
+}
+
 export async function signAndSendTransaction(params: {
   receiverId: string;
   actions: Array<{
@@ -73,14 +87,21 @@ export async function signAndSendTransaction(params: {
     };
   }>;
 }) {
-  const k = getKit();
-  const nearWallet = k.near;
-  if (!nearWallet) throw new Error("NEAR wallet not connected");
+  const k = await ensureConnected();
+  const nearWallet = k.near!;
 
-  const result = await nearWallet.sendTransaction({
-    receiverId: params.receiverId,
-    actions: params.actions,
-  });
+  let result: unknown;
+  try {
+    result = await nearWallet.sendTransaction({
+      receiverId: params.receiverId,
+      actions: params.actions,
+    });
+  } catch (err) {
+    if (err instanceof Error) throw err;
+    const msg = typeof err === "string" ? err : JSON.stringify(err);
+    throw new Error(msg || "Transaction failed");
+  }
 
+  // HOT Wallet extension may return null on success — treat as success
   return result;
 }

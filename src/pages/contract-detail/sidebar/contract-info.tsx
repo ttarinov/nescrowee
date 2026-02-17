@@ -52,6 +52,18 @@ export function ContractInfo({ contract, userRole }: ContractInfoProps) {
           Security pool: {securityPoolNear} NEAR ({contract.security_deposit_pct}%)
         </p>
       </div>
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-white/30 w-14 shrink-0">Client</span>
+          <span className="text-xs font-mono text-white/60 truncate">{contract.client}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-white/30 w-14 shrink-0">Freelancer</span>
+          <span className="text-xs font-mono text-white/60 truncate">
+            {contract.freelancer || "Not assigned"}
+          </span>
+        </div>
+      </div>
       <Dialog>
         <DialogTrigger asChild>
           <button
