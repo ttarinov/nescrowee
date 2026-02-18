@@ -13,6 +13,7 @@ import { Sidebar } from "./sidebar";
 const ContractDetailPage = () => {
   const { id } = useParams();
   const { accountId } = useWallet();
+  const [mobileTab, setMobileTab] = useState<"chat" | "sidebar">("chat");
   const { data: contract, isLoading } = useContractDetail(id);
   const participants = useMemo(() => {
     if (!contract) return [];
@@ -156,31 +157,51 @@ const ContractDetailPage = () => {
 
   return (
     <div className="h-[calc(100vh-5.5rem)] flex flex-col">
-      <div className="w-full flex flex-col flex-1 min-h-0 sm:px-32">
+      <div className="w-full flex flex-col flex-1 min-h-0">
+        <div className="md:hidden flex gap-2 px-4 py-2 border-b border-slate-800">
+          <button
+            type="button"
+            onClick={() => setMobileTab("chat")}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mobileTab === "chat" ? "bg-slate-800 text-purple-300" : "text-slate-400"}`}
+          >
+            Chat
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab("sidebar")}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${mobileTab === "sidebar" ? "bg-slate-800 text-purple-300" : "text-slate-400"}`}
+          >
+            Details
+          </button>
+        </div>
         <motion.div
           className="flex-1 min-h-0 flex w-full min-w-0"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <ChatPanel
-            contract={contract}
-            messages={chatMessages}
-            onSendMessage={handleSendMessage}
-            sendPending={sendMessage.isPending}
-            accountId={accountId}
-            onEvidenceUploaded={() => messages.refetch()}
-            investigation={investigation}
-            chatError={messages.isError}
-          />
+          <div className={mobileTab === "chat" ? "flex-1 min-h-0 flex flex-col md:flex" : "hidden md:flex md:flex-1 md:min-h-0 md:flex-col"}>
+            <ChatPanel
+              contract={contract}
+              messages={chatMessages}
+              onSendMessage={handleSendMessage}
+              sendPending={sendMessage.isPending}
+              accountId={accountId}
+              onEvidenceUploaded={() => messages.refetch()}
+              investigation={investigation}
+              chatError={messages.isError}
+            />
+          </div>
 
-          <Sidebar
-            contract={contract}
-            userRole={userRole}
-            actions={actions}
-            pending={{ ...pending, dispute: pending.dispute || investigationMutation.isPending }}
-            aiProcessing={aiProcessingStatus}
-            onRunInvestigation={triggerAiResolution}
-          />
+          <div className={mobileTab === "sidebar" ? "flex md:flex" : "hidden md:flex"}>
+            <Sidebar
+              contract={contract}
+              userRole={userRole}
+              actions={actions}
+              pending={{ ...pending, dispute: pending.dispute || investigationMutation.isPending }}
+              aiProcessing={aiProcessingStatus}
+              onRunInvestigation={triggerAiResolution}
+            />
+          </div>
         </motion.div>
       </div>
     </div>

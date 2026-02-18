@@ -22,4 +22,16 @@ export default defineConfig(() => ({
   define: {
     global: "globalThis",
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-framer": ["framer-motion"],
+          "vendor-near": ["near-api-js"],
+          "vendor-blocknote": ["@blocknote/core", "@blocknote/react", "@blocknote/mantine"],
+        },
+      },
+    },
+  },
 }));

@@ -8,6 +8,20 @@ export interface DocItem {
 
 export const docs: DocItem[] = [
   {
+    id: "api-reference",
+    title: "API Reference",
+    path: "api-reference",
+    category: "Reference",
+    description: "Complete reference for all smart contract methods",
+  },
+  {
+    id: "mcp-specification",
+    title: "MCP Specification",
+    path: "mcp-specification",
+    category: "Reference",
+    description: "Model Context Protocol specification for bot integrations",
+  },
+  {
     id: "quick-start",
     title: "Quick Start",
     path: "/docs/QUICK_START.md",
@@ -35,25 +49,13 @@ export const docs: DocItem[] = [
     category: "Integrations",
     description: "Multi-token funding via HOT Pay checkout",
   },
-  {
-    id: "api-reference",
-    title: "API Reference",
-    path: "api-reference",
-    category: "Reference",
-    description: "Complete reference for all smart contract methods",
-  },
-  {
-    id: "mcp-specification",
-    title: "MCP Specification",
-    path: "mcp-specification",
-    category: "Reference",
-    description: "Model Context Protocol specification for bot integrations",
-  },
 ];
 
 export const getDocById = (id: string): DocItem | undefined => {
   return docs.find((doc) => doc.id === id);
 };
+
+const CATEGORY_ORDER = ["Reference", "Getting Started", "Security", "Development", "Integrations"];
 
 export const getDocsByCategory = (): Record<string, DocItem[]> => {
   const categorized: Record<string, DocItem[]> = {};
@@ -65,4 +67,10 @@ export const getDocsByCategory = (): Record<string, DocItem[]> => {
     categorized[category].push(doc);
   });
   return categorized;
+};
+
+export const getDocsByCategoryOrdered = (): [string, DocItem[]][] => {
+  const byCategory = getDocsByCategory();
+  const order = new Set([...CATEGORY_ORDER, ...Object.keys(byCategory)]);
+  return Array.from(order).filter((cat) => byCategory[cat]).map((cat) => [cat, byCategory[cat]]);
 };

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -9,20 +9,21 @@ import Footer from "@/components/Footer";
 import { ArrowCursor } from "@/components/arrow-cursor";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
 import { FloatingChatButton } from "@/components/ai-chat/floating-chat-button";
-import HomePage from "./pages/home";
-import ContractsPage from "./pages/contracts";
-import ContractDetailPage from "./pages/contract-detail";
-import CreateContractPage from "./pages/create-contract";
-import HowItWorksPage from "./pages/how-it-works";
-import NotFoundPage from "./pages/not-found";
-import BlogPage from "./pages/blog";
-import HotPayIntegrationPost from "./pages/blog/hot-pay-integration";
-import NovaIntegrationPost from "./pages/blog/nova-integration";
-import NearProtocolPost from "./pages/blog/near-protocol";
-import OpenClawIntegrationPost from "./pages/blog/openclaw-integration";
-import RentahumanIntegrationPost from "./pages/blog/rentahuman-integration";
-import DocsPage from "./pages/docs";
-import DocViewer from "./pages/docs/doc-viewer";
+
+const HomePage = lazy(() => import("./pages/home"));
+const ContractsPage = lazy(() => import("./pages/contracts"));
+const ContractDetailPage = lazy(() => import("./pages/contract-detail"));
+const CreateContractPage = lazy(() => import("./pages/create-contract"));
+const HowItWorksPage = lazy(() => import("./pages/how-it-works"));
+const NotFoundPage = lazy(() => import("./pages/not-found"));
+const BlogPage = lazy(() => import("./pages/blog"));
+const HotPayIntegrationPost = lazy(() => import("./pages/blog/hot-pay-integration"));
+const NovaIntegrationPost = lazy(() => import("./pages/blog/nova-integration"));
+const NearProtocolPost = lazy(() => import("./pages/blog/near-protocol"));
+const OpenClawIntegrationPost = lazy(() => import("./pages/blog/openclaw-integration"));
+const RentahumanIntegrationPost = lazy(() => import("./pages/blog/rentahuman-integration"));
+const DocsPage = lazy(() => import("./pages/docs"));
+const DocViewer = lazy(() => import("./pages/docs/doc-viewer"));
 
 const queryClient = new QueryClient();
 
@@ -65,22 +66,24 @@ const App = () => (
             <Navbar />
             <HotPayRedirect />
             <div className="h-[5.5rem]" aria-hidden />
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/contracts" element={<ContractsPage />} />
-              <Route path="/contracts/:id" element={<ContractDetailPage />} />
-              <Route path="/create" element={<CreateContractPage />} />
-              <Route path="/how-it-works" element={<HowItWorksPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/hot-pay-integration" element={<HotPayIntegrationPost />} />
-              <Route path="/blog/nova-integration" element={<NovaIntegrationPost />} />
-              <Route path="/blog/near-protocol" element={<NearProtocolPost />} />
-              <Route path="/blog/openclaw-integration" element={<OpenClawIntegrationPost />} />
-              <Route path="/blog/rentahuman-integration" element={<RentahumanIntegrationPost />} />
-              <Route path="/docs" element={<DocsPage />} />
-              <Route path="/docs/:docId" element={<DocViewer />} />
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+            <Suspense fallback={null}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/contracts" element={<ContractsPage />} />
+                <Route path="/contracts/:id" element={<ContractDetailPage />} />
+                <Route path="/create" element={<CreateContractPage />} />
+                <Route path="/how-it-works" element={<HowItWorksPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/hot-pay-integration" element={<HotPayIntegrationPost />} />
+                <Route path="/blog/nova-integration" element={<NovaIntegrationPost />} />
+                <Route path="/blog/near-protocol" element={<NearProtocolPost />} />
+                <Route path="/blog/openclaw-integration" element={<OpenClawIntegrationPost />} />
+                <Route path="/blog/rentahuman-integration" element={<RentahumanIntegrationPost />} />
+                <Route path="/docs" element={<DocsPage />} />
+                <Route path="/docs/:docId" element={<DocViewer />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
             <ConditionalFooter />
             <FloatingChatButton />
           </BrowserRouter>

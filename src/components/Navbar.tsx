@@ -56,7 +56,7 @@ const Navbar = () => {
     : "";
 
   return (
-    <div className="fixed top-0 left-0 right-0 w-full py-4 flex justify-center z-50 pointer-events-none [&>*]:pointer-events-auto">
+    <div className="fixed top-0 left-0 right-0 w-full py-4 flex flex-col items-center z-50 pointer-events-none [&>*]:pointer-events-auto">
       <header className="w-[95%] max-w-5xl bg-slate-900/80 backdrop-blur-xl rounded-full border border-slate-800 p-2 pl-6 flex items-center justify-between shadow-2xl">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 group">

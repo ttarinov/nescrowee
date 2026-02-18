@@ -38,7 +38,9 @@ const TechFeaturesSection = () => {
       <div className="container mx-auto px-4 relative">
         <motion.div className="text-center mb-12" {...fadeUp}>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-white">
-            <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(262_50%_88%))] bg-clip-text text-transparent">Instant payments.</span> Fees under <span className="text-primary">0.01 USDC</span>. Disputes with <span className="text-primary">TEE</span>-verified AI.
+            <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(262_50%_88%))] bg-clip-text text-transparent">Instant payments.<br/>
+            Fees under <span className="text-primary">0.01 USDC</span>.
+            <br/>Disputes with <span className="text-primary">TEE</span>-verified AI.</span>
           </h2>
         </motion.div>
 
