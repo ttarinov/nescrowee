@@ -47,7 +47,7 @@ const Navbar = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const { accountId, isConnected, connect, disconnect } = useWallet();
+  const { accountId, isConnected, isWalletLoading, connect, disconnect } = useWallet();
 
   const truncatedAccount = accountId
     ? accountId.length > 20
@@ -86,12 +86,22 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() => connect()}
-                className="bg-slate-800 hover:bg-slate-700 text-white pl-4 pr-1 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-3 border border-slate-700"
+                disabled={isWalletLoading}
+                className="bg-slate-800 hover:bg-slate-700 text-white pl-4 pr-1 py-1 rounded-full text-sm font-medium transition-colors flex items-center gap-3 border border-slate-700 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>Connect Wallet</span>
-                <span className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
-                  <HugeiconsIcon icon={Wallet01Icon} className="w-4 h-4 text-white" />
-                </span>
+                {isWalletLoading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                    <span>Connecting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Connect Wallet</span>
+                    <span className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                      <HugeiconsIcon icon={Wallet01Icon} className="w-4 h-4 text-white" />
+                    </span>
+                  </>
+                )}
               </button>
             ) : (
               <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -196,16 +206,26 @@ const Navbar = () => {
               ) : (
                 <button
                   type="button"
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 mt-2"
+                  disabled={isWalletLoading}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
                   onClick={() => {
                     connect();
                     setMobileOpen(false);
                   }}
                 >
-                  <span className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center shrink-0">
-                    <HugeiconsIcon icon={Wallet01Icon} className="w-4 h-4 text-white" />
-                  </span>
-                  Connect Wallet
+                  {isWalletLoading ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center shrink-0">
+                        <HugeiconsIcon icon={Wallet01Icon} className="w-4 h-4 text-white" />
+                      </span>
+                      Connect Wallet
+                    </>
+                  )}
                 </button>
               )}
             </div>

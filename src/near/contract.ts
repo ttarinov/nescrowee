@@ -1,5 +1,4 @@
 import { nearConfig } from "./config";
-import { signAndSendTransaction } from "./wallet";
 import type { EscrowContract } from "@/types/escrow";
 import type { Dispute } from "@/types/dispute";
 
@@ -32,7 +31,8 @@ async function viewMethod<T>(methodName: string, args: Record<string, unknown> =
   return JSON.parse(resultStr);
 }
 
-function callMethod(methodName: string, args: Record<string, unknown>, deposit = NO_DEPOSIT) {
+async function callMethod(methodName: string, args: Record<string, unknown>, deposit = NO_DEPOSIT) {
+  const { signAndSendTransaction } = await import("./wallet");
   return signAndSendTransaction({
     receiverId: nearConfig.contractId,
     actions: [

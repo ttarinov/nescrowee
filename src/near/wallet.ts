@@ -1,7 +1,6 @@
 import { HotKit, WalletType } from "@hot-labs/kit";
 import NearPlugin from "@hot-labs/kit/near";
-
-const STORAGE_KEY = "hot:near-account";
+import { saveAccountId, clearAccountId, getAccountId } from "./wallet-account";
 
 let kit: HotKit | null = null;
 
@@ -33,7 +32,7 @@ export async function connectWallet(): Promise<string | null> {
     const wallet = await k.connect(WalletType.NEAR);
     if (k.near) {
       const accountId = k.near.address;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ accountId }));
+      saveAccountId(accountId);
       return accountId;
     }
     return wallet?.address || null;
@@ -47,19 +46,10 @@ export async function disconnectWallet(): Promise<void> {
     const k = getKit();
     if (k.near) await k.disconnect(k.near);
   } catch { /* ignore */ }
-  localStorage.removeItem(STORAGE_KEY);
+  clearAccountId();
 }
 
-export function getAccountId(): string | null {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
-    const parsed = JSON.parse(stored);
-    return parsed?.accountId || null;
-  } catch {
-    return null;
-  }
-}
+export { getAccountId } from "./wallet-account";
 
 async function ensureConnected(): Promise<HotKit> {
   const k = getKit();
