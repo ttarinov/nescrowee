@@ -54,6 +54,7 @@ pub struct Milestone {
     pub amount: NearToken,
     pub status: MilestoneStatus,
     pub payment_request_deadline_ns: Option<u64>,
+    pub payment_request_blocked_until_ns: Option<u64>,
 }
 
 #[derive(BorshDeserialize, BorshSerialize, Serialize, Deserialize, Clone, Debug)]

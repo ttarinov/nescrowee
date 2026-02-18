@@ -48,6 +48,10 @@ export function MilestoneItem({
     ? Date.now() * 1e6 >= milestone.payment_request_deadline_ns
     : false;
 
+  const cooldownActive = milestone.payment_request_blocked_until_ns
+    ? Date.now() * 1e6 < milestone.payment_request_blocked_until_ns
+    : false;
+
   return (
     <motion.div
       className="p-4 last:border-b-0"
@@ -95,7 +99,7 @@ export function MilestoneItem({
               size="sm"
               variant="hero"
               onClick={() => actions.requestPayment(milestone.id)}
-              disabled={pending.requestPayment}
+              disabled={pending.requestPayment || cooldownActive}
             >
               Request Payment
             </Button>
@@ -156,6 +160,12 @@ export function MilestoneItem({
               Auto-approve in {formatTimeLeft(milestone.payment_request_deadline_ns)}
             </p>
           )}
+        {cooldownActive && milestone.payment_request_blocked_until_ns && (
+          <p className="text-[10px] font-mono text-orange-400 mt-2 flex items-center gap-1 w-full">
+            <HugeiconsIcon icon={Clock01Icon} size={10} />
+            Payment requests blocked for {formatTimeLeft(milestone.payment_request_blocked_until_ns)}
+          </p>
+        )}
       </div>
     </motion.div>
   );
