@@ -71,6 +71,14 @@ const HomePage = () => {
                   </span>
                 </Link>
               </div>
+              <div className="flex items-center justify-center lg:justify-start gap-6 mt-4">
+                <Link to="/docs" className="text-sm text-white/50 hover:text-white/70 underline underline-offset-2 transition-colors">
+                  Read docs
+                </Link>
+                <a href="https://github.com/ttarinov/nescrowee" target="_blank" rel="noopener noreferrer" className="text-sm text-white/50 hover:text-white/70 underline underline-offset-2 transition-colors">
+                  GitHub repo
+                </a>
+              </div>
             </motion.div>
             <div className="flex justify-center lg:justify-end">
               <ContractDemoCard />
@@ -210,7 +218,7 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-2xl mx-auto text-centerq items-center flex justify-center"
+            className="max-w-2xl mx-auto text-center items-center flex justify-center"
           >
               <Link to="/docs/mcp-specification">
                 <span className="inline-flex items-center gap-2 rounded-2xl border border-purple-500/30 bg-purple-500/10 px-6 py-3 text-sm font-medium text-purple-300 hover:bg-purple-500/15 hover:border-purple-500/40 transition-colors">
