@@ -1,10 +1,38 @@
 # Nescrowee
 
-**Hackathon project · [NEAR Innovation Sandbox](https://near.org/sandbox)
+Hackathon project · [NEAR Innovation Sandbox](https://near.org/sandbox)
 
 **[Live Demo](https://nescrowee.vercel.app/)**
 
 Trustless escrow platform for freelance contracts on NEAR blockchain with autonomous AI arbitration in Trusted Execution Environments (TEE). When disputes arise, an AI agent investigates evidence and chat history, produces a cryptographically signed resolution, and the smart contract verifies the TEE signature on-chain via Ed25519. No human mediators — 100% verifiable, tamper-proof dispute resolution.
+
+---
+
+## Smart Contract
+
+| | Address | Explorer |
+|---|---------|---------|
+| **Mainnet** | `nescrowee.near` | [nearblocks.io](https://nearblocks.io/address/nescrowee.near) |
+| **Testnet** | `nescrowee.testnet` | [testnet.nearblocks.io](https://testnet.nearblocks.io/address/nescrowee.testnet) |
+
+**View Methods:** `get_contract`, `get_contracts_by_account`, `get_contract_count`, `get_tee_addresses`, `get_pending_disputes`, `get_owner`
+
+**Change Methods:** `create_contract`, `fund_contract`, `submit_milestone`, `raise_dispute`, `submit_ai_resolution`, `accept_resolution`, `appeal_resolution`
+
+**Owner-only:** `register_tee_address`, `remove_tee_address`, `set_ai_processing_fee`
+
+---
+
+## Technologies
+
+| Layer | Stack |
+|-------|-------|
+| **Blockchain** | NEAR Protocol, Rust + near-sdk 5.6.0, HOT Wallet SDK |
+| **AI & Security** | NEAR AI Cloud (TEE), Phala Cloud (Shade Agent), Ed25519 signatures |
+| **Data** | NEAR Social DB (chat/metadata), NOVA SDK (encrypted evidence) |
+| **Payments** | HOT Pay (fiat on-ramp), HMAC-SHA256 webhook verification |
+| **Frontend** | Vite, React 19, TypeScript, shadcn/ui, Tailwind CSS, Framer Motion, TanStack Query |
+| **Deployment** | Vercel (frontend), Phala Cloud (agent), Bun (runtime) |
 
 ---
 
@@ -154,34 +182,6 @@ Credit card → pay.hot-labs.org → USD→NEAR → relay account (nescrowee-rel
 | **GLM-4.7** | ~25s | $0.85 / $3.30 | Hybrid reasoning |
 
 Contract creators choose the standard dispute model. Appeals always use DeepSeek V3.1.
-
----
-
-## Smart Contract
-
-| | Address | Explorer |
-|---|---------|---------|
-| **Mainnet** | `nescrowee.near` | [nearblocks.io](https://nearblocks.io/address/nescrowee.near) |
-| **Testnet** | `nescrowee.testnet` | [testnet.nearblocks.io](https://testnet.nearblocks.io/address/nescrowee.testnet) |
-
-**View Methods:** `get_contract`, `get_contracts_by_account`, `get_contract_count`, `get_tee_addresses`, `get_pending_disputes`, `get_owner`
-
-**Change Methods:** `create_contract`, `fund_contract`, `submit_milestone`, `raise_dispute`, `submit_ai_resolution`, `accept_resolution`, `appeal_resolution`
-
-**Owner-only:** `register_tee_address`, `remove_tee_address`, `set_ai_processing_fee`
-
----
-
-## Technologies
-
-| Layer | Stack |
-|-------|-------|
-| **Blockchain** | NEAR Protocol, Rust + near-sdk 5.6.0, HOT Wallet SDK |
-| **AI & Security** | NEAR AI Cloud (TEE), Phala Cloud (Shade Agent), Ed25519 signatures |
-| **Data** | NEAR Social DB (chat/metadata), NOVA SDK (encrypted evidence) |
-| **Payments** | HOT Pay (fiat on-ramp), HMAC-SHA256 webhook verification |
-| **Frontend** | Vite, React 19, TypeScript, shadcn/ui, Tailwind CSS, Framer Motion, TanStack Query |
-| **Deployment** | Vercel (frontend), Phala Cloud (agent), Bun (runtime) |
 
 ---
 
