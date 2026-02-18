@@ -56,7 +56,7 @@ function FlowCard({
   return (
     <div
       className={cn(
-        "relative flex w-full max-w-[520px] flex-row items-start gap-5 rounded-2xl border px-7 py-6 text-left transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/30",
+        "relative flex w-full max-w-[520px] flex-col sm:flex-row items-start gap-5 rounded-2xl border px-4 py-5 sm:px-7 sm:py-6 text-left transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/30",
         variantStyles[variant]
       )}
     >
@@ -271,7 +271,7 @@ export function HowItWorksFlow() {
         <div className="flex flex-col items-center">
           <div
             className={cn(
-              "relative flex w-full max-w-[520px] flex-row items-start gap-5 rounded-2xl border px-7 py-6 text-left transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/30",
+              "relative flex w-full max-w-[520px] flex-col sm:flex-row items-start gap-5 rounded-2xl border px-4 py-5 sm:px-7 sm:py-6 text-left transition-all duration-300 hover:scale-[1.02] hover:border-purple-500/30",
               "border-purple-500/20 bg-gradient-to-br from-purple-500/[0.08] to-purple-900/[0.04]"
             )}
           >
@@ -281,7 +281,7 @@ export function HowItWorksFlow() {
             <img
               src="/illustration-test.png"
               alt="Create a contract"
-              className="h-32 w-32 shrink-0 object-contain"
+              className="h-20 w-20 sm:h-32 sm:w-32 shrink-0 object-contain"
             />
             <div className="min-w-0 flex-1 pt-0.5">
               <h4 className="mb-2 text-lg font-semibold text-[hsl(var(--foreground))]">
@@ -358,7 +358,7 @@ export function HowItWorksFlow() {
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
-                  <div className="flex w-full max-w-[520px] flex-row items-start gap-5 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/15 to-black px-7 py-6 text-left">
+                  <div className="flex w-full max-w-[520px] flex-col sm:flex-row items-start gap-5 rounded-2xl border border-purple-500/20 bg-gradient-to-br from-purple-500/15 to-black px-4 py-5 sm:px-7 sm:py-6 text-left">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-900/30 text-purple-300">
                       <HugeiconsIcon icon={AiBrain01Icon} size={26} />
                     </div>
