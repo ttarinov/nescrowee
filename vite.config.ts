@@ -23,14 +23,12 @@ export default defineConfig(() => ({
     global: "globalThis",
   },
   build: {
-    chunkSizeWarningLimit: 1500,
+    chunkSizeWarningLimit: 6000,
     rollupOptions: {
       output: {
         manualChunks: {
           "vendor-react": ["react", "react-dom", "react-router-dom"],
           "vendor-framer": ["framer-motion"],
-          "vendor-near": ["near-api-js"],
-          "vendor-blocknote": ["@blocknote/core", "@blocknote/react", "@blocknote/mantine"],
         },
       },
     },

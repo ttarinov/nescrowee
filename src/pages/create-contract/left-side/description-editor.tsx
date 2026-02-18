@@ -12,7 +12,7 @@ interface DescriptionEditorProps {
 const DESCRIPTION_PLACEHOLDER =
   "Contract body: scope, deliverables, acceptance criteria. Type '/' for headings and lists.";
 
-export function DescriptionEditor({ value, onChange }: DescriptionEditorProps) {
+export default function DescriptionEditor({ value, onChange }: DescriptionEditorProps) {
   const editor = useCreateBlockNote({
     placeholders: {
       default: DESCRIPTION_PLACEHOLDER,
