@@ -9,6 +9,7 @@ import {
   Loading01Icon,
   Alert01Icon,
   RefreshIcon,
+  Loading02Icon,
 } from "@hugeicons/core-free-icons";
 import StatusBadge from "@/components/status-badge";
 import type { EscrowContract } from "@/types/escrow";
@@ -168,7 +169,7 @@ function InvestigationMessage({ investigation }: { investigation: InvestigationS
             style={{ background: isError ? "rgba(239,68,68,0.1)" : "rgba(var(--primary-rgb,124,58,237),0.1)" }}
           >
             {isRunning ? (
-              <HugeiconsIcon icon={Loading01Icon} size={16} className="text-primary animate-spin" />
+              <HugeiconsIcon icon={Loading02Icon} size={16} className="text-primary animate-spin" />
             ) : (
               <HugeiconsIcon icon={Alert01Icon} size={16} className="text-destructive" />
             )}

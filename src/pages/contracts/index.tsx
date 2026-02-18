@@ -70,7 +70,7 @@ const ContractsPage = () => {
                 transition={{ delay: i * 0.05 }}
               >
                 <Link to={`/contracts/${contract.id}`}>
-                  <div className="relative p-6 rounded-[24px] bg-black/40 backdrop-blur-2xl border border-white/10 hover:border-primary/30 transition-all group overflow-hidden">
+                  <div className="relative p-6 rounded-[24px] bg-black/40 backdrop-blur-2xl hover:border-primary/30 transition-all group overflow-hidden">
                     <div className="absolute top-[-60px] left-[-60px] w-[180px] h-[180px] bg-blue-500/10 rounded-full blur-[80px] pointer-events-none" />
                     <div className="absolute bottom-[-40px] right-[-40px] w-[120px] h-[120px] bg-purple-500/10 rounded-full blur-[60px] pointer-events-none" />
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -122,7 +122,7 @@ const CreateContractPage = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <form onSubmit={handleSubmit}>
             <PageHeader title={title} onTitleChange={setTitle} />
-            <div className="grid grid-cols-2 gap-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
               <LeftSide
                 description={description}
                 onDescriptionChange={setDescription}
