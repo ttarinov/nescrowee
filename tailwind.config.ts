@@ -17,8 +17,6 @@ export default {
         sans: ['LTC Picon', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
         heading: ['LTC Picon', 'system-ui', 'sans-serif'],
-        'ltc-picon-condensed': ['LTC Picon Condensed', 'LTC Picon', 'system-ui', 'sans-serif'],
-        'ltc-picon-extended': ['LTC Picon Extended', 'LTC Picon', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -97,12 +95,17 @@ export default {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "page-loader": {
+          "0%, 100%": { transform: "scale(1)", boxShadow: "0 0 20px hsl(262 60% 58% / 0.15)" },
+          "50%": { transform: "scale(1.15)", boxShadow: "0 0 40px hsl(262 60% 58% / 0.35)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         float: "float 6s ease-in-out infinite",
+        "page-loader": "page-loader 2s ease-in-out infinite",
       },
     },
   },

@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import { ArrowCursor } from "@/components/arrow-cursor";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
 import { FloatingChatButton } from "@/components/ai-chat/floating-chat-button";
+import { PageLoader } from "@/components/page-loader";
 
 const HomePage = lazy(() => import("./pages/home"));
 const ContractsPage = lazy(() => import("./pages/contracts"));
@@ -66,7 +67,7 @@ const App = () => (
             <Navbar />
             <HotPayRedirect />
             <div className="h-[5.5rem]" aria-hidden />
-            <Suspense fallback={null}>
+            <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/contracts" element={<ContractsPage />} />
