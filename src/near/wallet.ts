@@ -18,7 +18,7 @@ function getKit(): HotKit {
           name: "Nescrowee",
           description: "Milestone escrow with AI dispute resolution",
           url: typeof window !== "undefined" ? window.location.origin : "",
-          icons: ["/favicon.ico"],
+          icons: [typeof window !== "undefined" ? `${window.location.origin}/favicon.ico` : ""],
         },
       },
     });
@@ -27,8 +27,8 @@ function getKit(): HotKit {
 }
 
 export async function connectWallet(): Promise<string | null> {
+  const k = getKit();
   try {
-    const k = getKit();
     const wallet = await k.connect(WalletType.NEAR);
     if (k.near) {
       const accountId = k.near.address;
@@ -36,8 +36,12 @@ export async function connectWallet(): Promise<string | null> {
       return accountId;
     }
     return wallet?.address || null;
-  } catch {
-    return null;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+    if (msg.includes("reject") || msg.includes("cancel") || msg.includes("denied") || msg.includes("dismiss") || msg.includes("closed")) {
+      return null;
+    }
+    throw err;
   }
 }
 
