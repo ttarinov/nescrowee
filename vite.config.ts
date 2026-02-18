@@ -23,6 +23,7 @@ export default defineConfig(() => ({
     global: "globalThis",
   },
   build: {
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {

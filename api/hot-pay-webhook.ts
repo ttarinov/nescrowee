@@ -143,16 +143,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const keyPair = KeyPair.fromString(relayKey as KeyPairString);
-    const signer = KeyPairSigner.fromSecretKey(keyPair.getSecretKey());
+    const signer = KeyPairSigner.fromSecretKey(keyPair.toString());
     const provider = new JsonRpcProvider({ url: nodeUrl });
     const account = new Account(relayAccountId, provider, signer);
 
-    await account.functionCall({
+    await account.callFunction({
       contractId: contractAddress,
       methodName: "fund_contract",
       args: { contract_id: contractId },
       gas: BigInt("100000000000000"),
-      attachedDeposit: BigInt(event.amount),
+      deposit: BigInt(event.amount),
     });
 
     return res.status(200).json({
