@@ -92,7 +92,7 @@ export function FundMilestoneDialog({
                   className="w-full p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all flex items-center gap-4 group"
                 >
                   <div className="w-12 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
-                    <img src="/hot-logo.svg" alt="HOT" className="w-7 h-7" />
+                    <img src="/hot-logo.svg" alt="HOT" width={28} height={28} className="w-7 h-7" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-base font-semibold text-white">HOT Pay</p>

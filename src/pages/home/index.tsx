@@ -46,9 +46,9 @@ const HomePage = () => {
             >
               <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
                 <span className="text-xs text-white/50 font-mono uppercase tracking-widest">Powered by</span>
-                <img src="/near-logo.png" alt="NEAR Protocol" className="h-5 opacity-80 hover:opacity-100 transition-opacity" />
+                <img src="/near-logo.webp" alt="NEAR Protocol" width={143} height={56} className="h-5 opacity-80 hover:opacity-100 transition-opacity" />
                 <span className="text-white/30">·</span>
-                <img src="/hot-logo.svg" alt="HOT Wallet" className="h-4 opacity-80 hover:opacity-100 transition-opacity" />
+                <img src="/hot-logo.svg" alt="HOT Wallet" width={100} height={16} className="h-4 opacity-80 hover:opacity-100 transition-opacity" />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-5 text-foreground">
                 Safe <span className="bg-[linear-gradient(90deg,hsl(var(--accent)),hsl(var(--accent))_55%,hsl(262_50%_88%)_82%)] bg-clip-text text-transparent">Escrow</span> For Freelance
