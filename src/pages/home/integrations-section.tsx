@@ -4,7 +4,7 @@ const integrations = [
   {
     name: "NEAR Protocol",
     why: "Smart contract escrow with named accounts (alice.near), NEAR Social DB for decentralized chat, and <$0.01 transaction fees. Sub-second finality makes instant milestone releases possible.",
-    logo: "/near-logo.png",
+    logo: "/near-logo.webp",
     big: true,
   },
   {
@@ -16,7 +16,7 @@ const integrations = [
   {
     name: "NEAR AI Cloud",
     why: "AI runs in TEE (Trusted Execution Environment) with Ed25519 signatures. Every dispute resolution is cryptographically verified on-chain. Zero trust in AI provider required.",
-    logo: "/near-ai-logo.png",
+    logo: "/near-ai-logo.webp",
     big: false,
   },
   {
@@ -28,7 +28,7 @@ const integrations = [
   {
     name: "NOVA", 
     why: "End-to-end encrypted evidence storage. Files encrypted client-side (AES-256-GCM), per-contract groups (nescrowee-{contractId}). Only dispute participants can decrypt—no vendor access.",
-    logo: "/nova-logo.png",
+    logo: "/nova-logo.webp",
     big: false,
   },
 ];
@@ -68,7 +68,7 @@ const IntegrationsSection = () => (
             <div className="relative z-10">
               <div className="flex items-center gap-2 mb-2">
                 {item.logo ? (
-                  <img src={item.logo} alt="" className={`object-contain opacity-90 ${item.big ? "h-12 md:h-14" : "h-8 w-auto"}`} />
+                  <img src={item.logo} alt="" loading="lazy" width={item.big ? 56 : 32} height={item.big ? 56 : 32} className={`object-contain opacity-90 ${item.big ? "h-12 md:h-14" : "h-8 w-auto"}`} />
                 ) : (
                   <div className={`rounded-xl bg-white/10 shrink-0 ${item.big ? "w-12 h-12 md:w-14 md:h-14" : "w-8 h-8"}`} />
                 )}

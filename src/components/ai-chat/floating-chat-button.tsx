@@ -11,6 +11,7 @@ export function FloatingChatButton() {
     <>
       <motion.button
         onClick={() => setIsOpen(true)}
+        aria-label="Open chat"
         className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg hover:shadow-xl transition-shadow"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

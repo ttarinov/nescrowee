@@ -78,9 +78,9 @@ function FlowCard({
         )}
       </div>
       <div className="min-w-0 flex-1 pt-0.5">
-        <h4 className="mb-2 text-base font-semibold text-[hsl(var(--foreground))]">
+        <h3 className="mb-2 text-base font-semibold text-[hsl(var(--foreground))]">
           {title}
-        </h4>
+        </h3>
         <p className="text-sm leading-relaxed text-[hsl(var(--muted-foreground))]">
           {description}
         </p>
@@ -279,14 +279,17 @@ export function HowItWorksFlow() {
               1
             </div>
             <img
-              src="/illustration-test.png"
+              src="/illustration-test.webp"
               alt="Create a contract"
+              width={128}
+              height={128}
+              loading="lazy"
               className="h-20 w-20 sm:h-32 sm:w-32 shrink-0 object-contain"
             />
             <div className="min-w-0 flex-1 pt-0.5">
-              <h4 className="mb-2 text-lg font-semibold text-[hsl(var(--foreground))]">
+              <h3 className="mb-2 text-lg font-semibold text-[hsl(var(--foreground))]">
                 Create a contract
-              </h4>
+              </h3>
               <p className="text-base leading-relaxed text-[hsl(var(--muted-foreground))]">
                 Client describes the job, breaks it into milestones with clear deliverables and amounts in NEAR.
               </p>
@@ -363,9 +366,9 @@ export function HowItWorksFlow() {
                       <HugeiconsIcon icon={AiBrain01Icon} size={26} />
                     </div>
                     <div className="min-w-0 flex-1 pt-0.5">
-                      <h4 className="mb-2 text-base font-semibold text-[hsl(var(--foreground))]">
+                      <h3 className="mb-2 text-base font-semibold text-[hsl(var(--foreground))]">
                         Disputes are rare
-                      </h4>
+                      </h3>
                       <p className="text-sm text-[hsl(var(--muted-foreground))]">
                         When milestones are clear. But if one happens, AI
                         resolves it in minutes.

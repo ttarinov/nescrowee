@@ -67,6 +67,7 @@ const App = () => (
             <Navbar />
             <HotPayRedirect />
             <div className="h-[5.5rem]" aria-hidden />
+            <main>
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<HomePage />} />
@@ -85,6 +86,7 @@ const App = () => (
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
+            </main>
             <ConditionalFooter />
             <FloatingChatButton />
           </BrowserRouter>
