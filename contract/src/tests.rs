@@ -32,7 +32,7 @@ fn create_test_contract() -> Contract {
 }
 
 fn create_escrow_with_milestone(contract: &mut Contract) -> String {
-    setup_context(&alice(), 0);
+    setup_context(&alice(), 50_000_000_000_000_000_000_000);
     contract.create_contract(
         "Test Project".into(),
         "Description".into(),
@@ -65,7 +65,7 @@ fn test_create_contract() {
 #[test]
 fn test_create_contract_draft_without_freelancer() {
     let mut contract = create_test_contract();
-    setup_context(&alice(), 0);
+    setup_context(&alice(), 50_000_000_000_000_000_000_000);
     let id = contract.create_contract(
         "Draft".into(),
         "Desc".into(),
@@ -89,7 +89,7 @@ fn test_create_contract_draft_without_freelancer() {
 #[should_panic(expected = "Security deposit must be between 5% and 30%")]
 fn test_invalid_security_pct() {
     let mut contract = create_test_contract();
-    setup_context(&alice(), 0);
+    setup_context(&alice(), 50_000_000_000_000_000_000_000);
     contract.create_contract(
         "Bad".into(),
         "Desc".into(),
@@ -105,7 +105,7 @@ fn test_invalid_security_pct() {
 #[should_panic(expected = "Cannot be your own freelancer")]
 fn test_cannot_self_hire() {
     let mut contract = create_test_contract();
-    setup_context(&alice(), 0);
+    setup_context(&alice(), 50_000_000_000_000_000_000_000);
     contract.create_contract(
         "Self".into(),
         "Desc".into(),
@@ -128,7 +128,7 @@ fn test_fund_contract_marks_milestones_funded() {
     contract.fund_contract(id.clone());
 
     let escrow = contract.get_contract(id).unwrap();
-    assert_eq!(escrow.milestones[0].status, MilestoneStatus::Funded);
+    assert_eq!(escrow.milestones[0].status, MilestoneStatus::InProgress);
     assert_eq!(escrow.funded_amount.as_yoctonear(), 10_000_000_000_000_000_000_000_000);
     assert_eq!(escrow.security_pool.as_yoctonear(), 1_000_000_000_000_000_000_000_000);
 }
@@ -182,15 +182,7 @@ fn test_milestone_lifecycle() {
     setup_context(&alice(), 11_000_000_000_000_000_000_000_000);
     contract.fund_contract(id.clone());
 
-    // Freelancer starts
-    setup_context(&bob(), 0);
-    contract.start_milestone(id.clone(), "m1".into());
-    assert_eq!(
-        contract.get_contract(id.clone()).unwrap().milestones[0].status,
-        MilestoneStatus::InProgress
-    );
-
-    // Freelancer requests payment
+    // Freelancer requests payment (milestone is already InProgress after funding)
     setup_context(&bob(), 0);
     contract.request_payment(id.clone(), "m1".into());
     assert_eq!(
@@ -229,7 +221,6 @@ fn test_cancel_payment_request() {
     contract.fund_contract(id.clone());
 
     setup_context(&bob(), 0);
-    contract.start_milestone(id.clone(), "m1".into());
     contract.request_payment(id.clone(), "m1".into());
     contract.cancel_payment_request(id.clone(), "m1".into());
 
@@ -252,7 +243,6 @@ fn test_raise_dispute() {
     contract.fund_contract(id.clone());
 
     setup_context(&bob(), 0);
-    contract.start_milestone(id.clone(), "m1".into());
     contract.request_payment(id.clone(), "m1".into());
 
     setup_context(&alice(), 0);
@@ -275,7 +265,6 @@ fn test_freelancer_cannot_raise_dispute() {
     contract.fund_contract(id.clone());
 
     setup_context(&bob(), 0);
-    contract.start_milestone(id.clone(), "m1".into());
     contract.request_payment(id.clone(), "m1".into());
 
     setup_context(&bob(), 0);
@@ -299,7 +288,7 @@ fn test_account_contract_linking() {
 #[test]
 fn test_join_contract() {
     let mut contract = create_test_contract();
-    setup_context(&alice(), 0);
+    setup_context(&alice(), 50_000_000_000_000_000_000_000);
     let id = contract.create_contract(
         "Open".into(),
         "Desc".into(),
@@ -345,7 +334,6 @@ fn test_get_pending_disputes() {
     contract.fund_contract(id.clone());
 
     setup_context(&bob(), 0);
-    contract.start_milestone(id.clone(), "m1".into());
     contract.request_payment(id.clone(), "m1".into());
 
     setup_context(&alice(), 0);
