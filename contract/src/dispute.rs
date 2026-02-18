@@ -4,6 +4,7 @@ use crate::types::*;
 use crate::{Contract, ContractExt};
 
 const DISPUTE_DEADLINE_NS: u64 = 48 * 60 * 60 * 1_000_000_000;
+const PAYMENT_COOLDOWN_NS: u64 = 24 * 60 * 60 * 1_000_000_000;
 
 #[near_bindgen]
 impl Contract {
@@ -185,7 +186,14 @@ impl Contract {
 
         let dispute_idx = contract
             .find_dispute(&milestone_id, DisputeStatus::AiResolved)
-            .expect("No AiResolved dispute for this milestone");
+            .or_else(|| {
+                contract.disputes.iter().position(|d| {
+                    d.milestone_id == milestone_id
+                        && d.status == DisputeStatus::Finalized
+                        && !d.funds_released
+                })
+            })
+            .expect("No overridable dispute for this milestone");
 
         let resolution = contract.disputes[dispute_idx]
             .resolution
@@ -203,6 +211,8 @@ impl Contract {
         let milestone_idx = contract.find_milestone(&milestone_id).expect("Milestone not found");
         contract.milestones[milestone_idx].status = MilestoneStatus::InProgress;
         contract.milestones[milestone_idx].payment_request_deadline_ns = None;
+        contract.milestones[milestone_idx].payment_request_blocked_until_ns =
+            Some(env::block_timestamp() + PAYMENT_COOLDOWN_NS);
         contract.status = ContractStatus::Active;
 
         self.contracts.insert(contract_id.clone(), contract);

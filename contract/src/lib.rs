@@ -152,6 +152,7 @@ impl Contract {
                 amount: NearToken::from_yoctonear(m.amount.0),
                 status: MilestoneStatus::NotFunded,
                 payment_request_deadline_ns: None,
+                payment_request_blocked_until_ns: None,
             })
             .collect();
 

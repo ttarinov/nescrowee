@@ -44,6 +44,14 @@ impl Contract {
             "Milestone must be in progress"
         );
 
+        if let Some(blocked_until) = contract.milestones[idx].payment_request_blocked_until_ns {
+            assert!(
+                env::block_timestamp() >= blocked_until,
+                "Payment requests are temporarily blocked (cooldown after dispute)"
+            );
+        }
+        contract.milestones[idx].payment_request_blocked_until_ns = None;
+
         contract.milestones[idx].status = MilestoneStatus::SubmittedForReview;
         contract.milestones[idx].payment_request_deadline_ns =
             Some(env::block_timestamp() + PAYMENT_REQUEST_DEADLINE_NS);
