@@ -1,4 +1,5 @@
 import { createContext, useCallback, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { getAccountId } from "@/near/wallet-account";
 
 interface WalletContextType {
@@ -27,6 +28,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       const { connectWallet } = await import("@/near/wallet");
       const id = await connectWallet();
       if (id) setAccountId(id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      toast.error(msg.toLowerCase().includes("no wallet") ? "No wallet found. Please install a NEAR wallet." : "Failed to connect wallet. Please try again.");
     } finally {
       setIsWalletLoading(false);
     }

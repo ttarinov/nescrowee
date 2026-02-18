@@ -231,7 +231,7 @@ export function ArrowCursor() {
   return (
     <>
       <svg
-        className="pointer-events-none fixed z-[10000]"
+        className="pointer-events-none fixed z-[2147483647]"
         style={{
           left: smoothPosition.x,
           top: smoothPosition.y,
@@ -299,7 +299,7 @@ export function ArrowCursor() {
       </svg>
 
       <div
-        className="pointer-events-none fixed z-[9998] rounded-full border transition-all duration-200"
+        className="pointer-events-none fixed z-[2147483646] rounded-full border transition-all duration-200"
         style={{
           left: smoothPosition.x - 16,
           top: smoothPosition.y - 16,
