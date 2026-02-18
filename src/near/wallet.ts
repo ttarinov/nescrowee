@@ -28,21 +28,38 @@ function getKit(): HotKit {
 
 export async function connectWallet(): Promise<string | null> {
   const k = getKit();
-  try {
-    const wallet = await k.connect(WalletType.NEAR);
-    if (k.near) {
-      const accountId = k.near.address;
-      saveAccountId(accountId);
-      return accountId;
+  
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  
+  const maxRetries = 3;
+  const retryDelays = [0, 200, 400];
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const wallet = await k.connect(WalletType.NEAR);
+      if (k.near) {
+        const accountId = k.near.address;
+        saveAccountId(accountId);
+        return accountId;
+      }
+      return wallet?.address || null;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+      
+      if (msg.includes("reject") || msg.includes("cancel") || msg.includes("denied") || msg.includes("dismiss") || msg.includes("closed")) {
+        return null;
+      }
+      
+      if (msg.includes("no wallet selected") && attempt < maxRetries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, retryDelays[attempt + 1]));
+        continue;
+      }
+      
+      throw err;
     }
-    return wallet?.address || null;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
-    if (msg.includes("reject") || msg.includes("cancel") || msg.includes("denied") || msg.includes("dismiss") || msg.includes("closed")) {
-      return null;
-    }
-    throw err;
   }
+  
+  return null;
 }
 
 export async function disconnectWallet(): Promise<void> {
