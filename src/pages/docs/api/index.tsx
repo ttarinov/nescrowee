@@ -30,11 +30,6 @@ const ApiDocsPage = () => {
             <p className="text-lg text-gray-400 mb-6">
               Complete reference for all Nescrowee smart contract methods. All methods can be called directly against the NEAR smart contract.
             </p>
-            <div className="border border-yellow-500/20 bg-yellow-500/5 rounded-lg p-4">
-              <p className="text-sm text-yellow-200">
-                <strong>Note:</strong> This documentation describes existing smart contract methods. No separate API server is required—call these methods directly on the NEAR blockchain.
-              </p>
-            </div>
           </div>
 
           <section id="authentication" className="scroll-mt-28 mb-16">

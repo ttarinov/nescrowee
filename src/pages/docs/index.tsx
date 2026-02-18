@@ -3,14 +3,13 @@ import { motion } from "framer-motion";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Book01Icon,
-  SourceCodeIcon,
   ApiIcon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
-import { docs, getDocsByCategory } from "./docs-config";
+import { getDocsByCategoryOrdered } from "./docs-config";
 
 const DocsPage = () => {
-  const docsByCategory = getDocsByCategory();
+  const docsByCategoryOrdered = getDocsByCategoryOrdered();
 
   return (
     <div className="min-h-screen bg-background">
@@ -30,8 +29,8 @@ const DocsPage = () => {
           </p>
         </motion.div>
 
-        <div className="space-y-12 mb-12">
-          {Object.entries(docsByCategory).map(([category, categoryDocs], categoryIndex) => (
+        <div className="grid md:grid-cols-2 gap-x-10 gap-y-12 mb-12">
+          {docsByCategoryOrdered.map(([category, categoryDocs], categoryIndex) => (
             <motion.div
               key={category}
               initial={{ opacity: 0, y: 20 }}
@@ -39,8 +38,8 @@ const DocsPage = () => {
               transition={{ duration: 0.6, delay: categoryIndex * 0.1 }}
             >
               <h2 className="text-2xl font-bold text-white mb-6">{category}</h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                {categoryDocs.map((doc, index) => (
+              <div className="grid gap-6">
+                {categoryDocs.map((doc) => (
                   <Link
                     key={doc.id}
                     to={`/docs/${doc.id}`}
@@ -72,23 +71,6 @@ const DocsPage = () => {
             </motion.div>
           ))}
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="border border-slate-800 rounded-2xl bg-slate-900/30 p-6"
-        >
-          <div className="flex items-start gap-4">
-            <HugeiconsIcon icon={SourceCodeIcon} size={24} className="text-yellow-400 mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-2">Important Note</h3>
-              <p className="text-sm text-gray-400">
-                This documentation describes how to interact with Nescrowee's existing smart contract methods and frontend APIs. We are <strong className="text-white">not</strong> creating a separate API server or MCP server implementation. All methods documented here can be called directly against the NEAR smart contract.
-              </p>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </div>
   );
