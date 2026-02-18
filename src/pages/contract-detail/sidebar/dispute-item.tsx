@@ -216,15 +216,30 @@ export function DisputeItem({
             {formatResolution(dispute.resolution)}
           </p>
           {!dispute.funds_released && dispute.resolution !== "ContinueWork" && (
-            <Button
-              size="sm"
-              variant="hero"
-              onClick={() => onReleaseFunds(dispute.milestone_id)}
-              disabled={releaseFundsPending}
-              className="mt-2"
-            >
-              Release Funds
-            </Button>
+            <div className="flex flex-col gap-2 mt-2">
+              {userRole === "client" &&
+                (dispute.resolution === "Client" ||
+                  (typeof dispute.resolution === "object" && "Split" in dispute.resolution)) && (
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-white/20 hover:bg-white/30 text-white"
+                    onClick={() => onOverrideToContinueWork(dispute.milestone_id)}
+                    disabled={overrideContinuePending}
+                  >
+                    <HugeiconsIcon icon={CheckmarkCircle01Icon} size={12} className="mr-1" />
+                    Let Freelancer Continue
+                  </Button>
+                )}
+              <Button
+                size="sm"
+                variant="hero"
+                onClick={() => onReleaseFunds(dispute.milestone_id)}
+                disabled={releaseFundsPending}
+              >
+                Release Funds
+              </Button>
+            </div>
           )}
         </div>
       )}

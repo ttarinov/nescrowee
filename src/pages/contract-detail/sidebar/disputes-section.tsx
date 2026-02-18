@@ -34,7 +34,7 @@ export function DisputesSection({
           onReleaseFunds={actions.releaseFunds}
           onOverrideToContinueWork={actions.overrideToContinueWork}
           onAcceptAndRelease={actions.acceptAndRelease}
-          onRunInvestigation={onRunInvestigation}
+          onRunInvestigation={userRole === "client" ? onRunInvestigation : undefined}
           acceptPending={pending.accept}
           releaseFundsPending={pending.releaseFunds}
           overrideContinuePending={pending.overrideContinue}
