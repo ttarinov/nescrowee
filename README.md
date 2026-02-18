@@ -1,6 +1,6 @@
 # Nescrowee
 
-**Hackathon project · [NEAR Innovation Sandbox](https://near.org/sandbox) · Deadline: Feb 19, 2026**
+**Hackathon project · [NEAR Innovation Sandbox](https://near.org/sandbox)
 
 **[Live Demo](https://nescrowee.vercel.app/)**
 
