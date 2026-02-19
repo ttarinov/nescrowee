@@ -8,7 +8,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowCursor } from "@/components/arrow-cursor";
 import { SmoothScrollProvider } from "@/components/smooth-scroll-provider";
-import { FloatingChatButton } from "@/components/ai-chat/floating-chat-button";
+const FloatingChatButton = lazy(() =>
+  import("@/components/ai-chat/floating-chat-button").then(m => ({ default: m.FloatingChatButton }))
+);
 import { PageLoader } from "@/components/page-loader";
 
 const HomePage = lazy(() => import("./pages/home"));
@@ -88,7 +90,9 @@ const App = () => (
             </Suspense>
             </main>
             <ConditionalFooter />
-            <FloatingChatButton />
+            <Suspense fallback={null}>
+              <FloatingChatButton />
+            </Suspense>
           </BrowserRouter>
         </SmoothScrollProvider>
       </TooltipProvider>

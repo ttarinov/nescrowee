@@ -1,0 +1,41 @@
+.bn-editor-theme-app .bn-container {
+  --bn-colors-editor-text: hsl(var(--foreground));
+  --bn-colors-menu-background: hsl(var(--card));
+  --bn-colors-menu-text: hsl(var(--foreground));
+  --bn-colors-tooltip-background: hsl(var(--popover));
+  --bn-colors-tooltip-text: hsl(var(--foreground));
+  --bn-colors-hovered-background: hsl(var(--muted));
+  --bn-colors-hovered-text: hsl(var(--foreground));
+  --bn-colors-selected-background: hsl(var(--primary) / 0.3);
+  --bn-colors-selected-text: hsl(var(--foreground));
+  --bn-colors-disabled-background: hsl(var(--muted));
+  --bn-colors-disabled-text: hsl(var(--muted-foreground));
+  --bn-colors-shadow: hsl(var(--background));
+  --bn-colors-border: hsl(var(--border));
+  --bn-colors-side-menu: hsl(var(--muted-foreground));
+  --bn-border-radius: var(--radius);
+}
+
+.bn-editor-theme-app .bn-container,
+.bn-editor-theme-app .bn-container[data-color-scheme="dark"] {
+  --bn-colors-editor-background: transparent;
+}
+.bn-editor-theme-app .bn-editor {
+  background-color: transparent;
+  border-radius: var(--radius);
+}
+
+.bn-description-editor-wrap {
+  max-height: 420px;
+  overflow-y: auto;
+  padding-top: 0.25rem;
+}
+
+.bn-description-editor-wrap .bn-container {
+  min-height: 0;
+}
+
+.bn-description-editor-wrap .bn-editor {
+  min-height: 360px;
+  max-height: none;
+}
