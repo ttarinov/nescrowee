@@ -29,6 +29,17 @@ export default defineConfig(() => ({
         manualChunks: {
           "vendor-react": ["react", "react-dom", "react-router-dom"],
           "vendor-framer": ["framer-motion"],
+          "vendor-query": ["@tanstack/react-query"],
+          "vendor-radix": [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-popover",
+            "@radix-ui/react-progress",
+            "@radix-ui/react-scroll-area",
+            "@radix-ui/react-separator",
+            "@radix-ui/react-slot",
+            "@radix-ui/react-toggle",
+            "@radix-ui/react-tooltip",
+          ],
         },
       },
     },
